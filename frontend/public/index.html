@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-level="0">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>우루루 AI 주문</title>
+  <title>MenuMate · 우루루</title>
   <link rel="stylesheet" href="/css/kiosk.css">
 </head>
 <body>
@@ -12,81 +12,123 @@
       <span class="brand-mark">우루루</span>
       <span class="brand-sub">안양 본점</span>
     </div>
+    <ol class="steps" id="steps" aria-label="주문 단계"></ol>
     <div class="camera-pill" id="cameraPill">
       <video id="video" muted playsinline aria-hidden="true"></video>
       <div class="camera-text">
         <strong id="cameraState">카메라 준비 중</strong>
-        <span>화면 맞춤에만 쓰고 저장하지 않아요</span>
+        <span>글자 크기 맞춤에만 쓰고 저장하지 않아요</span>
       </div>
-      <button class="btn-ghost" id="cameraToggle">카메라 끄기</button>
+      <button class="btn-ghost" id="cameraToggle">끄기</button>
     </div>
   </header>
 
-  <main id="main">
-    <section class="hero" id="hero">
-      <h1>무엇을 드실지<br>고민되세요?</h1>
-      <p class="lead">드시고 싶은 걸 말씀해 주시면 메뉴를 골라 드려요.</p>
-      <button class="mic" id="micBtn" aria-label="말로 메뉴 고르기">
+  <!-- 1. 메뉴 고르기 -->
+  <section class="screen" id="screen-order">
+    <div class="talk">
+      <button class="ptt" id="ptt" aria-describedby="pttHint">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
-        <span id="micLabel">눌러서 말하기</span>
+        <span id="pttLabel">누르고 말하기</span>
       </button>
-      <p class="heard" id="heard" aria-live="polite"></p>
-      <div class="examples" id="examples">
-        <span class="examples-label">이렇게 말해 보세요</span>
-        <button class="chip" data-say="매운 해물 요리 먹고 싶어요">“매운 해물 요리”</button>
-        <button class="chip" data-say="아이랑 먹을 안 매운 거">“아이랑 먹을 안 매운 거”</button>
-        <button class="chip" data-say="두 명이서 3만원 정도로">“두 명이서 3만 원 정도”</button>
-        <button class="chip" data-say="여기 대표 메뉴 뭐예요">“대표 메뉴 뭐예요?”</button>
+      <div class="talk-body">
+        <p class="talk-hint" id="pttHint">꾹 누른 채 말하거나, 한 번 누르고 말씀하세요.<br>예) “안 매운 해물 요리”, “두 명이서 3만 원 정도”</p>
+        <p class="heard" id="heard" aria-live="polite"></p>
+        <div class="reply" id="reply" hidden aria-live="polite"></div>
       </div>
-    </section>
+    </div>
 
-    <section class="result" id="result" hidden>
-      <div class="understood" id="understood"></div>
-      <div class="cards" id="cards"></div>
-      <div class="combo" id="combo" hidden></div>
-      <div class="question" id="question" hidden></div>
-      <p class="decide-note">마음에 드는 메뉴의 <b>담기</b>를 누르세요. 주문은 직접 확인한 뒤에만 됩니다.</p>
-    </section>
+    <div class="filter-bar" id="filterBar" hidden>
+      <div class="filter-text">
+        <strong id="filterCount"></strong>
+        <span class="understood" id="understood"></span>
+      </div>
+      <button class="btn-outline" id="showAll">전체 메뉴 보기</button>
+    </div>
 
-    <section class="cart" id="cart" hidden>
-      <h2>담은 메뉴</h2>
-      <ul id="cartList"></ul>
-      <div class="cart-total"><span>합계</span><strong id="cartTotal">0원</strong></div>
-      <button class="btn-primary btn-wide" id="checkoutBtn">주문 확인하기</button>
-    </section>
-  </main>
+    <nav class="tabs" id="tabs" aria-label="메뉴 종류"></nav>
+    <div class="board" id="board" aria-live="polite"></div>
+  </section>
 
-  <!-- 공통 버튼: 모든 화면·모드에서 같은 위치·같은 크기 (FR-06) -->
+  <!-- 2. 장바구니 확인 (쉬운 절차에서는 먹고 가기·포장 선택까지 한 화면) -->
+  <section class="screen" id="screen-cart" hidden>
+    <h1 class="screen-title">주문을 확인해 주세요</h1>
+    <ul class="cart-list" id="cartList"></ul>
+    <div class="place-pick" id="placeInline" hidden>
+      <p>드시고 가세요, 가져가세요?</p>
+      <div class="two">
+        <button class="choice" data-place="dine">먹고 가기</button>
+        <button class="choice" data-place="take">가져가기</button>
+      </div>
+    </div>
+    <div class="total"><span>합계</span><strong id="cartTotal">0원</strong></div>
+    <button class="btn-primary btn-wide" id="cartNext">다음</button>
+  </section>
+
+  <!-- 3. 먹고 가기 / 가져가기 (일반 절차) -->
+  <section class="screen" id="screen-place" hidden>
+    <h1 class="screen-title">드시고 가세요, 가져가세요?</h1>
+    <div class="two big">
+      <button class="choice" data-place="dine">먹고 가기</button>
+      <button class="choice" data-place="take">가져가기</button>
+    </div>
+  </section>
+
+  <!-- 4. 결제 -->
+  <section class="screen" id="screen-pay" hidden>
+    <h1 class="screen-title">결제 방법을 골라 주세요</h1>
+    <p class="pay-total">결제할 금액 <strong id="payTotal">0원</strong></p>
+    <div class="two big">
+      <button class="choice" data-pay="card">카드</button>
+      <button class="choice" data-pay="simple">간편결제<small>삼성페이 · 카카오페이</small></button>
+    </div>
+    <p class="note">데모: 실제 결제 연동은 백엔드 담당 작업입니다.</p>
+  </section>
+
+  <!-- 5. 완료 -->
+  <section class="screen" id="screen-done" hidden>
+    <div class="done">
+      <p>주문이 완료되었어요</p>
+      <strong class="order-no" id="orderNo">000</strong>
+      <p>번호가 불리면 음식을 받아 가세요.</p>
+    </div>
+  </section>
+
+  <!-- 장바구니 요약: 메뉴 고르기 화면에서만 -->
+  <div class="cart-dock" id="cartDock" hidden>
+    <span id="dockText"></span>
+    <button class="btn-primary" id="dockGo">주문하기</button>
+  </div>
+
+  <!-- 공통 버튼: 모든 화면·글자 크기에서 같은 위치, 같은 순서 -->
   <nav class="fixed-bar" aria-label="공통 버튼">
     <button id="homeBtn">처음으로</button>
     <button id="backBtn">이전</button>
-    <button id="bigBtn">화면 크게</button>
+    <button id="sizeBtn">글자 크기<small id="sizeLabel">보통</small></button>
     <button id="helpBtn" class="help">도움 요청</button>
   </nav>
 
-  <div class="modal" id="modeModal" hidden role="dialog" aria-modal="true" aria-labelledby="modeTitle">
+  <div class="modal" id="moreModal" hidden role="dialog" aria-modal="true" aria-labelledby="moreTitle">
     <div class="modal-box">
-      <h2 id="modeTitle">글씨를 크게, 천천히 안내해 드릴까요?</h2>
-      <p>언제든 아래 <b>화면 크게</b> 버튼으로 바꿀 수 있어요.</p>
+      <h2 id="moreTitle">담았어요</h2>
+      <p id="moreText"></p>
       <div class="modal-actions">
-        <button class="btn-primary" id="modeYes">네, 크게 볼게요</button>
-        <button class="btn-secondary" id="modeNo">괜찮아요</button>
+        <button class="btn-primary" id="moreOrder">이대로 주문하기</button>
+        <button class="btn-outline" id="moreKeep">더 고르기</button>
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast" role="status" hidden></div>
 
-  <!-- 개발용 패널: 주소 뒤에 ?dev=1 -->
   <aside class="dev" id="dev" hidden>
-    <h3>개발용</h3>
+    <h3>개발용 (?dev=1)</h3>
     <div id="devFace">얼굴: -</div>
     <div id="devAge">연령대: -</div>
-    <form id="devForm"><input id="devText" placeholder="음성 대신 입력해서 테스트"><button>보내기</button></form>
+    <form id="devForm"><input id="devText" placeholder="음성 대신 입력"><button>보내기</button></form>
     <div class="dev-row">
-      <button data-age="senior">senior 가정</button>
-      <button data-age="adult">adult 가정</button>
-      <button data-age="unknown">unknown</button>
+      <button data-age="75">75세 가정</button>
+      <button data-age="60">60세 가정</button>
+      <button data-age="30">30세 가정</button>
     </div>
   </aside>
 

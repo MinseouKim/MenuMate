@@ -21,7 +21,8 @@ function createMenuRouter(menuRepo) {
           description: m.description,
           imageUrl: m.imageUrl || null,
           options: m.options || [],
-          soldOut: !!m.soldOut
+          soldOut: !!m.soldOut,
+          popular: (m.tags || []).includes('signature') // '대표 메뉴' 탭
         }))
       });
     } catch (e) {

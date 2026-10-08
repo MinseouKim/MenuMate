@@ -112,12 +112,12 @@ function findTags(t) {
   if (SHORT_ANSWERS[t]) tags.add(SHORT_ANSWERS[t]);
   for (const [tag, words] of Object.entries(TAG_KEYWORDS)) {
     // "면요리·밥요리·닭요리"의 '요리'는 요리(탕수육류)를 원한다는 뜻이 아니다
-    const target = tag === 'dish' ? t.replace(/(면|밥|닭|굴)요리/g, '') : t;
+    const target = tag === 'dish' ? t.replace(/(면|밥|닭|굴|해물|해산물|새우|고기|돼지고기|매운|매콤한|맵지않은|안매운|국물|중국|중식)요리/g, '') : t;
     if (words.some((w) => w.length >= 2 ? target.includes(w) : target === w)) tags.add(tag);
   }
   // 한 글자 키워드('면', '밥')는 다른 단어 뒤에 붙은 형태로만 인정
   if (/(면|국수)(요리|으로|이좋|먹|종류|이요)/.test(t)) tags.add('noodle');
-  if (/밥(으로|이좋|먹|종류|이요)/.test(t)) tags.add('rice');
+  if (/밥(으로|이좋|먹|종류|이요|주세요|줘|로|$)/.test(t)) tags.add('rice');
   return [...tags];
 }
 

@@ -12,11 +12,12 @@
   "store": "우루루 안양 본점",
   "menus": [
     { "id": 14, "name": "한돈 북경식 탕수육 (소)", "category": "요리", "price": 26000,
-      "priceVerified": true, "spicy": 0, "serves": 2, "description": "…", "imageUrl": null, "soldOut": false }
+      "priceVerified": true, "spicy": 0, "serves": 2, "description": "…", "imageUrl": null, "soldOut": false, "popular": true }
   ]
 }
 ```
 - `category`: `식사` | `요리` | `딤섬` | `코스` | `세트`
+- `popular`: 대표 메뉴 여부 ('대표 메뉴' 탭, 쉬운 화면 기본 탭)
 - `priceVerified: false` → 아직 실제 메뉴판으로 확인하지 않은 예시 가격
 
 ## AI

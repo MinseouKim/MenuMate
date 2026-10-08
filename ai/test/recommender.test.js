@@ -137,3 +137,27 @@ test('"짜장"이라고 하면 짜장 종류만 (짬뽕·우동 제외)', () => 
   assert.ok(names.length >= 3);
   assert.ok(names.every((n) => n.includes('짜장')), names.join(','));
 });
+
+test('문장 끝의 "밥"도 밥 요리로 인식, "~있으면"의 "면"은 무시', () => {
+  assert.ok(parseUtterance('새우 빼고 밥', menus).tags.includes('rice'));
+  assert.ok(parseUtterance('밥 주세요', menus).tags.includes('rice'));
+  assert.ok(!parseUtterance('매운 거 있으면', menus).tags.includes('noodle'));
+  const r = recommend({ text: '새우 빼고 밥', menus });
+  assert.strictEqual(r.fallback, false);
+  for (const m of r.matches) {
+    const menu = menus.find((x) => x.id === m.id);
+    assert.ok(menu.tags.includes('rice'), menu.name);
+    assert.ok(!menu.ingredients.includes('새우'), menu.name);
+  }
+});
+
+test('"매운 해물 요리" → 매운 해물 메뉴만, 1개로 줄어들지 않음 ("해물 요리"의 요리 = 음식)', () => {
+  const r = recommend({ text: '매운 해물 요리', menus });
+  assert.ok(!r.understood.tags.includes('나눠 먹는 요리'));
+  assert.ok(r.matches.length >= 3, `matches ${r.matches.length}`);
+  for (const m of r.matches) {
+    const menu = menus.find((x) => x.id === m.id);
+    assert.ok(menu.spicy >= 1 && menu.tags.includes('seafood'), menu.name);
+  }
+  assert.ok(parseUtterance('요리 하나 시킬게요', menus).tags.includes('dish'));
+});

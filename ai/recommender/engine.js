@@ -137,10 +137,11 @@ function recommend({ text, menus, context = null, ageGroup = 'unknown' }) {
   // 그런 메뉴가 2개 미만이면 하나라도 가진 메뉴까지. 직접 말한 메뉴는 항상 포함.
   const wanted = intent.tags;
   const hits = (c) => wanted.filter((t) => (c.menu.tags || []).includes(t)).length;
-  const strictCount = candidates.filter((c) => c.score > 0.5 && wanted.length && hits(c) === wanted.length).length;
-  const needHits = !wanted.length ? 0 : strictCount >= 2 ? wanted.length : 1;
   const named = (c) => intent.mentionedMenuIds.includes(c.menu.id) || (intent.relatedMenuIds || []).includes(c.menu.id);
   const spicyOk = (c) => intent.spicy !== true || c.menu.spicy >= 1; // 매운 걸 원하면 안 매운 메뉴는 빼기
+  // 맵기 조건까지 통과한 메뉴만 세야 "모두 가진 메뉴가 충분한지"를 바르게 판단한다
+  const strictCount = candidates.filter((c) => c.score > 0.5 && wanted.length && hits(c) === wanted.length && spicyOk(c)).length;
+  const needHits = !wanted.length ? 0 : strictCount >= 2 ? wanted.length : 1;
   // 메뉴 이름을 직접 말했으면("짜장", "탕수육") 그 메뉴 종류만 남긴다
   const anyNamed = candidates.some(named);
   const fits = (c) => (anyNamed ? named(c) : c.score > 0.5 && hits(c) >= needHits && spicyOk(c));

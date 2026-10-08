@@ -6,40 +6,60 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const sttSupported = !!SR;
 
 const ERROR_TEXT = {
-  'no-speech': '말씀이 들리지 않았어요. 버튼을 누른 채로 말씀해 주세요.',
+  'no-speech': '말씀이 들리지 않았어요. 버튼을 누르고 다시 말씀해 주세요.',
   'audio-capture': '마이크를 찾을 수 없어요.',
   'not-allowed': '마이크 사용이 허용되지 않았어요.',
   network: '인터넷 연결이 없어 음성 인식을 쓸 수 없어요. 화면에서 직접 골라 주세요.'
 };
 
+export const PTT_TIMING = {
+  TAP_MS: 400,          // 이보다 짧게 누르면 '켜고 끄기' 방식으로 전환
+  TAIL_MS: 500,         // 손 뗀 뒤 더 듣는 시간 (말끝 잘림 방지)
+  SILENCE_MS: 2500,     // 켜고 끄기 방식: 말이 끝나고 이만큼 조용하면 자동 종료
+  MAX_MS: 15000         // 켜고 끄기 방식: 최대 듣는 시간
+};
+
 /**
- * Push-to-talk: 버튼을 누르고 있는 동안만 듣는다.
- *   const ptt = createPushToTalk({ onInterim, onFinal, onError, onTooShort, onEnd });
- *   버튼 누름 → ptt.press(),  손 뗌 → ptt.release()
- * 손을 뗀 뒤 0.5초 더 들어서 말끝이 잘리지 않게 한다.
+ * Push-to-talk, 두 방식을 모두 지원한다.
+ *  - 꾹 누르기: 누르고 있는 동안 듣고, 손을 떼면 끝 (일반 고객)
+ *  - 짧게 누르기: 한 번 누르면 듣기 시작, 다시 누르거나 말이 끝나면 자동으로 끝
+ *    (버튼을 계속 누르고 있기 힘든 고령층)
+ *
+ *   const ptt = createPushToTalk({ onStart, onLatched, onInterim, onFinal, onError, onEnd });
+ *   pointerdown → ptt.press(e.timeStamp),  pointerup / pointercancel → ptt.release(e.timeStamp)
  */
 export function createPushToTalk(handlers = {}) {
   const {
-    onInterim = () => {}, onFinal = () => {}, onError = () => {},
-    onTooShort = () => {}, onEnd = () => {}
+    onStart = () => {}, onLatched = () => {}, onInterim = () => {},
+    onFinal = () => {}, onError = () => {}, onEnd = () => {}
   } = handlers;
-  const TAIL_MS = 500;      // 손 뗀 뒤 더 듣는 시간
-  const MIN_HOLD_MS = 400;  // 이보다 짧게 누르면 '누른 채로 말하세요' 안내
+  const { TAP_MS, TAIL_MS, SILENCE_MS, MAX_MS } = PTT_TIMING;
 
   let rec = null;
   let pressedAt = 0;
   let finalText = '';
   let cancelled = false;
-  let stopTimer = null;
+  let latched = false;      // 짧게 눌러 켜진 상태
+  let holding = false;
+  let timers = [];
+  let silenceTimer = null;
 
-  function press() {
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; clearTimeout(silenceTimer); };
+  const finish = () => { clearTimers(); if (rec) { try { rec.stop(); } catch { /* 이미 멈춤 */ } } };
+
+  // at: 입력 이벤트의 timeStamp (e.timeStamp). 화면이 바빠 처리가 늦어도 실제로 누른 시간으로 판단한다
+  function press(at = performance.now()) {
     if (!SR) { onError('unsupported', '이 브라우저는 음성 인식을 지원하지 않아요. 크롬을 사용해 주세요.'); return; }
+    if (rec && latched) { finish(); return; } // 켜고 끄기 방식에서 두 번째 누름 = 끝
     if (rec) return;
     if ('speechSynthesis' in window) speechSynthesis.cancel(); // 안내 음성이 마이크에 들어가지 않게
-    clearTimeout(stopTimer);
-    pressedAt = Date.now();
+    clearTimers();
+    pressedAt = at;
     finalText = '';
     cancelled = false;
+    latched = false;
+    holding = true;
+    onStart();
     rec = new SR();
     rec.lang = 'ko-KR';
     rec.interimResults = true;
@@ -53,6 +73,11 @@ export function createPushToTalk(handlers = {}) {
         else interim += r[0].transcript;
       }
       onInterim((finalText + interim).trim());
+      // 켜고 끄기 방식: 말이 멈추면 잠시 뒤 자동 종료 (다시 누르는 걸 잊어도 됨)
+      if (latched) {
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(finish, SILENCE_MS);
+      }
     };
     rec.onerror = (e) => {
       if (e.error === 'aborted') return;
@@ -63,25 +88,38 @@ export function createPushToTalk(handlers = {}) {
     rec.onend = () => {
       const text = finalText.trim();
       rec = null;
+      latched = false;
+      clearTimers();
       if (!cancelled && text) onFinal(text);
+      else if (!cancelled && !text) onError('no-speech', ERROR_TEXT['no-speech']);
       onEnd();
     };
     try { rec.start(); } catch { /* 이미 시작됨 */ }
   }
 
-  function release() {
-    if (!rec) return;
-    if (Date.now() - pressedAt < MIN_HOLD_MS) {
-      cancelled = true;
-      rec.abort();
-      onTooShort();
+  function release(at = performance.now()) {
+    if (!rec || !holding) return;
+    holding = false;
+    if (at - pressedAt < TAP_MS) {
+      // 짧게 눌렀다 → 계속 듣는다 (켜고 끄기 방식)
+      latched = true;
+      onLatched();
+      timers.push(setTimeout(finish, MAX_MS));
+      silenceTimer = setTimeout(finish, SILENCE_MS * 3); // 아무 말도 없으면 7.5초 뒤 종료
       return;
     }
-    const r = rec;
-    stopTimer = setTimeout(() => r.stop(), TAIL_MS);
+    timers.push(setTimeout(finish, TAIL_MS));
   }
 
-  return { press, release, get active() { return !!rec; } };
+  // 화면 이동 등으로 듣기를 취소할 때
+  function cancel() {
+    if (!rec) return;
+    cancelled = true;
+    clearTimers();
+    try { rec.abort(); } catch { /* 이미 멈춤 */ }
+  }
+
+  return { press, release, cancel, get active() { return !!rec; }, get latched() { return latched; } };
 }
 
 let koVoice = null;
