@@ -1,0 +1,830 @@
+{
+  "store": "우루루 안양 본점",
+  "address": "경기 안양시 동안구 학의로 196",
+  "note": "메뉴 이름은 공개 리뷰·소개 자료 기준, 가격·재료·맵기는 개발용 예시값입니다. 매장 방문 후 실제 메뉴판으로 꼭 교체하세요 (priceVerified=false).",
+  "menus": [
+    {
+      "id": 1,
+      "name": "짜장면",
+      "aliases": [
+        "자장면",
+        "짜장"
+      ],
+      "category": "식사",
+      "price": 8000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "kid",
+        "light",
+        "pork"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "양파",
+        "춘장"
+      ],
+      "description": "수타면에 진한 춘장 소스",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "간짜장",
+      "aliases": [
+        "간자장"
+      ],
+      "category": "식사",
+      "price": 9500,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "pork"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "양파",
+        "춘장",
+        "계란"
+      ],
+      "description": "물기 없이 바로 볶은 짜장 소스",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "이베리코 간짜장",
+      "aliases": [
+        "이베리코짜장"
+      ],
+      "category": "식사",
+      "price": 13000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "pork",
+        "signature",
+        "meat"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "양파",
+        "춘장",
+        "계란"
+      ],
+      "description": "이베리코 돼지고기로 볶은 간짜장",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "유니짜장",
+      "aliases": [
+        "유니자장"
+      ],
+      "category": "식사",
+      "price": 9500,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "pork",
+        "kid",
+        "soft"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "양파",
+        "춘장"
+      ],
+      "description": "고기와 채소를 잘게 다져 부드러운 짜장",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "짬뽕",
+      "aliases": [
+        "짬봉"
+      ],
+      "category": "식사",
+      "price": 9500,
+      "priceVerified": false,
+      "spicy": 2,
+      "tags": [
+        "noodle",
+        "soup",
+        "seafood"
+      ],
+      "ingredients": [
+        "밀가루",
+        "오징어",
+        "홍합",
+        "새우",
+        "배추",
+        "고춧가루"
+      ],
+      "description": "얼큰한 해물 국물",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "삼선짬뽕",
+      "aliases": [
+        "삼선 짬뽕"
+      ],
+      "category": "식사",
+      "price": 13000,
+      "priceVerified": false,
+      "spicy": 2,
+      "tags": [
+        "noodle",
+        "soup",
+        "seafood",
+        "hearty"
+      ],
+      "ingredients": [
+        "밀가루",
+        "새우",
+        "오징어",
+        "해삼",
+        "홍합",
+        "고춧가루"
+      ],
+      "description": "새우·오징어·해삼을 듬뿍 넣은 짬뽕",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "굴짬뽕",
+      "aliases": [
+        "굴 짬뽕"
+      ],
+      "category": "식사",
+      "price": 16000,
+      "priceVerified": false,
+      "spicy": 1,
+      "tags": [
+        "noodle",
+        "soup",
+        "seafood",
+        "signature"
+      ],
+      "ingredients": [
+        "밀가루",
+        "굴",
+        "오징어",
+        "후추"
+      ],
+      "description": "굴이 가득한 묵직한 국물",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "백짬뽕",
+      "aliases": [
+        "하얀짬뽕",
+        "흰짬뽕"
+      ],
+      "category": "식사",
+      "price": 10000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "soup",
+        "seafood",
+        "light"
+      ],
+      "ingredients": [
+        "밀가루",
+        "오징어",
+        "홍합",
+        "새우",
+        "배추"
+      ],
+      "description": "맵지 않은 맑은 해물 국물",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "우동",
+      "aliases": [
+        "중화우동"
+      ],
+      "category": "식사",
+      "price": 9000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "noodle",
+        "soup",
+        "light",
+        "soft",
+        "kid"
+      ],
+      "ingredients": [
+        "밀가루",
+        "계란",
+        "오징어",
+        "배추"
+      ],
+      "description": "계란을 풀어 순한 국물",
+      "options": [
+        {
+          "id": "large",
+          "name": "곱빼기",
+          "easyName": "양 많이",
+          "price": 1000
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "새우볶음밥",
+      "aliases": [
+        "볶음밥",
+        "새우 볶음밥"
+      ],
+      "category": "식사",
+      "price": 10000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "rice",
+        "seafood",
+        "kid"
+      ],
+      "ingredients": [
+        "쌀",
+        "새우",
+        "계란",
+        "파"
+      ],
+      "description": "불향 볶음밥에 짜장 소스 곁들임"
+    },
+    {
+      "id": 11,
+      "name": "해물짬뽕밥",
+      "aliases": [
+        "짬뽕밥"
+      ],
+      "category": "식사",
+      "price": 10500,
+      "priceVerified": false,
+      "spicy": 2,
+      "tags": [
+        "rice",
+        "soup",
+        "seafood",
+        "hearty"
+      ],
+      "ingredients": [
+        "쌀",
+        "오징어",
+        "홍합",
+        "새우",
+        "고춧가루"
+      ],
+      "description": "짬뽕 국물에 밥"
+    },
+    {
+      "id": 12,
+      "name": "잡채밥",
+      "aliases": [],
+      "category": "식사",
+      "price": 11000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "rice",
+        "pork"
+      ],
+      "ingredients": [
+        "쌀",
+        "당면",
+        "돼지고기",
+        "채소"
+      ],
+      "description": "중식 잡채를 밥 위에"
+    },
+    {
+      "id": 13,
+      "name": "마파두부밥",
+      "aliases": [
+        "마파두부"
+      ],
+      "category": "식사",
+      "price": 10500,
+      "priceVerified": false,
+      "spicy": 2,
+      "tags": [
+        "rice",
+        "soft",
+        "pork"
+      ],
+      "ingredients": [
+        "쌀",
+        "두부",
+        "돼지고기",
+        "두반장"
+      ],
+      "description": "얼얼하고 부드러운 두부 덮밥"
+    },
+    {
+      "id": 14,
+      "name": "한돈 북경식 탕수육 (소)",
+      "aliases": [
+        "탕수육",
+        "북경식탕수육",
+        "북경 탕수육"
+      ],
+      "category": "요리",
+      "price": 26000,
+      "priceVerified": true,
+      "serves": 2,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "fried",
+        "pork",
+        "meat",
+        "signature",
+        "kid",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "전분",
+        "식초",
+        "설탕"
+      ],
+      "description": "24시간 숙성 한돈을 바삭하게 튀긴 대표 메뉴"
+    },
+    {
+      "id": 15,
+      "name": "한돈 북경식 탕수육 (중)",
+      "aliases": [],
+      "category": "요리",
+      "price": 34000,
+      "priceVerified": false,
+      "serves": 3,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "fried",
+        "pork",
+        "meat",
+        "signature",
+        "kid",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "전분",
+        "식초",
+        "설탕"
+      ],
+      "description": "3~4인용"
+    },
+    {
+      "id": 16,
+      "name": "찹쌀탕수육",
+      "aliases": [
+        "꿔바로우",
+        "찹쌀 탕수육"
+      ],
+      "category": "요리",
+      "price": 28000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "fried",
+        "pork",
+        "meat",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "찹쌀",
+        "비트"
+      ],
+      "description": "쫀득한 찹쌀 튀김옷, 비트 소스"
+    },
+    {
+      "id": 17,
+      "name": "생등심탕수육",
+      "aliases": [
+        "등심탕수육"
+      ],
+      "category": "요리",
+      "price": 27000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "fried",
+        "pork",
+        "meat",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "전분"
+      ],
+      "description": "육즙 가득한 등심 탕수육"
+    },
+    {
+      "id": 18,
+      "name": "이베리코 싱가폴식 탕수육",
+      "aliases": [
+        "싱가폴탕수육",
+        "이베리코 탕수육"
+      ],
+      "category": "요리",
+      "price": 32000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 1,
+      "tags": [
+        "dish",
+        "fried",
+        "pork",
+        "meat",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "전분",
+        "커리"
+      ],
+      "description": "이베리코 돼지고기에 새콤달콤 싱가폴식 소스"
+    },
+    {
+      "id": 19,
+      "name": "해물누룽지탕",
+      "aliases": [
+        "누룽지탕"
+      ],
+      "category": "요리",
+      "price": 35000,
+      "priceVerified": false,
+      "serves": 3,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "soup",
+        "seafood",
+        "soft",
+        "sharing"
+      ],
+      "ingredients": [
+        "누룽지",
+        "새우",
+        "오징어",
+        "해삼",
+        "채소"
+      ],
+      "description": "바삭한 누룽지에 해물 소스"
+    },
+    {
+      "id": 20,
+      "name": "깐풍기",
+      "aliases": [],
+      "category": "요리",
+      "price": 30000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 2,
+      "tags": [
+        "dish",
+        "fried",
+        "chicken",
+        "meat",
+        "sharing"
+      ],
+      "ingredients": [
+        "닭고기",
+        "전분",
+        "고추",
+        "마늘"
+      ],
+      "description": "매콤달콤한 닭 튀김 볶음"
+    },
+    {
+      "id": 21,
+      "name": "유린기",
+      "aliases": [],
+      "category": "요리",
+      "price": 29000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 1,
+      "tags": [
+        "dish",
+        "fried",
+        "chicken",
+        "meat",
+        "light",
+        "sharing"
+      ],
+      "ingredients": [
+        "닭고기",
+        "전분",
+        "양상추",
+        "간장"
+      ],
+      "description": "바삭한 닭고기에 새콤한 간장 소스"
+    },
+    {
+      "id": 22,
+      "name": "칠리새우",
+      "aliases": [
+        "깐쇼새우",
+        "깐쇼"
+      ],
+      "category": "요리",
+      "price": 33000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 1,
+      "tags": [
+        "dish",
+        "fried",
+        "seafood",
+        "sharing"
+      ],
+      "ingredients": [
+        "새우",
+        "전분",
+        "칠리소스"
+      ],
+      "description": "탱글한 새우에 달콤 매콤 칠리 소스"
+    },
+    {
+      "id": 23,
+      "name": "고추잡채와 꽃빵",
+      "aliases": [
+        "고추잡채"
+      ],
+      "category": "요리",
+      "price": 27000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 1,
+      "tags": [
+        "dish",
+        "pork",
+        "sharing"
+      ],
+      "ingredients": [
+        "돼지고기",
+        "피망",
+        "밀가루"
+      ],
+      "description": "피망과 고기를 볶아 꽃빵에 싸 먹는 요리"
+    },
+    {
+      "id": 24,
+      "name": "베이징덕",
+      "aliases": [
+        "북경오리",
+        "오리"
+      ],
+      "category": "요리",
+      "price": 68000,
+      "priceVerified": false,
+      "serves": 3,
+      "spicy": 0,
+      "tags": [
+        "dish",
+        "meat",
+        "signature",
+        "sharing",
+        "special"
+      ],
+      "ingredients": [
+        "오리고기",
+        "밀전병",
+        "파"
+      ],
+      "description": "바삭한 오리 껍질을 밀전병에 싸 먹는 특별 요리"
+    },
+    {
+      "id": 25,
+      "name": "소룡포",
+      "aliases": [
+        "샤오롱바오",
+        "소롱포"
+      ],
+      "category": "딤섬",
+      "price": 9000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "dimsum",
+        "pork",
+        "soft",
+        "kid",
+        "light"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기"
+      ],
+      "description": "육즙이 가득한 찐 만두 (4개)"
+    },
+    {
+      "id": 26,
+      "name": "쇼마이",
+      "aliases": [
+        "샤오마이"
+      ],
+      "category": "딤섬",
+      "price": 9000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "dimsum",
+        "pork",
+        "seafood",
+        "light"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "새우"
+      ],
+      "description": "새우와 고기를 얹은 찐 만두 (4개)"
+    },
+    {
+      "id": 27,
+      "name": "모둠 딤섬",
+      "aliases": [
+        "딤섬 모둠",
+        "딤섬"
+      ],
+      "category": "딤섬",
+      "price": 18000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 0,
+      "tags": [
+        "dimsum",
+        "pork",
+        "seafood",
+        "sharing",
+        "signature"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "새우"
+      ],
+      "description": "여러 가지 딤섬을 한 번에"
+    },
+    {
+      "id": 28,
+      "name": "군만두",
+      "aliases": [
+        "만두",
+        "튀김만두"
+      ],
+      "category": "딤섬",
+      "price": 7000,
+      "priceVerified": false,
+      "spicy": 0,
+      "tags": [
+        "dimsum",
+        "fried",
+        "pork",
+        "kid",
+        "light"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "부추"
+      ],
+      "description": "바삭하게 구운 만두 (6개)"
+    },
+    {
+      "id": 29,
+      "name": "런치 리장코스 (1인)",
+      "aliases": [
+        "코스",
+        "점심코스",
+        "런치코스"
+      ],
+      "category": "코스",
+      "price": 35000,
+      "priceVerified": true,
+      "spicy": 1,
+      "tags": [
+        "course",
+        "special",
+        "hearty",
+        "signature"
+      ],
+      "ingredients": [
+        "새우",
+        "돼지고기",
+        "밀가루",
+        "해물"
+      ],
+      "description": "평일 점심 코스 (요리 몇 가지 + 식사)",
+      "available": "평일 점심"
+    },
+    {
+      "id": 30,
+      "name": "탕수육 세트 (짜장면 2 + 탕수육 소)",
+      "aliases": [
+        "세트",
+        "2인세트",
+        "커플세트"
+      ],
+      "category": "세트",
+      "price": 39000,
+      "priceVerified": false,
+      "serves": 2,
+      "spicy": 0,
+      "tags": [
+        "set",
+        "noodle",
+        "dish",
+        "pork",
+        "kid",
+        "sharing"
+      ],
+      "ingredients": [
+        "밀가루",
+        "돼지고기",
+        "전분",
+        "춘장"
+      ],
+      "description": "짜장면 2그릇과 탕수육 소"
+    }
+  ]
+}

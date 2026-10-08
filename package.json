@@ -1,0 +1,22 @@
+{
+  "name": "menumate",
+  "version": "1.0.0",
+  "description": "MenuMate - 우루루 안양 본점 AI 추천 키오스크 (얼굴 인식 글자 크기 조절 + 음성 메뉴 추천)",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "test": "node --test",
+    "db:seed": "node backend/db/seed.js"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "express": "^4.22.3",
+    "mysql2": "^3.24.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}
