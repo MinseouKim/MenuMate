@@ -1,0 +1,1 @@
+#root{width:100%;height:100%;display:grid;place-items:center}body{display:block}#root main{margin:0}.menu-info-dialog button{font:inherit}.camera-frame video{display:block}.camera-frame:has(span) video{display:none}.screen input,.screen select{margin-top:8px}.screen .field select{display:block}.menu-info-dialog li{margin-bottom:10px}

@@ -1,0 +1,2071 @@
+[
+  {
+    "id": "duck-fish-1",
+    "name": "베이징덕 한 마리",
+    "price": 105000,
+    "category": "duck-fish",
+    "kind": "베이징덕/생선",
+    "badge": "대표",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "오리"
+    ],
+    "quantityUnit": "한 마리",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "reviews": [],
+    "keywords": [
+      "베이징덕"
+    ],
+    "aliases": [
+      "북경오리 한 마리"
+    ]
+  },
+  {
+    "id": "duck-fish-2",
+    "name": "베이징덕 반 마리",
+    "price": 64000,
+    "category": "duck-fish",
+    "kind": "베이징덕/생선",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "오리"
+    ],
+    "quantityUnit": "반 마리",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "reviews": [],
+    "keywords": [
+      "베이징덕"
+    ],
+    "aliases": [
+      "북경오리 반 마리"
+    ]
+  },
+  {
+    "id": "duck-fish-3",
+    "name": "광동식 활 생선찜",
+    "price": 86000,
+    "category": "duck-fish",
+    "kind": "베이징덕/생선",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "생선"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 활 생선 찜 요리",
+    "reviews": [],
+    "keywords": [
+      "생선찜"
+    ]
+  },
+  {
+    "id": "duck-fish-4",
+    "name": "광동식 활 생선튀김",
+    "price": 86000,
+    "category": "duck-fish",
+    "kind": "베이징덕/생선",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "생선"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 활 생선 튀김 요리",
+    "reviews": [],
+    "keywords": [
+      "생선튀김"
+    ]
+  },
+  {
+    "id": "dimsum-1",
+    "name": "모듬 딤섬",
+    "price": 19500,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "badge": "대표",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "8개입",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "reviews": [],
+    "keywords": [
+      "딤섬"
+    ]
+  },
+  {
+    "id": "dimsum-2",
+    "name": "홍콩식 딤섬 트리오",
+    "price": 11000,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "돼지고기"
+    ],
+    "quantityUnit": "3개입",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [],
+    "description": "트러플 하가우(1PCS), 소마이(1PCS), 부추교자(1PCS)",
+    "reviews": [],
+    "keywords": [
+      "딤섬"
+    ]
+  },
+  {
+    "id": "dimsum-3",
+    "name": "소롱포",
+    "price": 8900,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "한입 베어물면 담백한 육즙이 가득 넘쳐흐르는 광동식 딤섬",
+    "reviews": [],
+    "keywords": [
+      "소롱포"
+    ],
+    "aliases": [
+      "소룡포",
+      "샤오롱바오"
+    ]
+  },
+  {
+    "id": "dimsum-4",
+    "name": "홍게살 소롱포",
+    "price": 9500,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게"
+    ],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "담백한 게살이 듬뿍 들어간 상해식 딤섬",
+    "reviews": [],
+    "keywords": [
+      "소롱포"
+    ],
+    "aliases": [
+      "홍게살 소룡포"
+    ]
+  },
+  {
+    "id": "dimsum-5",
+    "name": "하가우",
+    "price": 9800,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "얇은 피에 신선한 새우살을 넣어 만든 광동식 딤섬",
+    "reviews": [],
+    "keywords": [
+      "하가우"
+    ],
+    "aliases": [
+      "하카우"
+    ]
+  },
+  {
+    "id": "dimsum-6",
+    "name": "쇼마이",
+    "price": 9800,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "돼지고기"
+    ],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "다진 돼지고기와 새우를 넣고 꽃 모양으로 빚어낸 광동식 딤섬",
+    "reviews": [],
+    "keywords": [
+      "쇼마이"
+    ],
+    "aliases": [
+      "소마이",
+      "샤오마이"
+    ]
+  },
+  {
+    "id": "dimsum-7",
+    "name": "트러플 쇼마이",
+    "price": 9800,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "돼지고기"
+    ],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "트러플 향이 가득한 쇼마이",
+    "reviews": [],
+    "keywords": [
+      "쇼마이"
+    ],
+    "aliases": [
+      "트러플 소마이"
+    ]
+  },
+  {
+    "id": "dimsum-8",
+    "name": "모듬버섯 야채교자",
+    "price": 8900,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "버섯 향이 가득한 야채교자",
+    "reviews": [],
+    "keywords": [
+      "교자"
+    ]
+  },
+  {
+    "id": "dimsum-9",
+    "name": "부추교자",
+    "price": 9800,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "향긋한 부추로 가득 채운 광동식 딤섬",
+    "reviews": [],
+    "keywords": [
+      "교자"
+    ]
+  },
+  {
+    "id": "dimsum-10",
+    "name": "사천식 돼지고기 완탕",
+    "price": 9500,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "6개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "reviews": [],
+    "keywords": [
+      "완탕"
+    ]
+  },
+  {
+    "id": "dimsum-11",
+    "name": "카다이프 새우완자 튀김",
+    "price": 10500,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "3개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "카다이프로 감싼 새우완자를 바삭하게 튀겨낸 춘권",
+    "reviews": [],
+    "keywords": [
+      "새우"
+    ]
+  },
+  {
+    "id": "dimsum-12",
+    "name": "두부피 새우 춘권",
+    "price": 9500,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "badge": "신규",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "3개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "바삭한 두부피 속에 탱글한 새우를 더한 프리미엄 춘권",
+    "reviews": [],
+    "keywords": [
+      "춘권",
+      "두부",
+      "새우"
+    ]
+  },
+  {
+    "id": "dimsum-13",
+    "name": "수제 군만두",
+    "price": 8900,
+    "category": "dimsum",
+    "kind": "딤섬",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "4개입",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "reviews": [],
+    "keywords": [
+      "군만두",
+      "만두"
+    ]
+  },
+  {
+    "id": "vegetable-1",
+    "name": "마라 오이 무침",
+    "price": 7900,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 2,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "매콤한 중국식 오이무침",
+    "reviews": [],
+    "keywords": [
+      "무침"
+    ]
+  },
+  {
+    "id": "vegetable-2",
+    "name": "목이 버섯 무침",
+    "price": 7900,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "마늘소스에 목이버섯을 무친 요리",
+    "reviews": [],
+    "keywords": [
+      "무침"
+    ]
+  },
+  {
+    "id": "vegetable-3",
+    "name": "매콤 크리스피 가지튀김",
+    "price": 12000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 1,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "조염 향신료를 곁들인 매콤한 가지튀김",
+    "reviews": [],
+    "keywords": [
+      "가지"
+    ]
+  },
+  {
+    "id": "vegetable-4",
+    "name": "핫팟 광동식 어향가지",
+    "price": 20000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "어향소스의 깊은 맛이 살아있는 매콤한 가지 요리",
+    "reviews": [],
+    "keywords": [
+      "가지"
+    ]
+  },
+  {
+    "id": "vegetable-5",
+    "name": "핫팟 사천식 마파두부",
+    "price": 20000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "부드러운 연두부와 깊고 풍부한 두반장의 조화가 매력적인 사천식 두부 요리",
+    "reviews": [],
+    "keywords": [
+      "마파두부",
+      "두부"
+    ]
+  },
+  {
+    "id": "vegetable-6",
+    "name": "청경채 야채볶음",
+    "price": 15000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "굴"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "청경채를 굴소스 또는 마늘소스로 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "야채볶음"
+    ],
+    "options": [
+      "굴소스",
+      "마늘소스"
+    ]
+  },
+  {
+    "id": "vegetable-7",
+    "name": "비타민 야채볶음",
+    "price": 15000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "비타민을 소스와 함께 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "야채볶음"
+    ]
+  },
+  {
+    "id": "vegetable-8",
+    "name": "공심채 야채볶음",
+    "price": 18000,
+    "category": "vegetable",
+    "kind": "야채",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "공심채를 XO소스 또는 마늘소스로 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "야채볶음"
+    ],
+    "options": [
+      "XO소스",
+      "마늘소스"
+    ]
+  },
+  {
+    "id": "cold-1",
+    "name": "참깨소스로 맛을 낸 유자향 토마토 샐러드",
+    "price": 12000,
+    "category": "cold",
+    "kind": "냉채/샐러드",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 2,
+    "pairings": [],
+    "description": "참깨소스로 맛을 낸 유자향 토마토 샐러드",
+    "reviews": [],
+    "keywords": [
+      "샐러드"
+    ]
+  },
+  {
+    "id": "cold-2",
+    "name": "오향장우육 냉채",
+    "price": 28000,
+    "category": "cold",
+    "kind": "냉채/샐러드",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "사태에 우루루 오향 소스를 곁들인 요리",
+    "reviews": [],
+    "keywords": [
+      "냉채"
+    ]
+  },
+  {
+    "id": "cold-3",
+    "name": "양장피 잡채",
+    "price": 35000,
+    "category": "cold",
+    "kind": "냉채/샐러드",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "야채, 해물, 육류가 어우러진 냉채 요리",
+    "reviews": [],
+    "keywords": [
+      "양장피"
+    ]
+  },
+  {
+    "id": "cold-4",
+    "name": "우루루 특선냉채",
+    "price": 38000,
+    "category": "cold",
+    "kind": "냉채/샐러드",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [],
+    "description": "신선하고 풍부한 재료가 곁들여진 특 냉채",
+    "reviews": [],
+    "keywords": [
+      "냉채"
+    ]
+  },
+  {
+    "id": "soup-1",
+    "name": "송이 청채 전복 맑은 스프",
+    "price": 15000,
+    "category": "soup",
+    "kind": "스프/탕",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "전복"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [],
+    "description": "송이와 전복&청경채를 넣고 맑게 끓여낸 스프",
+    "reviews": [],
+    "keywords": [
+      "스프",
+      "전복"
+    ]
+  },
+  {
+    "id": "soup-2",
+    "name": "붉은 대게살 스프",
+    "price": 9000,
+    "category": "soup",
+    "kind": "스프/탕",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [],
+    "description": "부드럽고 담백한 홍게살 스프",
+    "reviews": [],
+    "keywords": [
+      "스프"
+    ]
+  },
+  {
+    "id": "soup-3",
+    "name": "옥수수 게살스프",
+    "price": 9000,
+    "category": "soup",
+    "kind": "스프/탕",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [],
+    "description": "게살과 옥수수를 끓여낸 고소한 중국식 스프",
+    "reviews": [],
+    "keywords": [
+      "스프"
+    ]
+  },
+  {
+    "id": "soup-4",
+    "name": "해물 산라탕",
+    "price": 9000,
+    "category": "soup",
+    "kind": "스프/탕",
+    "spicy": 2,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [],
+    "description": "신맛과 매운맛이 조화로운 스프",
+    "reviews": [],
+    "keywords": [
+      "산라탕"
+    ]
+  },
+  {
+    "id": "chicken-1",
+    "name": "고추 유린기",
+    "price": 35000,
+    "category": "chicken",
+    "kind": "치킨",
+    "spicy": 1,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "닭고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "바삭한 닭튀김에 신선한 야채와 특제 고추간장소스를 부어먹는 요리",
+    "reviews": [],
+    "keywords": [
+      "유린기"
+    ]
+  },
+  {
+    "id": "chicken-2",
+    "name": "마늘 깐풍기",
+    "price": 35000,
+    "category": "chicken",
+    "kind": "치킨",
+    "spicy": 1,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "닭고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "닭고기를 튀겨 매콤한 깐풍소스에 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "깐풍기",
+      "깐풍"
+    ]
+  },
+  {
+    "id": "chicken-3",
+    "name": "핫팟 좌종당계",
+    "price": 35000,
+    "category": "chicken",
+    "kind": "치킨",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "닭고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "닭고기에 매콤달콤한 소스를 입혀 만든 미국식 중국 핫팟 요리",
+    "reviews": [],
+    "keywords": [
+      "좌종당계"
+    ]
+  },
+  {
+    "id": "chicken-4",
+    "name": "사천식 라즈지",
+    "price": 35000,
+    "category": "chicken",
+    "kind": "치킨",
+    "spicy": 3,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "닭고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "바삭하게 튀긴 닭고기에 사천식 고추를 곁들인 매운 닭튀김 요리",
+    "reviews": [],
+    "keywords": [
+      "라즈지"
+    ]
+  },
+  {
+    "id": "chicken-5",
+    "name": "치킨 캐슈넛 볶음",
+    "price": 35000,
+    "category": "chicken",
+    "kind": "치킨",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "닭고기",
+      "견과류"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "부드러운 닭고기와 캐슈넛을 화이트소스로 볶아낸 담백한 요리",
+    "reviews": [],
+    "keywords": [
+      "캐슈넛"
+    ]
+  },
+  {
+    "id": "pork-1",
+    "name": "이베리코 싱가폴식 탕수육",
+    "price": 36000,
+    "category": "pork",
+    "kind": "돼지고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "최고급 이베리코 고기로 만든 탕수육과 우루루만의 시그니처 싱가폴식 소스",
+    "reviews": [],
+    "keywords": [
+      "탕수육"
+    ]
+  },
+  {
+    "id": "pork-2",
+    "name": "항저우식 동파육",
+    "price": 40000,
+    "category": "pork",
+    "kind": "돼지고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "우루루 특제 소스로 조리된 항저우식 돼지고기 찜 요리",
+    "reviews": [],
+    "keywords": [
+      "동파육"
+    ]
+  },
+  {
+    "id": "pork-3",
+    "name": "고추잡채&바오번",
+    "price": 35000,
+    "category": "pork",
+    "kind": "돼지고기",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "아삭한 피망과 부드러운 돼지고기를 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "고추잡채",
+      "바오번"
+    ]
+  },
+  {
+    "id": "pork-4",
+    "name": "생등심 탕수육",
+    "price": 32000,
+    "category": "pork",
+    "kind": "돼지고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "24시간 숙성된 육즙가득한 고기로 만든 생등심 탕수육과 과일 소스",
+    "reviews": [],
+    "keywords": [
+      "탕수육"
+    ]
+  },
+  {
+    "id": "beef-1",
+    "name": "숙성 소고기 탕수육",
+    "price": 40000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "숙성한 부드러운 채끝부위를 튀겨 만든 탕수육 요리",
+    "reviews": [],
+    "keywords": [
+      "탕수육"
+    ]
+  },
+  {
+    "id": "beef-2",
+    "name": "흑후추 마늘 소고기 안심",
+    "price": 45000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "소안심을 흑후추 소스로 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "안심"
+    ]
+  },
+  {
+    "id": "beef-3",
+    "name": "흑후추 소고기 꽈리고추볶음",
+    "price": 38000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "소고기와 꽈리고추를 흑후추 소스로 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "꽈리고추"
+    ]
+  },
+  {
+    "id": "beef-4",
+    "name": "굴소스에 볶아낸 소고기&아스파라거스",
+    "price": 38000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기",
+      "굴"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "깊은 감칠맛의 굴소스와 소고기를 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "아스파라거스"
+    ]
+  },
+  {
+    "id": "beef-5",
+    "name": "채끝등심과 신선한 미니코스 랩",
+    "price": 38000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 야채에 싸먹는 채끝등심 요리",
+    "reviews": [],
+    "keywords": [
+      "랩"
+    ]
+  },
+  {
+    "id": "beef-6",
+    "name": "상해식 대파 소고기",
+    "price": 38000,
+    "category": "beef",
+    "kind": "소고기",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "국내산 대파와 소고기를 불향 가득 담아 볶아낸 요리",
+    "reviews": []
+  },
+  {
+    "id": "noodle-1",
+    "name": "원심 유니짜장",
+    "price": 8000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "다진 돼지고기와 파기름으로 진하게 볶아낸 유니짜장",
+    "reviews": [],
+    "keywords": [
+      "짜장"
+    ],
+    "aliases": [
+      "유니짜장"
+    ]
+  },
+  {
+    "id": "noodle-2",
+    "name": "싱가폴식 원 새우탕면",
+    "price": 16000,
+    "category": "noodle",
+    "kind": "면",
+    "badge": "신규",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "진하게 우려낸 새우 본연의 깊은 맛, 싱가포르 현지의 이국적인 풍미를 그대로 담은 시원한 새우탕면",
+    "reviews": [],
+    "keywords": [
+      "탕면",
+      "새우"
+    ],
+    "aliases": [
+      "싱가폴 새우탕면",
+      "새우탕면"
+    ]
+  },
+  {
+    "id": "noodle-3",
+    "name": "블랙 이베리코 간짜장",
+    "price": 15000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "이베리코에 특제 짜장소스와 신선한 양파를 갓 볶아낸 짜장면",
+    "reviews": [],
+    "keywords": [
+      "짜장",
+      "간짜장"
+    ]
+  },
+  {
+    "id": "noodle-4",
+    "name": "깻잎 차돌 짬뽕",
+    "price": 14000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 2,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기",
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "차돌박이가 들어간 얼큰한 짬뽕",
+    "reviews": [],
+    "keywords": [
+      "짬뽕"
+    ]
+  },
+  {
+    "id": "noodle-5",
+    "name": "해물 짬뽕",
+    "price": 14000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 2,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "해물을 푸짐하게 넣은 얼큰한 해물 짬뽕",
+    "reviews": [],
+    "keywords": [
+      "짬뽕"
+    ]
+  },
+  {
+    "id": "noodle-6",
+    "name": "사천식 딴딴면",
+    "price": 13000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "땅콩",
+      "견과류"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "땅콩 소스와 고추기름으로 맛을 낸 사천식 면요리",
+    "reviews": [],
+    "keywords": [
+      "딴딴면"
+    ]
+  },
+  {
+    "id": "noodle-7",
+    "name": "소고기 우육탕면",
+    "price": 13000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 2,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "진한 마라향이 일품인 소고기 면요리",
+    "reviews": [],
+    "keywords": [
+      "탕면",
+      "우육탕면"
+    ]
+  },
+  {
+    "id": "noodle-8",
+    "name": "X.O 해산물 에그누들 차우면",
+    "price": 15000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물",
+      "계란"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "해산물과 에그누들을 X.O소스에 볶아낸 홍콩식 볶음면 요리",
+    "reviews": [],
+    "keywords": [
+      "차우면",
+      "에그누들"
+    ]
+  },
+  {
+    "id": "noodle-9",
+    "name": "상해식 소고기 에그누들 차우면",
+    "price": 15000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기",
+      "계란"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "갖은 채소와 소고기를 함께 볶아낸 에그누들 요리",
+    "reviews": [],
+    "keywords": [
+      "차우면",
+      "에그누들"
+    ]
+  },
+  {
+    "id": "noodle-10",
+    "name": "빙화 비취냉면(하절기)",
+    "price": 15000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "reviews": [],
+    "keywords": [
+      "냉면"
+    ],
+    "aliases": [
+      "비취냉면"
+    ]
+  },
+  {
+    "id": "noodle-11",
+    "name": "사천 굴탕면(동절기)",
+    "price": 15000,
+    "category": "noodle",
+    "kind": "면",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "굴"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "reviews": [],
+    "keywords": [
+      "탕면",
+      "굴탕면"
+    ],
+    "aliases": [
+      "굴탕면"
+    ]
+  },
+  {
+    "id": "rice-1",
+    "name": "팔진 잡탕밥",
+    "price": 18000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "여덟가지 해산물을 풍미 가득하게 볶아 만든 덮밥",
+    "reviews": [],
+    "keywords": [
+      "잡탕밥"
+    ]
+  },
+  {
+    "id": "rice-2",
+    "name": "붉은 대게살 류산슬 덮밥",
+    "price": 15000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게",
+      "해삼"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "붉은 대게살과 해삼&야채를 곁들인 덮밥",
+    "reviews": [],
+    "keywords": [
+      "덮밥",
+      "류산슬"
+    ]
+  },
+  {
+    "id": "rice-3",
+    "name": "홍콩식 날치알 흰자 볶음밥",
+    "price": 13000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "생선",
+      "계란"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "부드러운 흰자와 날치알을 곁들인 볶음밥",
+    "reviews": [],
+    "keywords": [
+      "볶음밥"
+    ]
+  },
+  {
+    "id": "rice-4",
+    "name": "X.O소스 게살볶음밥",
+    "price": 13000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "감칠맛나는 XO소스에 볶아낸 게살 볶음밥",
+    "reviews": [],
+    "keywords": [
+      "볶음밥"
+    ]
+  },
+  {
+    "id": "rice-5",
+    "name": "잡채밥",
+    "price": 13000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "소고기"
+    ],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "채썬 소고기와 당면을 함께 볶아낸 잡채밥",
+    "reviews": [],
+    "keywords": [
+      "잡채밥"
+    ]
+  },
+  {
+    "id": "rice-6",
+    "name": "어향가지 덮밥",
+    "price": 13000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "튀긴 가지에 특제소스를 넣어 볶아낸 덮밥",
+    "reviews": [],
+    "keywords": [
+      "가지",
+      "덮밥"
+    ]
+  },
+  {
+    "id": "rice-7",
+    "name": "채소볶음밥과 마파소스",
+    "price": 13000,
+    "category": "rice",
+    "kind": "밥",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [],
+    "quantityUnit": "",
+    "servingMin": 1,
+    "servingPeople": 1,
+    "pairings": [
+      "dimsum-13",
+      "pork-4"
+    ],
+    "description": "채소볶음밥과 마파두부소스",
+    "reviews": [],
+    "keywords": [
+      "볶음밥"
+    ]
+  },
+  {
+    "id": "seafood-1",
+    "name": "X.O 금사오룡해삼",
+    "price": 72000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "해삼"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "다진 새우를 해삼에 채워 야채와 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "해삼"
+    ]
+  },
+  {
+    "id": "seafood-2",
+    "name": "국산 해삼전복 굴소스",
+    "price": 80000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해삼",
+      "전복",
+      "굴"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "국내산 해삼과 전복을 굴소스로 볶은 일품 요리",
+    "reviews": [],
+    "keywords": [
+      "해삼",
+      "전복"
+    ]
+  },
+  {
+    "id": "seafood-3",
+    "name": "국산 해삼과 동파육",
+    "price": 80000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기",
+      "해삼"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 국내산 해삼과 동파육을 곁들인 일품 요리",
+    "reviews": [],
+    "keywords": [
+      "동파육",
+      "해삼"
+    ]
+  },
+  {
+    "id": "seafood-4",
+    "name": "전복과 동파육",
+    "price": 85000,
+    "category": "seafood",
+    "kind": "해산물",
+    "badge": "신규",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "돼지고기",
+      "전복"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "장시간 부드럽게 졸인 동파육과 신선한 전복을 함께 담아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "동파육",
+      "전복"
+    ]
+  },
+  {
+    "id": "seafood-5",
+    "name": "튀긴 파를 올린 계우소스 전복찜",
+    "price": 65000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "전복"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "부드럽게 익은 전복 위로 향긋한 파를 올리고, 진한 계우소스로 감칠맛을 더한 프리미엄 전복찜",
+    "reviews": [],
+    "keywords": [
+      "전복"
+    ]
+  },
+  {
+    "id": "seafood-6",
+    "name": "원심 전가복",
+    "price": 65000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "해삼",
+      "전복",
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 3,
+    "servingPeople": 4,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "새우, 해삼, 전복 등 각종 해산물을 야채와 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "전가복"
+    ],
+    "aliases": [
+      "전가복"
+    ]
+  },
+  {
+    "id": "seafood-7",
+    "name": "어향동고새우",
+    "price": 45000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "다진 새우살을 표고버섯에 넣어 어향소스로 맛을 낸 일품요리",
+    "reviews": [],
+    "keywords": [
+      "새우"
+    ]
+  },
+  {
+    "id": "seafood-8",
+    "name": "붉은 대게살 류산슬",
+    "price": 40000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "게",
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "홍게살과 각종 해산물, 채소를 채볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "류산슬"
+    ]
+  },
+  {
+    "id": "seafood-9",
+    "name": "팔보채",
+    "price": 40000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 해산물과 야채를 매콤한 소스에 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "팔보채"
+    ]
+  },
+  {
+    "id": "seafood-10",
+    "name": "해물 핫팟 누룽지탕",
+    "price": 42000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "해산물"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 해물로 만든 담백하고 고소한 누룽지탕",
+    "reviews": [],
+    "keywords": [
+      "누룽지탕"
+    ]
+  },
+  {
+    "id": "seafood-11",
+    "name": "X.O 아스파라거스 새우 관자 요리",
+    "price": 42000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "관자"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "신선한 아스파라거스와 관자를 XO 소스에 볶아낸 요리",
+    "reviews": [],
+    "keywords": [
+      "아스파라거스",
+      "새우",
+      "관자"
+    ]
+  },
+  {
+    "id": "seafood-12",
+    "name": "어지 간장소스 메로요리",
+    "price": 38000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [
+      "바삭함"
+    ],
+    "flavor": [],
+    "ingredients": [
+      "생선"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "특제 생선간장소스를 곁들인 메로 찜/튀김",
+    "reviews": [],
+    "keywords": [
+      "메로"
+    ],
+    "options": [
+      "찜",
+      "튀김"
+    ]
+  },
+  {
+    "id": "seafood-13",
+    "name": "화연 마늘 간장소스 관자찜",
+    "price": 38000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "관자"
+    ],
+    "quantityUnit": "",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "마늘소스와 관자를 함께 쪄낸 요리",
+    "reviews": [],
+    "keywords": [
+      "관자"
+    ]
+  },
+  {
+    "id": "seafood-14",
+    "name": "아몬드 크림새우",
+    "price": 38000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 0,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "견과류"
+    ],
+    "quantityUnit": "9개입",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "부드러운 크림소스 위에 아몬드를 곁들인 새우요리",
+    "reviews": [],
+    "keywords": [
+      "새우",
+      "크림새우"
+    ]
+  },
+  {
+    "id": "seafood-15",
+    "name": "깐풍새우",
+    "price": 38000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "9개입",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "매콤새콤한 깐풍소스를 곁들인 새우요리",
+    "reviews": [],
+    "keywords": [
+      "깐풍",
+      "새우"
+    ]
+  },
+  {
+    "id": "seafood-16",
+    "name": "칠리소스 새우",
+    "price": 37996,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우"
+    ],
+    "quantityUnit": "9개입",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "매콤한 칠리소스를 곁들인 새우 요리",
+    "reviews": [],
+    "keywords": [
+      "새우"
+    ]
+  },
+  {
+    "id": "seafood-17",
+    "name": "싱가폴식 칠리새우 & 황금 바오번",
+    "price": 45000,
+    "category": "seafood",
+    "kind": "해산물",
+    "spicy": 1,
+    "texture": [],
+    "flavor": [],
+    "ingredients": [
+      "새우",
+      "게"
+    ],
+    "quantityUnit": "9개입",
+    "servingMin": 2,
+    "servingPeople": 3,
+    "pairings": [
+      "noodle-1",
+      "rice-3"
+    ],
+    "description": "싱가폴식 칠리크랩소스를 곁들인 새우요리와 황금꽃빵",
+    "reviews": [],
+    "keywords": [
+      "바오번",
+      "새우",
+      "칠리새우"
+    ]
+  }
+]

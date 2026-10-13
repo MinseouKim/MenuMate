@@ -1,0 +1,28 @@
+/* 휴대폰에서 보는 영수증 화면과 운영자 통계 화면. 키오스크 스타일 없이도 보이도록 색과 버튼을 따로 정합니다. */
+.receipt-page{--green:#153f35;--green2:#246650;--bg:#f4f6f5;--ink:#142c25;--muted:#687b73;--border:#dce4df;--tint:#e9f2ed}
+.receipt-page *{box-sizing:border-box}
+.receipt-page .primary,.receipt-page .secondary{border-radius:8px;border:1px solid var(--green);font-weight:700;font-family:inherit;cursor:pointer}
+.receipt-page .primary{background:var(--green);color:white}.receipt-page .secondary{background:white;color:var(--green)}.receipt-page .primary:disabled{opacity:.45}
+html:has(.receipt-page),body:has(.receipt-page){height:auto;overflow:auto}
+#root:has(.receipt-page){display:block;height:auto;min-height:100dvh;background:#f4f6f5}
+/* 키오스크용 main 크기(9:16)와 #root main 여백 규칙을 휴대폰 화면에서는 풉니다. */
+#root main.receipt-page{width:100%;max-width:480px;height:auto;aspect-ratio:auto;margin:0 auto;padding:24px 16px 40px;display:block}
+.receipt-page{max-width:480px;margin:0 auto;padding:24px 16px 40px;font-family:'Noto Sans KR','Malgun Gothic',system-ui,sans-serif;color:var(--ink,#142c25);background:var(--bg,#f4f6f5);min-height:100dvh;box-sizing:border-box}
+.receipt-page header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:28px}
+.receipt-page header strong{font-size:24px;color:var(--green,#153f35);letter-spacing:-1px}
+.receipt-page header span{font-size:14px;color:var(--muted,#687b73)}
+.receipt-page h1{font-size:24px;line-height:1.4;margin:0 0 8px}
+.receipt-page-note{font-size:15px;color:var(--muted,#687b73);margin:0 0 24px;line-height:1.6}
+.receipt-page .done{display:block;padding:0;text-align:left}
+.receipt-page .done .receipt{width:100%;margin:0 0 32px}
+.receipt-page .receipt-items li,.receipt-page .receipt-payment>div{font-size:16px}
+.receipt-page .receipt-qty,.receipt-page .receipt-items small,.receipt-page .receipt-head span,.receipt-page .receipt-number span{font-size:13px}
+.receipt-page .receipt-number strong{font-size:44px}
+.receipt-page footer{font-size:13px;color:var(--muted,#687b73);text-align:center;margin-top:16px}
+.stats-list{margin:0 0 24px;background:white;border:1px solid var(--border,#dce4df);border-radius:10px;padding:4px 18px}
+.stats-list>div{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border,#dce4df);font-size:16px}
+.stats-list>div:last-child{border:0}
+.stats-list dt{color:var(--muted,#687b73)}.stats-list dd{margin:0;font-weight:700;text-align:right}
+.stats-actions{display:grid;gap:10px}
+.stats-actions .primary,.stats-actions .secondary{display:block;text-align:center;text-decoration:none;min-height:52px;line-height:1.4;padding:14px;font-size:16px}
+.receipt-page .survey-link{display:block;text-align:center;text-decoration:none;min-height:52px;padding:14px;font-size:17px;margin-bottom:8px}
