@@ -24,7 +24,7 @@
 
 InputPanel은 WebSpeechSttProvider를 재사용하며 화면 이탈 시 cancel()로 늦은 인식 결과를 폐기한다. 처음 누를 때 마이크 권한을 먼저 받는다. 카메라 기능은 2026-10-10 전시용으로 뺐다(추천에 쓰이지 않아 오해와 개인정보 부담만 있었음). 음성을 앱에서 저장하지 않는다.
 
-메뉴 데이터는 prototype/menu/menus.json(우루루 83개)이다. 추천은 prototype/recommendation.ts의 로컬 규칙이고, VITE_API_BASE_URL이 있으면 서버 POST /api/condition-extraction의 LLM 해석(source: llm)으로 조건을 보강한다. LLM 키는 server/.env에만 둔다. 서버 DB 메뉴는 server/scripts/buildUruruSeed.ts로 만든 sql/seeds/ururu_menus.sql로 바꿀 수 있다.
+메뉴 데이터는 prototype/menu/menus.json(우루루 80개)이다. 추천은 prototype/recommendation.ts의 로컬 규칙이고, VITE_API_BASE_URL이 있으면 서버 POST /api/condition-extraction의 LLM 해석(source: llm)으로 조건을 보강한다. LLM 키는 server/.env에만 둔다. 서버 DB 메뉴는 server/scripts/buildUruruSeed.ts로 만든 sql/seeds/ururu_menus.sql로 바꿀 수 있다.
 
 ## 실행·검증
 
@@ -36,7 +36,7 @@ npm run build: TypeScript 및 Vite 빌드. npm test: 프론트엔드 Vitest. Win
 
 ## 다음 작업 후보
 
-1. 메뉴 사진(menu/image/에 메뉴 id 이름으로), 매장 확인 재료·맵기(ingredientsChecked, spicyChecked)·인분.
+1. ~~메뉴 사진~~ 완료(2026-10-13): menu/image/에 메뉴 id 이름의 WebP 80장. 사진이 없던 duck-fish-3 광동식 활 생선찜, duck-fish-4 광동식 활 생선튀김, noodle-11 사천 굴탕면(동절기)은 메뉴 데이터에서 제거했다(83개 → 80개). 원본 사진·매칭표는 루트 ururu-menu/에 있다. 같은 작업에서 메뉴판 표기로 소롱포→소룡포, 홍게살 소롱포→홍게살 소룡포, 계우소스→게우소스를 고쳤다(옛 표기는 aliases). 남은 것: 매장 확인 재료·맵기(ingredientsChecked, spicyChecked)·인분. 칠리소스 새우(seafood-16) 가격은 메뉴판 표기 37,996원을 38,000원으로 수정(2026-10-13).
 2. 영수증 QR용 배포 주소(VITE_RECEIPT_BASE_URL), 설문 주소(VITE_SURVEY_URL).
 3. 실물 모니터와 전시장 소음 속 리허설(시연 모드 Ctrl+Shift+1~4 포함).
 4. 곁들임(pairings) 데이터, 여러 메뉴를 한 번에 말로 주문.

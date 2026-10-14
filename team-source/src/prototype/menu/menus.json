@@ -55,58 +55,6 @@
     ]
   },
   {
-    "id": "duck-fish-3",
-    "name": "광동식 활 생선찜",
-    "price": 86000,
-    "category": "duck-fish",
-    "kind": "베이징덕/생선",
-    "spicy": 0,
-    "texture": [],
-    "flavor": [],
-    "ingredients": [
-      "생선"
-    ],
-    "quantityUnit": "",
-    "servingMin": 3,
-    "servingPeople": 4,
-    "pairings": [
-      "noodle-1",
-      "rice-3"
-    ],
-    "description": "신선한 활 생선 찜 요리",
-    "reviews": [],
-    "keywords": [
-      "생선찜"
-    ]
-  },
-  {
-    "id": "duck-fish-4",
-    "name": "광동식 활 생선튀김",
-    "price": 86000,
-    "category": "duck-fish",
-    "kind": "베이징덕/생선",
-    "spicy": 0,
-    "texture": [
-      "바삭함"
-    ],
-    "flavor": [],
-    "ingredients": [
-      "생선"
-    ],
-    "quantityUnit": "",
-    "servingMin": 3,
-    "servingPeople": 4,
-    "pairings": [
-      "noodle-1",
-      "rice-3"
-    ],
-    "description": "신선한 활 생선 튀김 요리",
-    "reviews": [],
-    "keywords": [
-      "생선튀김"
-    ]
-  },
-  {
     "id": "dimsum-1",
     "name": "모듬 딤섬",
     "price": 19500,
@@ -151,7 +99,7 @@
   },
   {
     "id": "dimsum-3",
-    "name": "소롱포",
+    "name": "소룡포",
     "price": 8900,
     "category": "dimsum",
     "kind": "딤섬",
@@ -166,16 +114,16 @@
     "description": "한입 베어물면 담백한 육즙이 가득 넘쳐흐르는 광동식 딤섬",
     "reviews": [],
     "keywords": [
-      "소롱포"
+      "소룡포"
     ],
     "aliases": [
-      "소룡포",
+      "소롱포",
       "샤오롱바오"
     ]
   },
   {
     "id": "dimsum-4",
-    "name": "홍게살 소롱포",
+    "name": "홍게살 소룡포",
     "price": 9500,
     "category": "dimsum",
     "kind": "딤섬",
@@ -192,10 +140,10 @@
     "description": "담백한 게살이 듬뿍 들어간 상해식 딤섬",
     "reviews": [],
     "keywords": [
-      "소롱포"
+      "소룡포"
     ],
     "aliases": [
-      "홍게살 소룡포"
+      "홍게살 소롱포"
     ]
   },
   {
@@ -1406,34 +1354,6 @@
     ]
   },
   {
-    "id": "noodle-11",
-    "name": "사천 굴탕면(동절기)",
-    "price": 15000,
-    "category": "noodle",
-    "kind": "면",
-    "spicy": 1,
-    "texture": [],
-    "flavor": [],
-    "ingredients": [
-      "굴"
-    ],
-    "quantityUnit": "",
-    "servingMin": 1,
-    "servingPeople": 1,
-    "pairings": [
-      "dimsum-13",
-      "pork-4"
-    ],
-    "reviews": [],
-    "keywords": [
-      "탕면",
-      "굴탕면"
-    ],
-    "aliases": [
-      "굴탕면"
-    ]
-  },
-  {
     "id": "rice-1",
     "name": "팔진 잡탕밥",
     "price": 18000,
@@ -1721,7 +1641,7 @@
   },
   {
     "id": "seafood-5",
-    "name": "튀긴 파를 올린 계우소스 전복찜",
+    "name": "튀긴 파를 올린 게우소스 전복찜",
     "price": 65000,
     "category": "seafood",
     "kind": "해산물",
@@ -1740,7 +1660,7 @@
       "noodle-1",
       "rice-3"
     ],
-    "description": "부드럽게 익은 전복 위로 향긋한 파를 올리고, 진한 계우소스로 감칠맛을 더한 프리미엄 전복찜",
+    "description": "부드럽게 익은 전복 위로 향긋한 파를 올리고, 진한 게우소스로 감칠맛을 더한 프리미엄 전복찜",
     "reviews": [],
     "keywords": [
       "전복"
@@ -2018,7 +1938,7 @@
   {
     "id": "seafood-16",
     "name": "칠리소스 새우",
-    "price": 37996,
+    "price": 38000,
     "category": "seafood",
     "kind": "해산물",
     "spicy": 1,

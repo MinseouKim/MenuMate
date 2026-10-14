@@ -1,11 +1,11 @@
 import type { Conditions, Menu, Recommendation } from './types';
 import { negatedTerms, NOODLE, parseBudget, parseParty, stripNegated } from './parse';
 // 프로토타입용 규칙 모듈. 서버 LLM·DB를 호출하지 않습니다.
-export const KIND_OPTIONS=['베이징덕/생선','딤섬','야채','냉채/샐러드','스프/탕','치킨','돼지고기','소고기','면','밥','해산물'];
+export const KIND_OPTIONS=['면','밥','베이징덕/생선','딤섬','야채','냉채/샐러드','스프/탕','치킨','돼지고기','소고기','해산물'];
 export const EXCLUDE_OPTIONS=['해산물','새우','돼지고기','소고기','닭고기','계란','견과류'];
 // 버튼에는 없지만 말로 빼 달라고 할 수 있는 재료입니다.
 export const EXCLUDE_WORDS=[...EXCLUDE_OPTIONS,'오리','생선','굴','전복','해삼','관자','땅콩'];
-export const KIND_WORDS: [string,RegExp][]=[['베이징덕/생선',/베이징\s*덕|북경\s*오리|오리|생선/],['딤섬',/딤섬|만두|교자|하가우|쇼마이|소롱포|춘권/],['스프/탕',/스프|수프|산라탕/],['면',NOODLE],['밥',/밥/],['치킨',/치킨|닭/],['소고기',/소고기|우육/],['돼지고기',/돼지|탕수육|동파육/],['해산물',/해산물|해물|새우|전복|해삼|관자/],['냉채/샐러드',/냉채|샐러드/],['야채',/야채|채소|가지|두부/]];
+export const KIND_WORDS: [string,RegExp][]=[['베이징덕/생선',/베이징\s*덕|북경\s*오리|오리|생선/],['딤섬',/딤섬|만두|교자|하가우|쇼마이|소[롱룡]포|춘권/],['스프/탕',/스프|수프|산라탕/],['면',NOODLE],['밥',/밥/],['치킨',/치킨|닭/],['소고기',/소고기|우육/],['돼지고기',/돼지|탕수육|동파육/],['해산물',/해산물|해물|새우|전복|해삼|관자/],['냉채/샐러드',/냉채|샐러드/],['야채',/야채|채소|가지|두부/]];
 export const KioskAI = {
  extract(text: string): Conditions {
   const party=parseParty(text);

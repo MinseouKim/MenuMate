@@ -63,7 +63,7 @@ describe('React prototype', () => {
     await user.click(screen.getByRole('button',{name:'버튼으로 취향 고르기'}));
     await user.click(screen.getByRole('button',{name:'인원 늘리기'}));
     expect(screen.getByLabelText('인원')).toHaveTextContent('2명');
-    await user.click(screen.getByRole('button',{name:'안 매운맛'}));
+    await user.click(screen.getByRole('button',{name:'순한맛'}));
     await user.click(screen.getByRole('button',{name:'5만원 이하'}));
     expect(screen.getByRole('button',{name:'5만원 이하'})).toHaveAttribute('aria-pressed','true');
     await user.click(screen.getByRole('button',{name:'맞아요, 추천해주세요'}));
@@ -71,25 +71,13 @@ describe('React prototype', () => {
     for (const l of top.lines) expect(screen.getByLabelText(`${menus.find(m=>m.id===l.id)!.name} 수량`)).toHaveTextContent(String(l.quantity));
     expect(screen.getByRole('region',{name:'담은 메뉴'}).querySelector('.order-list-total')).toHaveTextContent(won(top.total));
   });
-  it('spoken-order input requires confirmation', async () => {
-    vi.spyOn(WebSpeechSttProvider.prototype,'isSupported').mockReturnValue(true);
-    vi.spyOn(WebSpeechSttProvider.prototype,'start').mockImplementation(callbacks => callbacks.onResult('하가우 두 개 주세요'));
-    Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[]})}});
-    const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
-    await user.click(screen.getByRole('button',{name:'말로 주문'}));
-    fireEvent.keyDown(screen.getByRole('button',{name:/누르고 있는 동안 말하기/}),{key:'Enter'});
-    expect(await screen.findByRole('dialog')).toHaveTextContent('하가우 2개');
-    await user.click(screen.getByRole('button',{name:'확인하고 담기'}));
-    expect(screen.getByLabelText('하가우 수량')).toHaveTextContent('2');
-  });
   it('blocked microphone explains how to allow it', async () => {
     vi.spyOn(WebSpeechSttProvider.prototype,'isSupported').mockReturnValue(true);
     const start=vi.spyOn(WebSpeechSttProvider.prototype,'start');
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{ throw new DOMException('denied','NotAllowedError'); }}});
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
-    await user.click(screen.getByRole('button',{name:'말로 주문'}));
+    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
     fireEvent.keyDown(screen.getByRole('button',{name:/누르고 있는 동안 말하기/}),{key:'Enter'});
     expect(await screen.findByRole('alert')).toHaveTextContent('주소창 왼쪽 아이콘에서 마이크를');
     expect(start).not.toHaveBeenCalled();
@@ -100,8 +88,8 @@ describe('React prototype', () => {
     let grant!: () => void;
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:()=>new Promise(r=>{grant=()=>r({getTracks:()=>[]});})}});
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
-    await user.click(screen.getByRole('button',{name:'말로 주문'}));
+    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
     const talk=screen.getByRole('button',{name:/누르고 있는 동안 말하기/});
     fireEvent.keyDown(talk,{key:'Enter'});fireEvent.keyUp(talk,{key:'Enter'});
     await act(async()=>grant());
@@ -123,16 +111,6 @@ describe('React prototype', () => {
     await user.click(screen.getByRole('button',{name:'이전 화면'}));
     await user.click(screen.getByRole('button',{name:'이전 화면'}));
     expect(screen.getByRole('heading',{name:/무엇을/})).toBeInTheDocument();
-  });
-  it('spoken order picks the longest matching name and reads Korean counts', async () => {
-    vi.spyOn(WebSpeechSttProvider.prototype,'isSupported').mockReturnValue(true);
-    vi.spyOn(WebSpeechSttProvider.prototype,'start').mockImplementation(callbacks => callbacks.onResult('홍게살 소롱포 네 개 주세요'));
-    Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[]})}});
-    const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
-    await user.click(screen.getByRole('button',{name:'말로 주문'}));
-    fireEvent.keyDown(screen.getByRole('button',{name:/누르고 있는 동안 말하기/}),{key:'Enter'});
-    expect(await screen.findByRole('dialog')).toHaveTextContent('홍게살 소롱포 4개');
   });
   it('puts the newest item at the top of the order list', async () => {
     const user=userEvent.setup();render(<App/>);

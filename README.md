@@ -26,7 +26,7 @@
 - **설문**: `VITE_SURVEY_URL`에 구글 폼 등 주소를 넣으면 휴대폰 영수증 아래에 "30초 설문 참여하기" 버튼이 생깁니다.
 - **시연 모드**: 소음으로 음성 인식이 어려울 때 키보드 **Ctrl+Shift+1~4**를 누르면 준비된 문장이 말한 것처럼 들어갑니다. 말로 주문 화면에서는 주문 문장, 그 밖의 화면에서는 추천 문장입니다. 시연 기록은 통계에서 따로 셉니다.
   - 추천: ① 두 명이고 새우는 빼고 딤섬 ② 네 명이서 1인당 3만원으로 안 매운 거 ③ 짬뽕, 돼지고기는 빼고 ④ 혼자, 만원 이하로 면 요리
-  - 주문: ① 하가우 두 개 ② 홍게살 소롱포 세 개 ③ 베이징덕 한 마리 ④ 원심 유니짜장 하나
+  - 주문: ① 하가우 두 개 ② 홍게살 소룡포 세 개 ③ 베이징덕 한 마리 ④ 원심 유니짜장 하나
 - **사용 통계**: 주소 뒤에 `#/stats`를 붙이면 체험 수, 주문 완료율, 평균 주문 시간, 추천·음성·큰 글씨 사용률을 보고 CSV로 내려받습니다. 이 기기 브라우저에만 저장되니 매일 내려받아 두세요.
 - **서버 AI 해석(선택)**: `team-source/server/.env`에 `LLM_API_BASE`, `LLM_API_KEY`, `LLM_MODEL`(OpenAI 호환)을 넣고, `team-source/.env.local`에 `VITE_API_BASE_URL=http://localhost:4000`을 넣습니다. LLM이 4초 안에 답하면 그 해석을 쓰고 "AI가 함께 해석했어요"가 표시됩니다. 키는 서버에만 둡니다. `start-exhibition.cmd`는 `server/.env`가 있을 때만 서버를 켭니다.
 - **오프라인**: 글꼴은 빌드에 포함됩니다. 브라우저 음성 인식은 인터넷이 필요해서, 끊기면 '버튼으로 고르기'로 안내합니다.
@@ -42,10 +42,10 @@
 | recommendation.ts · aiClient.ts | 추천 규칙, 서버 AI 해석 연결 |
 | Payment.tsx · Receipt.tsx · receiptLink.ts · ReceiptPage.tsx | 결제, 영수증, QR 주소, 휴대폰 영수증 화면 |
 | usage.ts · StatsPage.tsx | 익명 사용 기록과 운영자 통계 화면 |
-| menu/menus.json · menu/image/ · menu/review/ | 메뉴 데이터(83개), 사진(파일 이름 = 메뉴 id, 예: dimsum-1.webp), 리뷰 자료 |
+| menu/menus.json · menu/image/ · menu/review/ | 메뉴 데이터(80개), 사진(파일 이름 = 메뉴 id, 예: dimsum-1.webp), 리뷰 자료 |
 | styles/overrides.css | 마지막에 불러와 옛 고정 크기 규칙을 덮어쓰는 화면 보정 |
 
-`team-source/server/`는 Express + MySQL 백엔드입니다. 키오스크는 지금 조건 해석(`POST /api/condition-extraction`)만 씁니다. 서버 DB에 83개 메뉴를 넣으려면 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행합니다(통합 테스트 DB에는 넣지 마세요).
+`team-source/server/`는 Express + MySQL 백엔드입니다. 키오스크는 지금 조건 해석(`POST /api/condition-extraction`)만 씁니다. 서버 DB에 80개 메뉴를 넣으려면 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행합니다(통합 테스트 DB에는 넣지 마세요).
 
 ## 데이터 주의
 
