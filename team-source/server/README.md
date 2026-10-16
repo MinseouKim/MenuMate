@@ -28,9 +28,14 @@ server/
     schemas/               # zod 입력 검증 스키마
     middleware/            # 공통 에러 핸들러, zod 검증 미들웨어
     types/                 # 도메인 타입
+  scripts/
+    buildUruruSeed.ts      # (레거시) menus.json → sql/seeds/ururu_menus.sql. kind/external_id/is_featured는 채우지 않음
   sql/
     001_init.sql           # 스키마
     002_seed_placeholder.sql # 플레이스홀더(예시) 시드 데이터 — "우루루 본점"
+    003_admin.sql           # 점주 로그인 계정 + 추천 세트 테이블
+    004_kind_and_external_id.sql # menus에 kind/external_id/is_featured/featured_rank 컬럼 추가
+    seeds/ururu_menus.sql   # scripts/buildUruruSeed.ts 결과물(수동 실행, migrate 대상 아님)
   tests/
     unit/                  # DB 없이 도는 순수 로직 테스트
     integration/            # 실제 MySQL/MariaDB가 필요한 테스트
@@ -52,10 +57,24 @@ GRANT ALL PRIVILEGES ON kiosk_dev.* TO 'kiosk_app'@'%';
 
 ```bash
 cp .env.example .env
-# .env 수정 후:
+# .env 수정 후 (ADMIN_JWT_SECRET은 전시/배포 전 반드시 고유 값으로 바꿀 것):
 npm install
-npm run migrate   # sql/001_init.sql, 002_seed_placeholder.sql 순서대로 적용
+npm run migrate   # sql/ 아래 *.sql을 파일명 순서대로 적용 (schema_migrations에 기록, 재실행해도 안전)
 ```
+
+이미 과거에 `001`~`003`을 수동으로 적용해 둔 DB에 이 마이그레이션 추적 기능을 처음 도입하는 경우, 먼저 `npm run migrate:bootstrap`으로 "이미 적용됨"만 기록한 뒤(SQL을 다시 실행하지 않음) `npm run migrate`를 실행한다.
+
+### 1-1. 실제 메뉴 데이터 넣기 (선택)
+
+키오스크 화면의 메뉴 데이터(`team-source/src/prototype/menu/menus.json`)를 관리자 DB로 가져오면, 관리자 화면에서 이름/가격/kind/맵기/품절/추천 여부를 고칠 때 키오스크가 `external_id`로 짝을 맞춰 그 값을 실시간으로 반영한다.
+
+```bash
+npm run import:real-menu -- --slug ururu-headquarters
+```
+
+다시 실행하면 해당 매장의 기존 메뉴를 지우고 menus.json 내용으로 새로 채운다(메뉴판이 바뀌면 다시 실행). 점주 관리자 로그인 계정이 필요하면 `npm run seed:admin`도 실행한다.
+
+`scripts/buildUruruSeed.ts`(`npm run seed:build`)는 더 단순한 과거 경로로 남겨 두었다 — `kind`/`external_id`/`is_featured`/`featured_rank`를 채우지 않으므로, 관리자 화면에서 메뉴를 고칠 계획이 없을 때만 쓴다.
 
 ### 2. 서버 실행
 
@@ -105,9 +124,22 @@ npm test
 | POST | `/api/stores/:slug/recommendations` | `{ conditions, vision? }` → 추천 결과 + `allergy_safety_notice` |
 | POST | `/api/stores/:slug/menus/:menuId/evidences` | 메뉴 근거 추가 (관리용, `manual_public_review_aggregate` 제약 검증) |
 
+### 점주 관리자 API (로그인 필요, `Authorization: Bearer <token>`)
+
+| Method | Path | 설명 |
+| --- | --- | --- |
+| POST | `/api/admin/login` | `{ username, password }` → JWT 발급 |
+| POST | `/api/admin/stores/:slug/menus` | 메뉴 추가 |
+| PATCH | `/api/admin/stores/:slug/menus/:menuId` | 메뉴 수정 (이름/가격/kind/맵기/품절/추천 여부·순위 등 일부 필드) |
+| DELETE | `/api/admin/stores/:slug/menus/:menuId` | 메뉴 삭제 |
+| POST/DELETE | `/api/admin/stores/:slug/menus/:menuId/ingredient-notices[/:ingredientName]` | 재료 노티스 추가/삭제 |
+| GET/POST | `/api/admin/stores/:slug/featured-sets` | 추천 세트 목록/생성 |
+| PATCH/DELETE | `/api/admin/stores/:slug/featured-sets/:setId` | 추천 세트 수정/삭제 |
+
+`is_featured`/`featured_rank`로 지정한 메뉴와 추천 세트는 `recommendationService.ts`의 점수 계산에서 가점(`OWNER_FEATURED_BONUS`)을 받지만, 품절·제외 재료 등 안전 하드 필터는 그대로 적용된다. 점주 관리자 화면은 별도 패키지 `admin-app/`(React + Vite)에 있다 — `npm --prefix admin-app install && npm --prefix admin-app run dev`로 실행하고 `admin-app/.env`의 `VITE_API_BASE`가 이 서버를 가리키게 한다.
+
 ## 남은 작업 / 교체 필요
 
-- `sql/002_seed_placeholder.sql`은 전부 `[예시]`로 표시된 플레이스홀더다. 실제 "우루루 본점" 메뉴/가격/재료/근거로 교체해야 한다 (팀 시식 → 점주 확인 → 동의 후기 순으로 수집).
-- 프론트엔드가 아직 이 API를 호출하지 않는다 (이번 작업 범위는 백엔드 + 프론트엔드 안내문구 최소 수정까지). 프론트엔드의 로컬 `menu.sample.json`/`ruleBasedEngine`을 이 API 호출로 교체하는 작업이 남아있다.
-- 프론트엔드 `src/services/conditionExtractor/llmConditionExtractor.ts`는 현재도 브라우저에서 `VITE_LLM_API_KEY`로 LLM을 직접 호출한다 — 이 저장소의 보안 원칙(LLM 키는 백엔드에만)과 어긋나므로, 프론트가 이 서버의 `POST /api/condition-extraction`을 호출하도록 바꾸고 `VITE_LLM_*` 환경변수는 제거하는 것을 권장한다 (이번 작업 범위 밖이라 코드는 건드리지 않음).
-- 인증/권한 없이 모든 엔드포인트가 열려 있다 — 관리용 근거 추가 API(`POST .../evidences`)는 최소한 매장 관리자 인증이 붙어야 한다.
+- `sql/002_seed_placeholder.sql`은 전부 `[예시]`로 표시된 플레이스홀더다. `npm run import:real-menu`로 실제 "우루루 본점" 메뉴로 교체할 수 있다(위 1-1절).
+- 키오스크(`team-source/src/prototype`)는 현재 `POST /api/condition-extraction`만 호출한다 — 메뉴/추천 데이터는 여전히 빌드에 번들된 `menus.json`을 그대로 쓰고, 이 서버의 `/api/stores/*`·`/api/admin/*`는 아직 키오스크 화면과 실시간으로 연결돼 있지 않다. 점주가 관리자 화면에서 고친 내용이 전시 키오스크에 바로 보이게 하려면 키오스크 쪽에서 이 API를 호출하도록 바꾸는 작업이 남아있다.
+- `VITE_API_BASE_URL`이 설정돼 있으면 키오스크가 이 서버의 조건 추출(LLM 우선, 실패 시 규칙 기반)을 쓴다. LLM 키는 이 서버의 `.env`에만 둔다.

@@ -1,0 +1,24 @@
+{
+  "name": "menumate-admin",
+  "private": true,
+  "version": "0.1.0",
+  "description": "점주 관리자 화면 — 메뉴 수정(품절/가격/추가/삭제), 추천 메뉴·추천 세트 지정. kiosk-server(team-source/server) API에 연동된다.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

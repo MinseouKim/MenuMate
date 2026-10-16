@@ -49,6 +49,10 @@ export interface RecommendedSet {
   evidence_sources: string[];
   last_verified_at: string | null;
   score: number;
+  /** 점주가 지정한 추천 메뉴/세트에서 비롯된 추천인지 — 프론트에서 "사장님 추천" 표시에 사용. */
+  is_owner_pick: boolean;
+  /** 점주가 지정한 "추천 세트"에서 나온 추천이면 그 세트 이름. 단일 메뉴 추천이면 null. */
+  owner_set_label: string | null;
 }
 
 /**
@@ -56,6 +60,9 @@ export interface RecommendedSet {
  * 제외 재료 요청은 confirmed/inferred_from_menu_name 근거가 있을 때만 하드 필터로 반영할 수 있지만,
  * "알레르기가 있어요"라는 말에도 시스템이 안전을 보장하거나 "안전하다"고 단정해서는 안 된다.
  * 모든 추천 응답에는 이 안내문구를 항상 포함한다.
+ *
+ * 점주 지정 추천(세트/단일 메뉴)도 이 원칙에서 예외가 아니다 — 확인된/유추된 제외 재료와 겹치거나
+ * 품절된 경우에는 점주 지정이라도 추천에서 제외한다 (recommendationService.ts 참고).
  */
 export const ALLERGY_SAFETY_NOTICE =
   "알레르기 및 교차접촉 여부는 매장에 직접 확인해 주세요. 본 추천은 안전성을 보장하지 않습니다.";

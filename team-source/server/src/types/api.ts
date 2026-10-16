@@ -9,6 +9,7 @@ export interface ApiErrorBody {
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
+  | "UNAUTHORIZED"
   | "INTERNAL_ERROR";
 
 export class ApiError extends Error {
@@ -31,6 +32,10 @@ export class ApiError extends Error {
 
   static notFound(message: string): ApiError {
     return new ApiError("NOT_FOUND", message, 404);
+  }
+
+  static unauthorized(message = "로그인이 필요합니다."): ApiError {
+    return new ApiError("UNAUTHORIZED", message, 401);
   }
 
   static internal(message = "서버 내부 오류가 발생했습니다."): ApiError {

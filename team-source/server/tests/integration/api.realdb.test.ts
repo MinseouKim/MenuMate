@@ -4,6 +4,8 @@ import { createApp } from "../../src/app.js";
 import { getPool, closePool } from "../../src/db/pool.js";
 import { createMysqlStoreRepository } from "../../src/repositories/mysqlStoreRepository.js";
 import { createMysqlMenuRepository } from "../../src/repositories/mysqlMenuRepository.js";
+import { createMysqlStoreOwnerRepository } from "../../src/repositories/mysqlStoreOwnerRepository.js";
+import { createMysqlFeaturedSetRepository } from "../../src/repositories/mysqlFeaturedSetRepository.js";
 import { ALLERGY_SAFETY_NOTICE } from "../../src/types/order.js";
 
 // 실제 MySQL/MariaDB(kiosk_test)에 시드된 "우루루 본점" 데이터로 API 전체 흐름을 검증한다.
@@ -13,6 +15,8 @@ describe("API 통합 테스트 (실제 DB, 우루루 본점 시드 데이터)", 
   const app = createApp({
     storeRepository: createMysqlStoreRepository(pool),
     menuRepository: createMysqlMenuRepository(pool),
+    storeOwnerRepository: createMysqlStoreOwnerRepository(pool),
+    featuredSetRepository: createMysqlFeaturedSetRepository(pool),
   });
 
   afterAll(async () => {

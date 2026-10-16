@@ -1,39 +1,111 @@
 import type { MenuWithDetails } from "../types/menu.js";
 import type { ExtractedConditions, RecommendedSet, VisionEstimate } from "../types/order.js";
 
+/** 추천 엔진에 넘기는, 메뉴까지 이미 resolve된 "점주 지정 추천 세트". */
+export interface FeaturedSetForRecommendation {
+  name: string;
+  items: { menu: MenuWithDetails; quantity: number }[];
+}
+
 export interface RecommendationInput {
   conditions: ExtractedConditions;
   vision: VisionEstimate;
   menu: MenuWithDetails[];
+  /** 점주가 관리자 화면에서 지정한 추천 세트 — 비어 있으면 기존과 동일하게 동작한다. */
+  featuredSets?: FeaturedSetForRecommendation[];
 }
+
+/** 점주 지정(단일 메뉴)에 주는 가점. 일반 조건 매칭 점수(최대 약 12~15점)를 항상 압도하도록 크게 잡는다. */
+const OWNER_FEATURED_BONUS = 100;
 
 /**
  * 규칙/점수 기반 추천 엔진 (프론트엔드 src/services/recommendation/ruleBasedEngine.ts 포팅).
  *
  * 우선순위:
+ * 0. 점주 지정 "추천 세트" — 알레르기 등 안전 하드 필터를 통과하면 최우선으로 노출 (관리자 화면 기능)
  * 1. 하드 필터: 품절, 제외 재료(확인된/메뉴명으로 유추된 것만 — unknown은 하드 필터 근거로 쓰지 않음),
  *    맵기 "못 먹음" 제약
- * 2. 소프트 점수화: 음식 키워드 매칭 > 예산 적합 > 식감 선호 > 맵기 근접도 > 비전 보조 신호(최저 가중치)
+ * 2. 소프트 점수화: 점주 지정(단일 메뉴) > 음식 키워드 매칭 > 예산 적합 > 식감 선호 > 맵기 근접도
+ *    > 비전 보조 신호(최저 가중치)
  *
  * 알레르기 안전 원칙: 이 엔진은 어떤 메뉴도 "알레르기 안전"으로 단정하지 않는다. 응답에는 항상
  * ALLERGY_SAFETY_NOTICE(컨트롤러에서 부착)를 함께 내려보내 안전을 보장하지 않음을 명시한다.
+ * 점주 지정 추천(세트/단일 메뉴)도 이 원칙의 예외가 아니다 — 아래 passesHardFilters를 그대로 적용한다.
  */
 export function recommend(input: RecommendationInput): RecommendedSet[] {
-  const { conditions, vision, menu } = input;
+  const { conditions, vision, menu, featuredSets = [] } = input;
 
   const candidates = menu.filter((item) => !item.sold_out);
   const mains = candidates.filter((item) => item.category === "main");
   const sides = candidates.filter((item) => item.category === "side");
 
-  const hardFiltered = mains.filter((item) => passesHardFilters(item, conditions));
+  const result: RecommendedSet[] = [];
+  const usedMenuIds = new Set<number>();
 
-  const scored = hardFiltered
-    .map((item) => ({ item, score: scoreItem(item, conditions, vision) }))
-    .sort((a, b) => b.score - a.score);
+  // 0. 점주 지정 추천 세트 우선 — 랭크 순(이미 repository에서 정렬됨). 세트 안의 메뉴 중 품절/하드필터
+  //    위반이 하나라도 있으면 이번 추천에서는 그 세트를 건너뛴다(부분적으로 보여주지 않음).
+  for (const set of featuredSets) {
+    if (result.length >= 3) break;
+    const allPass = set.items.every(
+      ({ menu: item }) => !item.sold_out && passesHardFilters(item, conditions),
+    );
+    if (!allPass || set.items.length === 0) continue;
 
-  const top = scored.slice(0, 3);
+    const [mainItem, ...sideItems] = set.items;
+    result.push(
+      buildRecommendedSet({
+        main: mainItem.menu,
+        score: OWNER_FEATURED_BONUS,
+        sides: sideItems.map((s) => s.menu),
+        conditions,
+        vision,
+        isOwnerPick: true,
+        ownerSetLabel: set.name,
+      }),
+    );
+    set.items.forEach(({ menu: item }) => usedMenuIds.add(item.id));
+  }
 
-  return top.map(({ item: main, score }) => buildRecommendedSet(main, score, sides, conditions, vision));
+  // 1~2. 일반 추천 — 이미 세트로 노출된 메뉴는 중복되지 않게 제외한다.
+  const remainingSlots = 3 - result.length;
+  if (remainingSlots > 0) {
+    const hardFiltered = mains.filter(
+      (item) => !usedMenuIds.has(item.id) && passesHardFilters(item, conditions),
+    );
+
+    const scored = hardFiltered
+      .map((item) => ({
+        item,
+        score: scoreItem(item, conditions, vision) + (item.is_featured ? OWNER_FEATURED_BONUS : 0),
+      }))
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        // 점수가 같을 때만 점주가 지정한 우선순위(featured_rank, 작을수록 먼저)로 한 번 더 정렬한다.
+        // featured_rank를 지정하지 않은 메뉴는 항상 뒤로 보낸다.
+        const rankA = a.item.featured_rank;
+        const rankB = b.item.featured_rank;
+        if (rankA === rankB) return 0;
+        if (rankA === null) return 1;
+        if (rankB === null) return -1;
+        return rankA - rankB;
+      });
+
+    for (const { item: main, score } of scored.slice(0, remainingSlots)) {
+      result.push(
+        buildRecommendedSet({
+          main,
+          score,
+          sides,
+          conditions,
+          vision,
+          isOwnerPick: main.is_featured,
+          ownerSetLabel: null,
+        }),
+      );
+    }
+  }
+
+  return result;
 }
 
 /** 제외 재료 요청이 이 메뉴의 "확실한" 재료 정보와 겹치는지. unknown 노티스는 절대 하드 필터 근거로 쓰지 않는다. */
@@ -68,6 +140,7 @@ function scoreItem(
   const haystack = [
     item.name,
     item.category,
+    item.kind ?? "",
     ...item.flavor_tags,
     ...item.keyword_tags,
     ...item.synonym_tags,
@@ -114,23 +187,37 @@ function ingredientNoticeLabel(status: MenuWithDetails["ingredient_notices"][num
   }
 }
 
-function buildRecommendedSet(
-  main: MenuWithDetails,
-  score: number,
-  sides: MenuWithDetails[],
-  conditions: ExtractedConditions,
-  vision: VisionEstimate,
-): RecommendedSet {
+function buildRecommendedSet(args: {
+  main: MenuWithDetails;
+  score: number;
+  sides: MenuWithDetails[];
+  conditions: ExtractedConditions;
+  vision: VisionEstimate;
+  isOwnerPick: boolean;
+  ownerSetLabel: string | null;
+}): RecommendedSet {
+  const { main, score, sides, conditions, vision, isOwnerPick, ownerSetLabel } = args;
+
+  // 점주 지정 세트는 이미 자신의 사이드 목록을 들고 있으므로 그대로 쓰고, 일반 추천은 pairing으로 찾는다.
   const pairedSide =
-    sides.find(
-      (s) =>
-        main.pairing_menu_ids.includes(s.id) &&
-        !s.sold_out &&
-        !hasConfidentExcludedIngredient(s, conditions.excluded_ingredients),
-    ) ?? null;
+    ownerSetLabel !== null
+      ? sides[0] ?? null
+      : (sides.find(
+          (s) =>
+            main.pairing_menu_ids.includes(s.id) &&
+            !s.sold_out &&
+            !hasConfidentExcludedIngredient(s, conditions.excluded_ingredients),
+        ) ?? null);
+  const resolvedSides = ownerSetLabel !== null ? sides : pairedSide ? [pairedSide] : [];
 
   const matchedConditions: string[] = [];
   const matchedAttributes: string[] = [];
+
+  if (ownerSetLabel !== null) {
+    matchedConditions.push(`사장님이 추천하는 "${ownerSetLabel}" 구성이에요`);
+  } else if (isOwnerPick) {
+    matchedConditions.push("사장님이 추천하는 메뉴예요");
+  }
 
   const mainHaystack = [main.name, ...main.flavor_tags, ...main.keyword_tags, ...main.synonym_tags];
   if (conditions.food_keywords.some((k) => mainHaystack.some((h) => h.includes(k)))) {
@@ -160,17 +247,20 @@ function buildRecommendedSet(
 
   matchedAttributes.push(...main.flavor_tags, ...main.texture_tags);
 
-  const noticesForCautions = [...main.ingredient_notices, ...(pairedSide?.ingredient_notices ?? [])];
+  const noticesForCautions = [
+    ...main.ingredient_notices,
+    ...resolvedSides.flatMap((s) => s.ingredient_notices),
+  ];
   const cautions = noticesForCautions.map(
     (n) => `${n.ingredient_name} (${ingredientNoticeLabel(n.status)})`,
   );
 
   const evidenceSources = [
     ...main.evidences.map((e) => e.source_summary),
-    ...(pairedSide?.evidences.map((e) => e.source_summary) ?? []),
+    ...resolvedSides.flatMap((s) => s.evidences.map((e) => e.source_summary)),
   ];
 
-  const allVerifiedDates = [...main.evidences, ...(pairedSide?.evidences ?? [])]
+  const allVerifiedDates = [...main.evidences, ...resolvedSides.flatMap((s) => s.evidences)]
     .map((e) => e.verified_at ?? e.collected_at)
     .filter((d): d is string => Boolean(d))
     .sort()
@@ -178,12 +268,14 @@ function buildRecommendedSet(
 
   return {
     main,
-    sides: pairedSide ? [pairedSide] : [],
+    sides: resolvedSides,
     matched_conditions: matchedConditions,
     matched_attributes: Array.from(new Set(matchedAttributes)),
     cautions: Array.from(new Set(cautions)),
     evidence_sources: Array.from(new Set(evidenceSources)),
     last_verified_at: allVerifiedDates[0] ?? null,
     score,
+    is_owner_pick: isOwnerPick,
+    owner_set_label: ownerSetLabel,
   };
 }

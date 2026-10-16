@@ -8,6 +8,13 @@
     "test": "cd team-source && node node_modules/vitest/vitest.mjs run --pool=threads --maxWorkers=1 --no-file-parallelism",
     "preview": "npm --prefix team-source run preview -- --host 127.0.0.1 --port 4173 --strictPort",
     "setup:client": "npm --prefix team-source ci",
-    "deploy:vercel": "npx -y vercel@64.2.0 deploy --prod --yes && npx -y vercel@64.2.0 alias rm menumate-dohee12s-projects.vercel.app --yes"
+    "deploy:vercel": "npx -y vercel@64.2.0 deploy --prod --yes && npx -y vercel@64.2.0 alias rm menumate-dohee12s-projects.vercel.app --yes",
+    "dev:server": "npm --prefix team-source/server run dev",
+    "build:server": "npm --prefix team-source/server run build",
+    "test:server": "npm --prefix team-source/server test",
+    "setup:server": "npm --prefix team-source/server install",
+    "dev:admin": "npm --prefix admin-app run dev",
+    "build:admin": "npm --prefix admin-app run build",
+    "setup:admin": "npm --prefix admin-app install"
   }
 }

@@ -20,6 +20,13 @@ const envSchema = z.object({
   LLM_API_BASE: z.string().optional().default(""),
   LLM_API_KEY: z.string().optional().default(""),
   LLM_MODEL: z.string().optional().default(""),
+
+  // 점주 관리자 로그인 토큰 서명 비밀값. 개발 기본값을 두지만, 실제 배포/전시 전에는
+  // 반드시 .env에서 고유한 값으로 덮어써야 한다 (안 그러면 누구나 토큰을 위조할 수 있음).
+  ADMIN_JWT_SECRET: z
+    .string()
+    .min(16, "ADMIN_JWT_SECRET은 16자 이상이어야 합니다.")
+    .default("dev-only-change-me-before-exhibition"),
 });
 
 const parsed = envSchema.safeParse(process.env);

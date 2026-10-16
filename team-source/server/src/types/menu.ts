@@ -61,9 +61,17 @@ export interface MenuRow {
   name: string;
   price: number;
   category: MenuCategory;
+  /** 음식 종류(베이징덕/생선, 딤섬, 면, 밥 등) — category(코스 구분)와는 다른 축. 관리자 화면에서 점주가 쓴다. */
+  kind: string | null;
+  /** 키오스크 정적 데이터(menus.json)의 원래 id — 실시간 동기화를 위한 내부 식별자. 관리자가 바꿀 수 없다. */
+  external_id: string | null;
   spicy_level: 0 | 1 | 2 | 3;
   serving_size: string | null;
   sold_out: boolean;
+  /** 점주가 "추천 메뉴"로 지정했는지. 추천 엔진에서 가점 대상이 된다 (안전 하드 필터는 그대로 적용). */
+  is_featured: boolean;
+  /** 추천 메뉴들 사이의 노출 우선순위 (작을수록 먼저). 없으면 지정 순서 없이 동일 가점. */
+  featured_rank: number | null;
 }
 
 export interface MenuWithDetails extends MenuRow {
@@ -82,4 +90,36 @@ export interface StoreRow {
   slug: string;
   name: string;
   dataset_as_of: string | null;
+}
+
+/** 관리자 화면에서 메뉴를 새로 만들 때 입력. */
+export interface MenuCreateInput {
+  name: string;
+  price: number;
+  category: MenuCategory;
+  /** 음식 종류 — 관리자 화면에서 입력 가능. external_id는 여기 없다 (가져오기 스크립트 전용, API로는 설정 불가). */
+  kind?: string | null;
+  spicy_level: 0 | 1 | 2 | 3;
+  serving_size?: string | null;
+  sold_out?: boolean;
+}
+
+/** 관리자 화면에서 메뉴를 수정할 때 입력 — 보낸 필드만 반영한다(부분 수정). */
+export interface MenuUpdateInput {
+  name?: string;
+  price?: number;
+  category?: MenuCategory;
+  kind?: string | null;
+  spicy_level?: 0 | 1 | 2 | 3;
+  serving_size?: string | null;
+  sold_out?: boolean;
+  is_featured?: boolean;
+  featured_rank?: number | null;
+}
+
+export interface MenuIngredientNoticeInput {
+  ingredient_name: string;
+  status: IngredientNoticeStatus;
+  source_type: IngredientNoticeSourceType;
+  verified_at: string | null;
 }

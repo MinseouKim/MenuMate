@@ -48,7 +48,15 @@
 | menu/menus.json · menu/image/ · menu/review/ | 메뉴 데이터(80개), 사진(파일 이름 = 메뉴 id, 예: dimsum-1.webp), 리뷰 자료 |
 | styles/overrides.css | 마지막에 불러와 옛 고정 크기 규칙을 덮어쓰는 화면 보정 |
 
-`team-source/server/`는 Express + MySQL 백엔드입니다. 키오스크는 지금 조건 해석(`POST /api/condition-extraction`)만 씁니다. 서버 DB에 80개 메뉴를 넣으려면 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행합니다(통합 테스트 DB에는 넣지 마세요).
+## 백엔드 · 점주 관리자 화면
+
+`team-source/server/`는 Express + MySQL 백엔드입니다. 키오스크 화면은 지금 조건 해석(`POST /api/condition-extraction`, LLM 설정 시 LLM 우선·실패하면 규칙 기반, 응답에 `source: "llm"|"rules"` 포함)만 호출하고, 메뉴·추천 데이터는 여전히 빌드에 번들된 `menus.json`을 그대로 씁니다.
+
+서버는 그 외에 손님용 공개 API(`/api/stores`, `/api/stores/:slug/menus`, `/api/stores/:slug/recommendations`)와, 점주가 로그인해서 메뉴를 고치고(`is_featured`/`featured_rank`로 "추천 메뉴" 지정 포함) 추천 세트를 관리하는 관리자 API(`/api/admin/...`, JWT 인증)를 함께 제공합니다 — 자세한 내용과 실행 방법은 `team-source/server/README.md` 참고. 점주용 화면은 별도 패키지 `admin-app/`(React + Vite)에 있고, 루트에서 `npm run setup:admin && npm run dev:admin`으로 띄울 수 있습니다(`admin-app/.env.example` 참고).
+
+서버 DB에 실제 메뉴(현재 80개)를 넣으려면 `npm --prefix team-source/server run import:real-menu -- --slug ururu-headquarters`를 씁니다(`kind`/`external_id`/`is_featured`까지 채워 관리자 화면과 바로 연동됨). 이 필드들이 필요 없는 더 단순한 경로로는 기존처럼 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행하는 방법도 남아 있습니다(통합 테스트 DB에는 넣지 마세요).
+
+관리자 화면에서 고친 메뉴가 전시 키오스크에 바로 보이는 것은 아닙니다 — 키오스크는 여전히 빌드 시점 `menus.json`을 쓰므로, 두 데이터를 실시간으로 잇는 작업은 아직 남아 있습니다.
 
 ## 데이터 주의
 

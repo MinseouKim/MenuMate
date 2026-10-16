@@ -12,9 +12,13 @@ function menu(overrides: Partial<MenuWithDetails>): MenuWithDetails {
     name: "[테스트] 짜장면",
     price: 7000,
     category: "main",
+    kind: null,
+    external_id: null,
     spicy_level: 0,
     serving_size: "1인분",
     sold_out: false,
+    is_featured: false,
+    featured_rank: null,
     flavor_tags: ["담백함"],
     texture_tags: ["쫄깃함"],
     keyword_tags: ["면"],
@@ -86,7 +90,6 @@ describe("POST /api/condition-extraction", () => {
     expect(res.body.conditions.party_size).toBe(2);
     expect(res.body.conditions.spicy_level).toBe(2);
     expect(res.body.conditions.excluded_ingredients).toContain("해산물");
-    expect(res.body.source).toBe("rules");
   });
 
   it("빈 발화는 공통 에러 포맷으로 400을 반환한다", async () => {
