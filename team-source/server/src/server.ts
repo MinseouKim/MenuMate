@@ -5,6 +5,7 @@ import { createMysqlStoreRepository } from "./repositories/mysqlStoreRepository.
 import { createMysqlMenuRepository } from "./repositories/mysqlMenuRepository.js";
 import { createMysqlStoreOwnerRepository } from "./repositories/mysqlStoreOwnerRepository.js";
 import { createMysqlFeaturedSetRepository } from "./repositories/mysqlFeaturedSetRepository.js";
+import { createMysqlOrderRepository } from "./repositories/mysqlOrderRepository.js";
 
 const pool = getPool();
 const app = createApp({
@@ -12,6 +13,7 @@ const app = createApp({
   menuRepository: createMysqlMenuRepository(pool),
   storeOwnerRepository: createMysqlStoreOwnerRepository(pool),
   featuredSetRepository: createMysqlFeaturedSetRepository(pool),
+  orderRepository: createMysqlOrderRepository(pool),
 });
 
 app.listen(env.PORT, () => {

@@ -50,13 +50,19 @@
 
 ## 백엔드 · 점주 관리자 화면
 
-`team-source/server/`는 Express + MySQL 백엔드입니다. 키오스크 화면은 지금 조건 해석(`POST /api/condition-extraction`, LLM 설정 시 LLM 우선·실패하면 규칙 기반, 응답에 `source: "llm"|"rules"` 포함)만 호출하고, 메뉴·추천 데이터는 여전히 빌드에 번들된 `menus.json`을 그대로 씁니다.
+`team-source/server/`는 Express + MySQL 백엔드입니다. `VITE_API_BASE_URL`을 설정하면 키오스크 화면이:
 
-서버는 그 외에 손님용 공개 API(`/api/stores`, `/api/stores/:slug/menus`, `/api/stores/:slug/recommendations`)와, 점주가 로그인해서 메뉴를 고치고(`is_featured`/`featured_rank`로 "추천 메뉴" 지정 포함) 추천 세트를 관리하는 관리자 API(`/api/admin/...`, JWT 인증)를 함께 제공합니다 — 자세한 내용과 실행 방법은 `team-source/server/README.md` 참고. 점주용 화면은 별도 패키지 `admin-app/`(React + Vite)에 있고, 루트에서 `npm run setup:admin && npm run dev:admin`으로 띄울 수 있습니다(`admin-app/.env.example` 참고).
+- 조건 해석을 서버 LLM으로 한 번 더 보강하고(`POST /api/condition-extraction`, 실패 시 규칙 기반, 응답에 `source: "llm"|"rules"` 포함),
+- 1분마다 메뉴의 이름/가격/종류/맵기/품절/"추천 메뉴" 지정 여부를 서버에서 받아와 `external_id`로 짝을 맞춰 겹쳐 쓰고(설명·리뷰·사진은 이 DB에 없는 필드라 항상 빌드에 번들된 `menus.json` 그대로 씁니다),
+- 결제가 끝나면 주문을 서버에 저장합니다(실패해도 결제 완료 화면은 그대로 진행).
 
-서버 DB에 실제 메뉴(현재 80개)를 넣으려면 `npm --prefix team-source/server run import:real-menu -- --slug ururu-headquarters`를 씁니다(`kind`/`external_id`/`is_featured`까지 채워 관리자 화면과 바로 연동됨). 이 필드들이 필요 없는 더 단순한 경로로는 기존처럼 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행하는 방법도 남아 있습니다(통합 테스트 DB에는 넣지 마세요).
+서버가 없거나 응답이 없으면 전부 조용히 포기하고 번들 데이터·클라이언트 규칙만으로 동작합니다 — 자세한 내용은 `team-source/server/README.md`의 "키오스크 ↔ 서버 실시간 연동" 절 참고.
 
-관리자 화면에서 고친 메뉴가 전시 키오스크에 바로 보이는 것은 아닙니다 — 키오스크는 여전히 빌드 시점 `menus.json`을 쓰므로, 두 데이터를 실시간으로 잇는 작업은 아직 남아 있습니다.
+서버는 그 외에 손님용 공개 API(`/api/stores`, `/api/stores/:slug/menus`, `/api/stores/:slug/recommendations`, `/api/stores/:slug/orders`)와, 점주가 로그인해서 메뉴를 고치고(`is_featured`/`featured_rank`로 "추천 메뉴" 지정 포함) 추천 세트를 관리하는 관리자 API(`/api/admin/...`, JWT 인증)를 함께 제공합니다. 점주용 화면은 별도 패키지 `admin-app/`(React + Vite)에 있고, 루트에서 `npm run setup:admin && npm run dev:admin`으로 띄울 수 있습니다(`admin-app/.env.example` 참고).
+
+서버 DB에 실제 메뉴(현재 80개)를 넣으려면 `npm --prefix team-source/server run import:real-menu -- --slug ururu-headquarters`를 씁니다(`kind`/`external_id`/`is_featured`까지 채워 관리자 화면·키오스크와 바로 연동됨). 이 필드들이 필요 없는 더 단순한 경로로는 기존처럼 `npm --prefix team-source/server run seed:build`로 `server/sql/seeds/ururu_menus.sql`을 만든 뒤 MySQL에 직접 실행하는 방법도 남아 있습니다(통합 테스트 DB에는 넣지 마세요).
+
+**운영 배포 전에는 반드시** `team-source/server/README.md`의 "운영 배포 전 보안 체크리스트"를 확인하세요(`ADMIN_JWT_SECRET`, `CORS_ORIGIN`, DB 비밀번호 — 지금은 전부 개발용 기본값입니다). 실제 결제(PG 연동)는 아직 없고, 지금의 "결제 완료"는 전시 체험용으로 버튼을 누르면 바로 완료 처리됩니다.
 
 ## 데이터 주의
 

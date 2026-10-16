@@ -13,6 +13,8 @@ import { receiptUrl, isLocalBase } from './receiptLink';
 import QRCode from 'qrcode';
 import { menuImage } from './menuImages';
 import { addLines, findMenu, lineKey, linesTotal, suggestions, withDefaultOption } from './cart';
+import { applyMenuOverrides, fetchMenuOverrides } from './menuLive';
+import { persistOrder } from './orderClient';
 import { KEYPAD, matchesChosung } from './hangul';
 import { Payment } from './Payment';
 import { useFaceAssist, type FaceGroup } from './faceAssist';
@@ -24,11 +26,13 @@ import './styles/retail.css';
 import './styles/cart-list.css';
 import './styles/react.css';
 import './styles/overrides.css'; // 반드시 마지막에 불러옵니다.
-const menus: Menu[] = menuData;
 const money = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 type Dialog = { kind: 'info'; menu: Menu } | { kind: 'home' | 'help' | 'idle' | 'settings' } | { kind: 'spoken' | 'option'; menu: Menu; quantity: number } | { kind: 'upsell'; items: Menu[] };
 const CATEGORIES = [['noodle','면'],['rice','밥'],['duck-fish','베이징덕/생선'],['dimsum','딤섬'],['vegetable','야채'],['cold','냉채/샐러드'],['soup','스프/탕'],['chicken','치킨'],['pork','돼지고기'],['beef','소고기'],['seafood','해산물']];
 const IDLE_MS = 60_000, IDLE_GRACE_MS = 20_000, DONE_MS = 60_000;
+// 서버(관리자 화면)에 연결돼 있으면 이 주기로 메뉴 품절/가격/추천 지정 여부를 다시 받아옵니다.
+// 서버가 없으면(menuLive.fetchMenuOverrides가 null을 돌려줌) 그냥 아무 일도 하지 않습니다.
+const MENU_LIVE_POLL_MS = 60_000;
 // 시작 화면을 지나 이 시간 안에 얼굴 나이대를 알지 못하면 카메라를 끕니다.
 const FACE_WAIT_MS = 20_000;
 const CameraIcon = () => <svg className="camera-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.6-2h6.8L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg>;
@@ -93,6 +97,16 @@ function DoneCountdown({ ms }: { ms: number }) {
 }
 export default function KioskApp() {
   const [screen, setScreen] = useState<Screen>('welcome');
+  // 기본값은 번들된 menus.json. 서버(관리자 화면)가 연결돼 있으면 이름/가격/종류/맵기/품절/추천 지정
+  // 여부만 external_id로 짝을 맞춰 겹쳐 씁니다(menuLive.ts). 설명·리뷰·사진은 항상 번들 데이터 그대로입니다.
+  const [menus, setMenus] = useState<Menu[]>(menuData);
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => { void fetchMenuOverrides().then(overrides => { if (alive) setMenus(base => applyMenuOverrides(base, overrides)); }); };
+    refresh();
+    const timer = setInterval(refresh, MENU_LIVE_POLL_MS);
+    return () => { alive = false; clearInterval(timer); };
+  }, []);
   const [history, setHistory] = useState<Screen[]>([]);
   const [category, setCategory] = useState('duck-fish');
   const [lines, setLines] = useState<Line[]>([]);
@@ -213,7 +227,10 @@ export default function KioskApp() {
   // 결제가 끝나면 영수증에 보여 줄 주문을 만들고 장바구니를 비웁니다. 결제 연동 시 주문 번호는 서버 값으로 바꾸면 됩니다.
   function complete(payment: PaymentResult) {
     const items = lines.map(l => { const m = findMenu(menus, l.id); return { id: m.id, name: m.name, quantity: l.quantity, price: m.price, option: l.option }; });
-    setOrder({ number: String(++orderCount.current).padStart(3, '0'), items, total, paidAt: new Date(), payment });
+    const completed = { number: String(++orderCount.current).padStart(3, '0'), items, total, paidAt: new Date(), payment };
+    setOrder(completed);
+    // 서버에 저장은 "최선을 다해서만" — 실패하거나 서버가 없어도 결제 완료 화면은 그대로 진행됩니다.
+    persistOrder(completed);
     usage.finish('ordered', { total, items: lines.reduce((n, l) => n + l.quantity, 0) });
     reset('done');
   }

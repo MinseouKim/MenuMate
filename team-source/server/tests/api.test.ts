@@ -135,3 +135,32 @@ describe("POST /api/stores/:slug/recommendations", () => {
     expect(res.body.error.code).toBe("VALIDATION_ERROR");
   });
 });
+
+describe("POST /api/stores/:slug/orders", () => {
+  it("결제 완료 주문을 저장한다 (로그인 불필요)", async () => {
+    const app = buildTestApp();
+    const res = await request(app)
+      .post("/api/stores/test-store/orders")
+      .send({
+        order_number: "001",
+        total_amount: 14000,
+        payment_method: "card",
+        dine_type: "dine_in",
+        items: [{ menu_external_id: "dimsum-1", name: "[테스트] 짜장면", price: 7000, quantity: 2 }],
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.order.order_number).toBe("001");
+    expect(res.body.order.items).toHaveLength(1);
+  });
+
+  it("항목이 없으면 400 VALIDATION_ERROR를 반환한다", async () => {
+    const app = buildTestApp();
+    const res = await request(app)
+      .post("/api/stores/test-store/orders")
+      .send({ order_number: "002", total_amount: 0, payment_method: "card", dine_type: "takeout", items: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
+  });
+});

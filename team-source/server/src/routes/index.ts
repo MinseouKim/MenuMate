@@ -2,6 +2,7 @@ import { Router } from "express";
 import type {
   FeaturedSetRepository,
   MenuRepository,
+  OrderRepository,
   StoreOwnerRepository,
   StoreRepository,
 } from "../repositories/types.js";
@@ -12,8 +13,10 @@ import { conditionsController } from "../controllers/conditionsController.js";
 import { createAuthController } from "../controllers/authController.js";
 import { createAdminMenusController } from "../controllers/adminMenusController.js";
 import { createAdminFeaturedSetsController } from "../controllers/adminFeaturedSetsController.js";
+import { createOrdersController } from "../controllers/ordersController.js";
 import { validateBody } from "../middleware/validate.js";
 import { requireStoreOwner } from "../middleware/auth.js";
+import { adminLoginRateLimit, conditionExtractionRateLimit } from "../middleware/rateLimit.js";
 import {
   recommendationRequestSchema,
   utteranceRequestSchema,
@@ -26,12 +29,14 @@ import {
   menuUpdateInputSchema,
 } from "../schemas/adminMenu.schema.js";
 import { featuredSetInputSchema } from "../schemas/featuredSet.schema.js";
+import { orderCreateInputSchema } from "../schemas/order.schema.js";
 
 export interface AppRepositories {
   storeRepository: StoreRepository;
   menuRepository: MenuRepository;
   storeOwnerRepository: StoreOwnerRepository;
   featuredSetRepository: FeaturedSetRepository;
+  orderRepository: OrderRepository;
 }
 
 export function createApiRouter({
@@ -39,6 +44,7 @@ export function createApiRouter({
   menuRepository,
   storeOwnerRepository,
   featuredSetRepository,
+  orderRepository,
 }: AppRepositories): Router {
   const router = Router();
 
@@ -56,6 +62,7 @@ export function createApiRouter({
     menuRepository,
     featuredSetRepository,
   );
+  const orders = createOrdersController(storeRepository, orderRepository);
 
   // --- 손님용 공개 API (기존) ---
   router.get("/stores", stores.list);
@@ -67,7 +74,12 @@ export function createApiRouter({
     menus.addEvidence,
   );
 
-  router.post("/condition-extraction", validateBody(utteranceRequestSchema), conditionsController.extract);
+  router.post(
+    "/condition-extraction",
+    conditionExtractionRateLimit,
+    validateBody(utteranceRequestSchema),
+    conditionsController.extract,
+  );
 
   router.post(
     "/stores/:slug/recommendations",
@@ -75,8 +87,15 @@ export function createApiRouter({
     recommendations.recommend,
   );
 
+  // 결제 완료 주문 저장 — 키오스크가 손님 응대 중 호출하는 공개 API라 로그인 없이 연다.
+  router.post(
+    "/stores/:slug/orders",
+    validateBody(orderCreateInputSchema),
+    orders.create,
+  );
+
   // --- 점주 관리자 API (로그인 필요) ---
-  router.post("/admin/login", validateBody(loginInputSchema), auth.login);
+  router.post("/admin/login", adminLoginRateLimit, validateBody(loginInputSchema), auth.login);
 
   router.post(
     "/admin/stores/:slug/menus",

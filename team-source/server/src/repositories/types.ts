@@ -7,6 +7,8 @@ import type {
   StoreRow,
 } from "../types/menu.js";
 import type { FeaturedSetInput, FeaturedSetWithItems, StoreOwnerRow } from "../types/admin.js";
+import type { OrderCreateInput } from "../schemas/order.schema.js";
+import type { StoreOrderWithItems } from "../types/storeOrder.js";
 
 /**
  * Repository는 인터페이스로 분리한다 — 실제 구현(MySQL)과 테스트용 인메모리 구현을 모두
@@ -44,4 +46,9 @@ export interface FeaturedSetRepository {
   create(storeId: number, input: FeaturedSetInput): Promise<FeaturedSetWithItems>;
   update(setId: number, input: FeaturedSetInput): Promise<FeaturedSetWithItems>;
   remove(setId: number): Promise<void>;
+}
+
+/** 결제 완료 주문 저장 — 키오스크가 결제를 끝낸 직후 (최선을 다해) 호출한다. */
+export interface OrderRepository {
+  create(storeId: number, input: OrderCreateInput): Promise<StoreOrderWithItems>;
 }

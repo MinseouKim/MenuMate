@@ -7,9 +7,12 @@ import type {
   StoreRow,
 } from "../../src/types/menu.js";
 import type { FeaturedSetInput, FeaturedSetWithItems, StoreOwnerRow } from "../../src/types/admin.js";
+import type { OrderCreateInput } from "../../src/schemas/order.schema.js";
+import type { StoreOrderWithItems } from "../../src/types/storeOrder.js";
 import type {
   FeaturedSetRepository,
   MenuRepository,
+  OrderRepository,
   StoreOwnerRepository,
   StoreRepository,
 } from "../../src/repositories/types.js";
@@ -28,13 +31,16 @@ export function createInMemoryRepositories(options: {
   menuRepository: MenuRepository;
   storeOwnerRepository: StoreOwnerRepository;
   featuredSetRepository: FeaturedSetRepository;
+  orderRepository: OrderRepository;
 } {
   const stores = [...options.stores];
   const menus = [...options.menus];
   const storeOwners = [...(options.storeOwners ?? [])];
   const featuredSets = [...(options.featuredSets ?? [])];
+  const orders: StoreOrderWithItems[] = [];
   let nextMenuId = Math.max(0, ...menus.map((m) => m.id)) + 1;
   let nextSetId = Math.max(0, ...featuredSets.map((s) => s.id)) + 1;
+  let nextOrderId = 1;
 
   const storeRepository: StoreRepository = {
     async findBySlug(slug: string) {
@@ -148,5 +154,29 @@ export function createInMemoryRepositories(options: {
     },
   };
 
-  return { storeRepository, menuRepository, storeOwnerRepository, featuredSetRepository };
+  const orderRepository: OrderRepository = {
+    async create(storeId: number, input: OrderCreateInput) {
+      const created: StoreOrderWithItems = {
+        id: nextOrderId++,
+        store_id: storeId,
+        order_number: input.order_number,
+        total_amount: input.total_amount,
+        payment_method: input.payment_method,
+        dine_type: input.dine_type,
+        status: "paid",
+        created_at: new Date().toISOString(),
+        items: input.items.map((item) => ({
+          menu_external_id: item.menu_external_id ?? null,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          option_label: item.option ?? null,
+        })),
+      };
+      orders.push(created);
+      return created;
+    },
+  };
+
+  return { storeRepository, menuRepository, storeOwnerRepository, featuredSetRepository, orderRepository };
 }

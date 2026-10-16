@@ -6,6 +6,7 @@ import { createMysqlStoreRepository } from "../../src/repositories/mysqlStoreRep
 import { createMysqlMenuRepository } from "../../src/repositories/mysqlMenuRepository.js";
 import { createMysqlStoreOwnerRepository } from "../../src/repositories/mysqlStoreOwnerRepository.js";
 import { createMysqlFeaturedSetRepository } from "../../src/repositories/mysqlFeaturedSetRepository.js";
+import { createMysqlOrderRepository } from "../../src/repositories/mysqlOrderRepository.js";
 import { ALLERGY_SAFETY_NOTICE } from "../../src/types/order.js";
 
 // 실제 MySQL/MariaDB(kiosk_test)에 시드된 "우루루 본점" 데이터로 API 전체 흐름을 검증한다.
@@ -17,6 +18,7 @@ describe("API 통합 테스트 (실제 DB, 우루루 본점 시드 데이터)", 
     menuRepository: createMysqlMenuRepository(pool),
     storeOwnerRepository: createMysqlStoreOwnerRepository(pool),
     featuredSetRepository: createMysqlFeaturedSetRepository(pool),
+    orderRepository: createMysqlOrderRepository(pool),
   });
 
   afterAll(async () => {

@@ -123,6 +123,7 @@ npm test
 | POST | `/api/condition-extraction` | `{ utterance }` → 구조화된 조건(JSON) 추출. LLM 미설정 시 규칙 기반 |
 | POST | `/api/stores/:slug/recommendations` | `{ conditions, vision? }` → 추천 결과 + `allergy_safety_notice` |
 | POST | `/api/stores/:slug/menus/:menuId/evidences` | 메뉴 근거 추가 (관리용, `manual_public_review_aggregate` 제약 검증) |
+| POST | `/api/stores/:slug/orders` | 결제 완료 주문 저장(매출 집계·영수증 재발급용). 키오스크가 손님 응대 중 호출하는 공개 API라 로그인 없음. 1분당 요청 수 제한 없음(관리자 로그인과 달리 브루트포스 대상이 아님) |
 
 ### 점주 관리자 API (로그인 필요, `Authorization: Bearer <token>`)
 
@@ -138,8 +139,26 @@ npm test
 
 `is_featured`/`featured_rank`로 지정한 메뉴와 추천 세트는 `recommendationService.ts`의 점수 계산에서 가점(`OWNER_FEATURED_BONUS`)을 받지만, 품절·제외 재료 등 안전 하드 필터는 그대로 적용된다. 점주 관리자 화면은 별도 패키지 `admin-app/`(React + Vite)에 있다 — `npm --prefix admin-app install && npm --prefix admin-app run dev`로 실행하고 `admin-app/.env`의 `VITE_API_BASE`가 이 서버를 가리키게 한다.
 
+## 키오스크 ↔ 서버 실시간 연동
+
+`VITE_API_BASE_URL`이 설정돼 있으면 키오스크(`team-source/src/prototype`)는:
+
+- 조건 해석을 이 서버의 LLM(실패 시 규칙 기반)으로 한 번 더 보강하고 (`POST /api/condition-extraction`),
+- 1분마다 `GET /api/stores/:slug/menus`를 불러와 **이름/가격/종류/맵기/품절/추천 지정 여부**만 `external_id`로 짝을 맞춰 겹쳐 쓰고(`src/prototype/menuLive.ts`) — 설명·리뷰·사진 같은 전시용 콘텐츠는 이 DB에 애초에 없는 필드라 항상 번들된 `menus.json` 그대로 쓴다,
+- 점주가 "추천 메뉴"로 지정한 메뉴(`is_featured`)는 키오스크 자체 추천 로직(`recommendation.ts`)에서 가점을 받는다,
+- 결제가 끝나면 주문을 `POST /api/stores/:slug/orders`로 저장한다(`src/prototype/orderClient.ts`, 실패해도 결제 완료 화면은 그대로 진행).
+
+서버가 없거나 응답이 없으면 전부 조용히 포기하고 번들 데이터·클라이언트 규칙으로만 동작한다 — 키오스크는 네트워크가 끊겨도 손님 응대를 계속해야 하기 때문이다.
+
+## 운영 배포 전 보안 체크리스트
+
+- `NODE_ENV=production`으로 띄우면 `ADMIN_JWT_SECRET`이 비어 있을 때 서버가 시작하지 않는다 — `openssl rand -hex 32` 같은 고유 값을 반드시 넣어야 한다. (개발/테스트에서는 비워 두면 알려진 개발용 기본값을 쓴다.)
+- `CORS_ORIGIN`을 실제 키오스크·관리자 화면 배포 도메인으로 좁혀야 한다(쉼표로 여러 개 가능). `production`에서 여전히 `localhost`면 시작 로그에 경고가 찍힌다.
+- `POST /api/admin/login`(IP당 15분 10회)과 `POST /api/condition-extraction`(IP당 1분 20회)에 rate limit이 걸려 있다(`src/middleware/rateLimit.ts`) — brute-force·LLM 비용 남용 방지용. 여러 서버 인스턴스로 수평 확장하면 메모리 기반 저장소를 Redis 등 공유 저장소로 바꿔야 한다.
+- DB 계정은 예시(`kiosk_app`/`1234`)를 그대로 쓰지 말고 운영용 비밀번호로 바꾼다.
+
 ## 남은 작업 / 교체 필요
 
 - `sql/002_seed_placeholder.sql`은 전부 `[예시]`로 표시된 플레이스홀더다. `npm run import:real-menu`로 실제 "우루루 본점" 메뉴로 교체할 수 있다(위 1-1절).
-- 키오스크(`team-source/src/prototype`)는 현재 `POST /api/condition-extraction`만 호출한다 — 메뉴/추천 데이터는 여전히 빌드에 번들된 `menus.json`을 그대로 쓰고, 이 서버의 `/api/stores/*`·`/api/admin/*`는 아직 키오스크 화면과 실시간으로 연결돼 있지 않다. 점주가 관리자 화면에서 고친 내용이 전시 키오스크에 바로 보이게 하려면 키오스크 쪽에서 이 API를 호출하도록 바꾸는 작업이 남아있다.
-- `VITE_API_BASE_URL`이 설정돼 있으면 키오스크가 이 서버의 조건 추출(LLM 우선, 실패 시 규칙 기반)을 쓴다. LLM 키는 이 서버의 `.env`에만 둔다.
+- 실제 결제(PG 연동)는 아직 없다 — 지금의 "결제 완료"는 전시 체험용으로, 버튼을 누르면 바로 완료 처리된다. 실제 서비스로 가려면 PG사 연동과 결제 상태(대기/완료/실패) 추적이 필요하다.
+- 여러 대의 키오스크가 한 매장에 있을 때, 품절 처리 같은 변경이 더 빠르게 퍼지길 원하면 1분 polling보다 짧은 주기나 웹소켓/SSE push로 바꾸는 걸 고려할 수 있다.
