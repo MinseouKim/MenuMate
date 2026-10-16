@@ -1,4 +1,5 @@
 // 키오스크 영수증의 QR을 휴대폰으로 찍으면 열리는 화면입니다. 주소(#/receipt/...)에 담긴 주문 내용만 보여 줍니다.
+import { useEffect, useState } from 'react';
 import menuData from './menu/menus.json';
 import type { Menu } from './types';
 import { Receipt } from './Receipt';
@@ -26,4 +27,12 @@ export function ReceiptPage({ code }: { code: string }) {
     </>}
     <footer>말로 고르고, 이유와 함께 추천받는 키오스크 · menumate</footer>
   </main>;
+}
+
+// 휴대폰 영수증 전용 페이지(receipt.html)에서 씁니다. 주소: receipt.html#<주문 코드>(예전 QR은 #/receipt/<코드>)
+const codeOf = (hash: string) => hash.match(/^#(?:\/receipt\/)?([\w.~-]+)/)?.[1] ?? '';
+export function HashReceiptPage() {
+  const [code, setCode] = useState(() => codeOf(location.hash));
+  useEffect(() => { const on = () => setCode(codeOf(location.hash)); window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, []);
+  return <ReceiptPage code={code}/>;
 }

@@ -1,0 +1,798 @@
+{
+  "store": "우루루 안양",
+  "source": "캐치테이블 메뉴 페이지 캡처(2026-10-09) + 사용자 제공 메뉴 사진 80장",
+  "note": "메뉴 id는 MenuMate 앱 team-source/src/prototype/menu/menus.json 의 id와 같습니다. image는 이 파일과 같은 폴더 기준 상대 경로이며, 사진이 없는 메뉴는 빈 문자열입니다.",
+  "stats": {
+    "menus": 80,
+    "withImage": 80,
+    "withoutImage": 0
+  },
+  "categories": [
+    {
+      "id": "duck-fish",
+      "name": "베이징덕/생선",
+      "items": [
+        {
+          "id": "duck-fish-1",
+          "name": "베이징덕 한 마리",
+          "price": 105000,
+          "description": "",
+          "badge": "대표",
+          "image": "duck-fish-1.webp",
+          "sourceImage": "베이징덕_한마리.png"
+        },
+        {
+          "id": "duck-fish-2",
+          "name": "베이징덕 반 마리",
+          "price": 64000,
+          "description": "",
+          "badge": "",
+          "image": "duck-fish-2.webp",
+          "sourceImage": "베이징덕_반마리.png"
+        }
+      ]
+    },
+    {
+      "id": "dimsum",
+      "name": "딤섬",
+      "items": [
+        {
+          "id": "dimsum-1",
+          "name": "모듬 딤섬",
+          "price": 19500,
+          "description": "",
+          "badge": "대표",
+          "image": "dimsum-1.webp",
+          "sourceImage": "모둠 딤섬.png"
+        },
+        {
+          "id": "dimsum-2",
+          "name": "홍콩식 딤섬 트리오",
+          "price": 11000,
+          "description": "트러플 하가우(1PCS), 소마이(1PCS), 부추교자(1PCS)",
+          "badge": "",
+          "image": "dimsum-2.webp",
+          "sourceImage": "홍콩식 딤섬 트리오.png"
+        },
+        {
+          "id": "dimsum-3",
+          "name": "소룡포",
+          "price": 8900,
+          "description": "한입 베어물면 담백한 육즙이 가득 넘쳐흐르는 광동식 딤섬",
+          "badge": "",
+          "image": "dimsum-3.webp",
+          "sourceImage": "소룡포.png"
+        },
+        {
+          "id": "dimsum-4",
+          "name": "홍게살 소룡포",
+          "price": 9500,
+          "description": "담백한 게살이 듬뿍 들어간 상해식 딤섬",
+          "badge": "",
+          "image": "dimsum-4.webp",
+          "sourceImage": "홍게살 소룡포.png"
+        },
+        {
+          "id": "dimsum-5",
+          "name": "하가우",
+          "price": 9800,
+          "description": "얇은 피에 신선한 새우살을 넣어 만든 광동식 딤섬",
+          "badge": "",
+          "image": "dimsum-5.webp",
+          "sourceImage": "하가우.png"
+        },
+        {
+          "id": "dimsum-6",
+          "name": "쇼마이",
+          "price": 9800,
+          "description": "다진 돼지고기와 새우를 넣고 꽃 모양으로 빚어낸 광동식 딤섬",
+          "badge": "",
+          "image": "dimsum-6.webp",
+          "sourceImage": "쇼마이.png"
+        },
+        {
+          "id": "dimsum-7",
+          "name": "트러플 쇼마이",
+          "price": 9800,
+          "description": "트러플 향이 가득한 쇼마이",
+          "badge": "",
+          "image": "dimsum-7.webp",
+          "sourceImage": "트러플 쇼마이.png"
+        },
+        {
+          "id": "dimsum-8",
+          "name": "모듬버섯 야채교자",
+          "price": 8900,
+          "description": "버섯 향이 가득한 야채교자",
+          "badge": "",
+          "image": "dimsum-8.webp",
+          "sourceImage": "모둠버섯 야채교자.png"
+        },
+        {
+          "id": "dimsum-9",
+          "name": "부추교자",
+          "price": 9800,
+          "description": "향긋한 부추로 가득 채운 광동식 딤섬",
+          "badge": "",
+          "image": "dimsum-9.webp",
+          "sourceImage": "부추교자.png"
+        },
+        {
+          "id": "dimsum-10",
+          "name": "사천식 돼지고기 완탕",
+          "price": 9500,
+          "description": "",
+          "badge": "",
+          "image": "dimsum-10.webp",
+          "sourceImage": "사천식 돼지고기 완탕.png"
+        },
+        {
+          "id": "dimsum-11",
+          "name": "카다이프 새우완자 튀김",
+          "price": 10500,
+          "description": "카다이프로 감싼 새우완자를 바삭하게 튀겨낸 춘권",
+          "badge": "",
+          "image": "dimsum-11.webp",
+          "sourceImage": "카다이프 새우완자 튀김.png"
+        },
+        {
+          "id": "dimsum-12",
+          "name": "두부피 새우 춘권",
+          "price": 9500,
+          "description": "바삭한 두부피 속에 탱글한 새우를 더한 프리미엄 춘권",
+          "badge": "신규",
+          "image": "dimsum-12.webp",
+          "sourceImage": "두부피 새우 춘권.png"
+        },
+        {
+          "id": "dimsum-13",
+          "name": "수제 군만두",
+          "price": 8900,
+          "description": "",
+          "badge": "",
+          "image": "dimsum-13.webp",
+          "sourceImage": "수제 군만두.png"
+        }
+      ]
+    },
+    {
+      "id": "vegetable",
+      "name": "야채",
+      "items": [
+        {
+          "id": "vegetable-1",
+          "name": "마라 오이 무침",
+          "price": 7900,
+          "description": "매콤한 중국식 오이무침",
+          "badge": "",
+          "image": "vegetable-1.webp",
+          "sourceImage": "마라 오이 무침.png"
+        },
+        {
+          "id": "vegetable-2",
+          "name": "목이 버섯 무침",
+          "price": 7900,
+          "description": "마늘소스에 목이버섯을 무친 요리",
+          "badge": "",
+          "image": "vegetable-2.webp",
+          "sourceImage": "목이 버섯 무침.png"
+        },
+        {
+          "id": "vegetable-3",
+          "name": "매콤 크리스피 가지튀김",
+          "price": 12000,
+          "description": "조염 향신료를 곁들인 매콤한 가지튀김",
+          "badge": "",
+          "image": "vegetable-3.webp",
+          "sourceImage": "매콤 크리스피 가지튀김.png"
+        },
+        {
+          "id": "vegetable-4",
+          "name": "핫팟 광동식 어향가지",
+          "price": 20000,
+          "description": "어향소스의 깊은 맛이 살아있는 매콤한 가지 요리",
+          "badge": "",
+          "image": "vegetable-4.webp",
+          "sourceImage": "핫팟 광동식 어향가지.png"
+        },
+        {
+          "id": "vegetable-5",
+          "name": "핫팟 사천식 마파두부",
+          "price": 20000,
+          "description": "부드러운 연두부와 깊고 풍부한 두반장의 조화가 매력적인 사천식 두부 요리",
+          "badge": "",
+          "image": "vegetable-5.webp",
+          "sourceImage": "핫팟 사천식 마파두부.png"
+        },
+        {
+          "id": "vegetable-6",
+          "name": "청경채 야채볶음",
+          "price": 15000,
+          "description": "청경채를 굴소스 또는 마늘소스로 볶아낸 요리",
+          "badge": "",
+          "image": "vegetable-6.webp",
+          "sourceImage": "청경채 야채볶음.png"
+        },
+        {
+          "id": "vegetable-7",
+          "name": "비타민 야채볶음",
+          "price": 15000,
+          "description": "비타민을 소스와 함께 볶아낸 요리",
+          "badge": "",
+          "image": "vegetable-7.webp",
+          "sourceImage": "비타민 야채볶음.png"
+        },
+        {
+          "id": "vegetable-8",
+          "name": "공심채 야채볶음",
+          "price": 18000,
+          "description": "공심채를 XO소스 또는 마늘소스로 볶아낸 요리",
+          "badge": "",
+          "image": "vegetable-8.webp",
+          "sourceImage": "공심채 야채볶음.png"
+        }
+      ]
+    },
+    {
+      "id": "cold",
+      "name": "냉채/샐러드",
+      "items": [
+        {
+          "id": "cold-1",
+          "name": "참깨소스로 맛을 낸 유자향 토마토 샐러드",
+          "price": 12000,
+          "description": "참깨소스로 맛을 낸 유자향 토마토 샐러드",
+          "badge": "",
+          "image": "cold-1.webp",
+          "sourceImage": "참깨소스로 맛을 낸 유자향 토마토 샐러드.png"
+        },
+        {
+          "id": "cold-2",
+          "name": "오향장우육 냉채",
+          "price": 28000,
+          "description": "사태에 우루루 오향 소스를 곁들인 요리",
+          "badge": "",
+          "image": "cold-2.webp",
+          "sourceImage": "오향장우육 냉채.png"
+        },
+        {
+          "id": "cold-3",
+          "name": "양장피 잡채",
+          "price": 35000,
+          "description": "야채, 해물, 육류가 어우러진 냉채 요리",
+          "badge": "",
+          "image": "cold-3.webp",
+          "sourceImage": "양장피 잡채.png"
+        },
+        {
+          "id": "cold-4",
+          "name": "우루루 특선냉채",
+          "price": 38000,
+          "description": "신선하고 풍부한 재료가 곁들여진 특 냉채",
+          "badge": "",
+          "image": "cold-4.webp",
+          "sourceImage": "우루루 특선냉채.png"
+        }
+      ]
+    },
+    {
+      "id": "soup",
+      "name": "스프/탕",
+      "items": [
+        {
+          "id": "soup-1",
+          "name": "송이 청채 전복 맑은 스프",
+          "price": 15000,
+          "description": "송이와 전복&청경채를 넣고 맑게 끓여낸 스프",
+          "badge": "",
+          "image": "soup-1.webp",
+          "sourceImage": "송이 첨채 전복 맑은 스프.png"
+        },
+        {
+          "id": "soup-2",
+          "name": "붉은 대게살 스프",
+          "price": 9000,
+          "description": "부드럽고 담백한 홍게살 스프",
+          "badge": "",
+          "image": "soup-2.webp",
+          "sourceImage": "붉은 대게살 스프.png"
+        },
+        {
+          "id": "soup-3",
+          "name": "옥수수 게살스프",
+          "price": 9000,
+          "description": "게살과 옥수수를 끓여낸 고소한 중국식 스프",
+          "badge": "",
+          "image": "soup-3.webp",
+          "sourceImage": "옥수수 게살 스프.png"
+        },
+        {
+          "id": "soup-4",
+          "name": "해물 산라탕",
+          "price": 9000,
+          "description": "신맛과 매운맛이 조화로운 스프",
+          "badge": "",
+          "image": "soup-4.webp",
+          "sourceImage": "해물 산라탕.png"
+        }
+      ]
+    },
+    {
+      "id": "chicken",
+      "name": "치킨",
+      "items": [
+        {
+          "id": "chicken-1",
+          "name": "고추 유린기",
+          "price": 35000,
+          "description": "바삭한 닭튀김에 신선한 야채와 특제 고추간장소스를 부어먹는 요리",
+          "badge": "",
+          "image": "chicken-1.webp",
+          "sourceImage": "고추 유린기.png"
+        },
+        {
+          "id": "chicken-2",
+          "name": "마늘 깐풍기",
+          "price": 35000,
+          "description": "닭고기를 튀겨 매콤한 깐풍소스에 볶아낸 요리",
+          "badge": "",
+          "image": "chicken-2.webp",
+          "sourceImage": "마늘 깐풍기.png"
+        },
+        {
+          "id": "chicken-3",
+          "name": "핫팟 좌종당계",
+          "price": 35000,
+          "description": "닭고기에 매콤달콤한 소스를 입혀 만든 미국식 중국 핫팟 요리",
+          "badge": "",
+          "image": "chicken-3.webp",
+          "sourceImage": "핫팟 좌종당계.png"
+        },
+        {
+          "id": "chicken-4",
+          "name": "사천식 라즈지",
+          "price": 35000,
+          "description": "바삭하게 튀긴 닭고기에 사천식 고추를 곁들인 매운 닭튀김 요리",
+          "badge": "",
+          "image": "chicken-4.webp",
+          "sourceImage": "사천식 라즈지.png"
+        },
+        {
+          "id": "chicken-5",
+          "name": "치킨 캐슈넛 볶음",
+          "price": 35000,
+          "description": "부드러운 닭고기와 캐슈넛을 화이트소스로 볶아낸 담백한 요리",
+          "badge": "",
+          "image": "chicken-5.webp",
+          "sourceImage": "치킨 캐슈넛 볶음.png"
+        }
+      ]
+    },
+    {
+      "id": "pork",
+      "name": "돼지고기",
+      "items": [
+        {
+          "id": "pork-1",
+          "name": "이베리코 싱가폴식 탕수육",
+          "price": 36000,
+          "description": "최고급 이베리코 고기로 만든 탕수육과 우루루만의 시그니처 싱가폴식 소스",
+          "badge": "",
+          "image": "pork-1.webp",
+          "sourceImage": "이베리코 싱가폴식 탕수육.png"
+        },
+        {
+          "id": "pork-2",
+          "name": "항저우식 동파육",
+          "price": 40000,
+          "description": "우루루 특제 소스로 조리된 항저우식 돼지고기 찜 요리",
+          "badge": "",
+          "image": "pork-2.webp",
+          "sourceImage": "항저우식 동파육.png"
+        },
+        {
+          "id": "pork-3",
+          "name": "고추잡채&바오번",
+          "price": 35000,
+          "description": "아삭한 피망과 부드러운 돼지고기를 볶아낸 요리",
+          "badge": "",
+          "image": "pork-3.webp",
+          "sourceImage": "고추잡채&바오번.png"
+        },
+        {
+          "id": "pork-4",
+          "name": "생등심 탕수육",
+          "price": 32000,
+          "description": "24시간 숙성된 육즙가득한 고기로 만든 생등심 탕수육과 과일 소스",
+          "badge": "",
+          "image": "pork-4.webp",
+          "sourceImage": "생등심 탕수육.png"
+        }
+      ]
+    },
+    {
+      "id": "beef",
+      "name": "소고기",
+      "items": [
+        {
+          "id": "beef-1",
+          "name": "숙성 소고기 탕수육",
+          "price": 40000,
+          "description": "숙성한 부드러운 채끝부위를 튀겨 만든 탕수육 요리",
+          "badge": "",
+          "image": "beef-1.webp",
+          "sourceImage": "숙성 소고기 탕수육.png"
+        },
+        {
+          "id": "beef-2",
+          "name": "흑후추 마늘 소고기 안심",
+          "price": 45000,
+          "description": "소안심을 흑후추 소스로 볶아낸 요리",
+          "badge": "",
+          "image": "beef-2.webp",
+          "sourceImage": "흑후추 마늘 소고기 안심.png"
+        },
+        {
+          "id": "beef-3",
+          "name": "흑후추 소고기 꽈리고추볶음",
+          "price": 38000,
+          "description": "소고기와 꽈리고추를 흑후추 소스로 볶아낸 요리",
+          "badge": "",
+          "image": "beef-3.webp",
+          "sourceImage": "흑후추 소고기 꽈리고추볶음.png"
+        },
+        {
+          "id": "beef-4",
+          "name": "굴소스에 볶아낸 소고기&아스파라거스",
+          "price": 38000,
+          "description": "깊은 감칠맛의 굴소스와 소고기를 볶아낸 요리",
+          "badge": "",
+          "image": "beef-4.webp",
+          "sourceImage": "굴소스에 볶아낸 소고기&아스파라거스.png"
+        },
+        {
+          "id": "beef-5",
+          "name": "채끝등심과 신선한 미니코스 랩",
+          "price": 38000,
+          "description": "신선한 야채에 싸먹는 채끝등심 요리",
+          "badge": "",
+          "image": "beef-5.webp",
+          "sourceImage": "챼끝등심과 신선한 미니코스 랩.png"
+        },
+        {
+          "id": "beef-6",
+          "name": "상해식 대파 소고기",
+          "price": 38000,
+          "description": "국내산 대파와 소고기를 불향 가득 담아 볶아낸 요리",
+          "badge": "",
+          "image": "beef-6.webp",
+          "sourceImage": "상해식 대파 소고기.png"
+        }
+      ]
+    },
+    {
+      "id": "noodle",
+      "name": "면",
+      "items": [
+        {
+          "id": "noodle-1",
+          "name": "원심 유니짜장",
+          "price": 8000,
+          "description": "다진 돼지고기와 파기름으로 진하게 볶아낸 유니짜장",
+          "badge": "",
+          "image": "noodle-1.webp",
+          "sourceImage": "유니짜장.png"
+        },
+        {
+          "id": "noodle-2",
+          "name": "싱가폴식 원 새우탕면",
+          "price": 16000,
+          "description": "진하게 우려낸 새우 본연의 깊은 맛, 싱가포르 현지의 이국적인 풍미를 그대로 담은 시원한 새우탕면",
+          "badge": "신규",
+          "image": "noodle-2.webp",
+          "sourceImage": "싱가폴식 새우탕면.png"
+        },
+        {
+          "id": "noodle-3",
+          "name": "블랙 이베리코 간짜장",
+          "price": 15000,
+          "description": "이베리코에 특제 짜장소스와 신선한 양파를 갓 볶아낸 짜장면",
+          "badge": "",
+          "image": "noodle-3.webp",
+          "sourceImage": "블랙 이베리코 간짜장.png"
+        },
+        {
+          "id": "noodle-4",
+          "name": "깻잎 차돌 짬뽕",
+          "price": 14000,
+          "description": "차돌박이가 들어간 얼큰한 짬뽕",
+          "badge": "",
+          "image": "noodle-4.webp",
+          "sourceImage": "깻잎 차돌 짬뽕.png"
+        },
+        {
+          "id": "noodle-5",
+          "name": "해물 짬뽕",
+          "price": 14000,
+          "description": "해물을 푸짐하게 넣은 얼큰한 해물 짬뽕",
+          "badge": "",
+          "image": "noodle-5.webp",
+          "sourceImage": "해물 짬뽕.png"
+        },
+        {
+          "id": "noodle-6",
+          "name": "사천식 딴딴면",
+          "price": 13000,
+          "description": "땅콩 소스와 고추기름으로 맛을 낸 사천식 면요리",
+          "badge": "",
+          "image": "noodle-6.webp",
+          "sourceImage": "사천식 딴딴면.png"
+        },
+        {
+          "id": "noodle-7",
+          "name": "소고기 우육탕면",
+          "price": 13000,
+          "description": "진한 마라향이 일품인 소고기 면요리",
+          "badge": "",
+          "image": "noodle-7.webp",
+          "sourceImage": "소고기 우육탕면.png"
+        },
+        {
+          "id": "noodle-8",
+          "name": "X.O 해산물 에그누들 차우면",
+          "price": 15000,
+          "description": "해산물과 에그누들을 X.O소스에 볶아낸 홍콩식 볶음면 요리",
+          "badge": "",
+          "image": "noodle-8.webp",
+          "sourceImage": "X,O 해산물 에그누들 차우면.png"
+        },
+        {
+          "id": "noodle-9",
+          "name": "상해식 소고기 에그누들 차우면",
+          "price": 15000,
+          "description": "갖은 채소와 소고기를 함께 볶아낸 에그누들 요리",
+          "badge": "",
+          "image": "noodle-9.webp",
+          "sourceImage": "상해식 소고기 에그누들 차우면.png"
+        },
+        {
+          "id": "noodle-10",
+          "name": "빙화 비취냉면(하절기)",
+          "price": 15000,
+          "description": "",
+          "badge": "",
+          "image": "noodle-10.webp",
+          "sourceImage": "비취냉면.png"
+        }
+      ]
+    },
+    {
+      "id": "rice",
+      "name": "밥",
+      "items": [
+        {
+          "id": "rice-1",
+          "name": "팔진 잡탕밥",
+          "price": 18000,
+          "description": "여덟가지 해산물을 풍미 가득하게 볶아 만든 덮밥",
+          "badge": "",
+          "image": "rice-1.webp",
+          "sourceImage": "팔진 잡탕밥.png"
+        },
+        {
+          "id": "rice-2",
+          "name": "붉은 대게살 류산슬 덮밥",
+          "price": 15000,
+          "description": "붉은 대게살과 해삼&야채를 곁들인 덮밥",
+          "badge": "",
+          "image": "rice-2.webp",
+          "sourceImage": "붉은 대게살 류산슬 덮밥.png"
+        },
+        {
+          "id": "rice-3",
+          "name": "홍콩식 날치알 흰자 볶음밥",
+          "price": 13000,
+          "description": "부드러운 흰자와 날치알을 곁들인 볶음밥",
+          "badge": "",
+          "image": "rice-3.webp",
+          "sourceImage": "홍콩식 날치알 흰자 볶음밥.png"
+        },
+        {
+          "id": "rice-4",
+          "name": "X.O소스 게살볶음밥",
+          "price": 13000,
+          "description": "감칠맛나는 XO소스에 볶아낸 게살 볶음밥",
+          "badge": "",
+          "image": "rice-4.webp",
+          "sourceImage": "X.O소스 게살볶음밥.png"
+        },
+        {
+          "id": "rice-5",
+          "name": "잡채밥",
+          "price": 13000,
+          "description": "채썬 소고기와 당면을 함께 볶아낸 잡채밥",
+          "badge": "",
+          "image": "rice-5.webp",
+          "sourceImage": "잡채밥.png"
+        },
+        {
+          "id": "rice-6",
+          "name": "어향가지 덮밥",
+          "price": 13000,
+          "description": "튀긴 가지에 특제소스를 넣어 볶아낸 덮밥",
+          "badge": "",
+          "image": "rice-6.webp",
+          "sourceImage": "어향가지 덮밥.png"
+        },
+        {
+          "id": "rice-7",
+          "name": "채소볶음밥과 마파소스",
+          "price": 13000,
+          "description": "채소볶음밥과 마파두부소스",
+          "badge": "",
+          "image": "rice-7.webp",
+          "sourceImage": "채소볶음밥과 마파소스.png"
+        }
+      ]
+    },
+    {
+      "id": "seafood",
+      "name": "해산물",
+      "items": [
+        {
+          "id": "seafood-1",
+          "name": "X.O 금사오룡해삼",
+          "price": 72000,
+          "description": "다진 새우를 해삼에 채워 야채와 볶아낸 요리",
+          "badge": "",
+          "image": "seafood-1.webp",
+          "sourceImage": "X.O 금사오룡해삼.png"
+        },
+        {
+          "id": "seafood-2",
+          "name": "국산 해삼전복 굴소스",
+          "price": 80000,
+          "description": "국내산 해삼과 전복을 굴소스로 볶은 일품 요리",
+          "badge": "",
+          "image": "seafood-2.webp",
+          "sourceImage": "국산 해삼전복 굴소스.png"
+        },
+        {
+          "id": "seafood-3",
+          "name": "국산 해삼과 동파육",
+          "price": 80000,
+          "description": "신선한 국내산 해삼과 동파육을 곁들인 일품 요리",
+          "badge": "",
+          "image": "seafood-3.webp",
+          "sourceImage": "국산 해삼과 동파육.png"
+        },
+        {
+          "id": "seafood-4",
+          "name": "전복과 동파육",
+          "price": 85000,
+          "description": "장시간 부드럽게 졸인 동파육과 신선한 전복을 함께 담아낸 요리",
+          "badge": "신규",
+          "image": "seafood-4.webp",
+          "sourceImage": "전복과 동파육.png"
+        },
+        {
+          "id": "seafood-5",
+          "name": "튀긴 파를 올린 게우소스 전복찜",
+          "price": 65000,
+          "description": "부드럽게 익은 전복 위로 향긋한 파를 올리고, 진한 게우소스로 감칠맛을 더한 프리미엄 전복찜",
+          "badge": "",
+          "image": "seafood-5.webp",
+          "sourceImage": "튀긴 파를 올린 게우소스 전복찜.png"
+        },
+        {
+          "id": "seafood-6",
+          "name": "원심 전가복",
+          "price": 65000,
+          "description": "새우, 해삼, 전복 등 각종 해산물을 야채와 볶아낸 요리",
+          "badge": "",
+          "image": "seafood-6.webp",
+          "sourceImage": "전가복.png"
+        },
+        {
+          "id": "seafood-7",
+          "name": "어향동고새우",
+          "price": 45000,
+          "description": "다진 새우살을 표고버섯에 넣어 어향소스로 맛을 낸 일품요리",
+          "badge": "",
+          "image": "seafood-7.webp",
+          "sourceImage": "어향동고새우.png"
+        },
+        {
+          "id": "seafood-8",
+          "name": "붉은 대게살 류산슬",
+          "price": 40000,
+          "description": "홍게살과 각종 해산물, 채소를 채볶아낸 요리",
+          "badge": "",
+          "image": "seafood-8.webp",
+          "sourceImage": "붉은 대게살 류산슬.png"
+        },
+        {
+          "id": "seafood-9",
+          "name": "팔보채",
+          "price": 40000,
+          "description": "신선한 해산물과 야채를 매콤한 소스에 볶아낸 요리",
+          "badge": "",
+          "image": "seafood-9.webp",
+          "sourceImage": "팔보채.png"
+        },
+        {
+          "id": "seafood-10",
+          "name": "해물 핫팟 누룽지탕",
+          "price": 42000,
+          "description": "신선한 해물로 만든 담백하고 고소한 누룽지탕",
+          "badge": "",
+          "image": "seafood-10.webp",
+          "sourceImage": "해물 핫팟 누룽지탕.png"
+        },
+        {
+          "id": "seafood-11",
+          "name": "X.O 아스파라거스 새우 관자 요리",
+          "price": 42000,
+          "description": "신선한 아스파라거스와 관자를 XO 소스에 볶아낸 요리",
+          "badge": "",
+          "image": "seafood-11.webp",
+          "sourceImage": "X.O 아스파라거스 새우 관자 요리.png"
+        },
+        {
+          "id": "seafood-12",
+          "name": "어지 간장소스 메로요리",
+          "price": 38000,
+          "description": "특제 생선간장소스를 곁들인 메로 찜/튀김",
+          "badge": "",
+          "image": "seafood-12.webp",
+          "sourceImage": "어지 간장소스 메로요리.png"
+        },
+        {
+          "id": "seafood-13",
+          "name": "화연 마늘 간장소스 관자찜",
+          "price": 38000,
+          "description": "마늘소스와 관자를 함께 쪄낸 요리",
+          "badge": "",
+          "image": "seafood-13.webp",
+          "sourceImage": "화연 마늘 간장소스 관자찜.png"
+        },
+        {
+          "id": "seafood-14",
+          "name": "아몬드 크림새우",
+          "price": 38000,
+          "description": "부드러운 크림소스 위에 아몬드를 곁들인 새우요리",
+          "badge": "",
+          "image": "seafood-14.webp",
+          "sourceImage": "아몬드 크림새우.png"
+        },
+        {
+          "id": "seafood-15",
+          "name": "깐풍새우",
+          "price": 38000,
+          "description": "매콤새콤한 깐풍소스를 곁들인 새우요리",
+          "badge": "",
+          "image": "seafood-15.webp",
+          "sourceImage": "깐풍새우.png"
+        },
+        {
+          "id": "seafood-16",
+          "name": "칠리소스 새우",
+          "price": 38000,
+          "description": "매콤한 칠리소스를 곁들인 새우 요리",
+          "badge": "",
+          "image": "seafood-16.webp",
+          "sourceImage": "칠리소스 새우.png"
+        },
+        {
+          "id": "seafood-17",
+          "name": "싱가폴식 칠리새우 & 황금 바오번",
+          "price": 45000,
+          "description": "싱가폴식 칠리크랩소스를 곁들인 새우요리와 황금꽃빵",
+          "badge": "",
+          "image": "seafood-17.webp",
+          "sourceImage": "싱가폴식 칠리새우 & 황금 바오번.png"
+        }
+      ]
+    }
+  ]
+}

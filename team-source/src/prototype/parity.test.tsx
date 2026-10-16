@@ -62,9 +62,11 @@ describe('kiosk parity features', () => {
   });
   it('shows the right progress steps for each path', async () => {
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
     expect(screen.getByLabelText('주문 진행 단계').querySelector('[aria-current="step"]')).toHaveTextContent('말로 요청');
-    await user.click(screen.getByRole('button',{name:'버튼으로 취향 고르기'}));
+    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
+    expect(screen.getByLabelText('주문 진행 단계').querySelector('[aria-current="step"]')).toHaveTextContent('말로 요청');
+    await user.click(screen.getByRole('button',{name:'딤섬 먹고 싶어요. 새우는 빼주세요'}));
     expect(screen.getByLabelText('주문 진행 단계').querySelector('[aria-current="step"]')).toHaveTextContent('추천 확인');
   });
   it('searches menus with the on-screen consonant keypad', async () => {
@@ -100,7 +102,6 @@ describe('kiosk parity features', () => {
     await user.click(screen.getByRole('button',{name:/결제하기$/}));
     await user.click(screen.getByRole('button',{name:'결제 진행하기'}));
     expect(document.querySelector('.order-number')).toHaveTextContent('주문 번호001포장 주문이에요');
-    expect(screen.getByRole('region',{name:'영수증'})).toHaveTextContent('포장 주문');
     expect(screen.getByLabelText('주문 진행 단계').querySelector('[aria-current="step"]')).toHaveTextContent('03완료');
     expect(screen.getByLabelText('주문 진행 단계')).not.toHaveTextContent('말로 요청');
   });

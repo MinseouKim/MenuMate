@@ -18,6 +18,7 @@
 .large .kiosk-foot button{font-size:clamp(17px,3cqw,32px)}
 .large .order-item-title strong,.large .list-quantity output{font-size:clamp(19px,3.3cqw,35px)}
 .large .field{font-size:clamp(21px,3.5cqw,38px)}
+.large .transcript.explained p{font-size:clamp(22px,3.8cqw,41px)}
 .large .notice{font-size:clamp(18px,3.1cqw,33px)}
 
 /* ③ 가로 목록: 앞뒤에 더 있으면 가장자리를 흐리게 표시 */
@@ -50,7 +51,6 @@
 
 /* ⑥ 담기 알림은 목록 제목 줄 오른쪽에, "더 있어요" 안내 */
 .list-dock #toast.order-toast{top:clamp(6px,1cqw,12px);right:clamp(18px,3cqw,28px);left:auto;transform:none}
-.more-items{margin:0;padding:6px 18px 0;font-size:clamp(13px,2.2cqw,24px);color:var(--green2);font-weight:700}
 
 /* 아래쪽 버튼이 누를 수 있는 버튼으로 보이도록 옅은 테두리 */
 .kiosk-foot button{border:1px solid var(--border);border-radius:8px;background:white;padding:8px clamp(12px,2.4cqw,24px)}
@@ -62,19 +62,15 @@
 .menu-photo .menu-badge{position:absolute;left:8px;top:8px;margin:0}
 
 /* 이렇게 이해했어요: 조건으로 읽은 부분 표시 */
-.transcript.explained p{margin:0;font-size:clamp(18px,3cqw,32px);line-height:2.3}
-.hl{position:relative;display:inline-block;padding:0 .2em;margin:0 .1em;border-radius:6px;line-height:1.5;color:var(--ink)}
-.hl small{display:block;font-size:.55em;font-weight:700;line-height:1.3;text-align:center}
-.hl-party{background:#dcebff}.hl-party small{color:#1f4f8a}
-.hl-budget{background:#fff0c8}.hl-budget small{color:#7a5a00}
-.hl-exclude{background:#ffe0dc}.hl-exclude small{color:#8d2a1d}
-.hl-kind{background:#d9f0e1}.hl-kind small{color:#1d5c3b}
-.hl-spicy{background:#ffe4cc}.hl-spicy small{color:#8a4310}
+.transcript.explained{display:grid;gap:clamp(8px,1.4cqw,14px);padding:clamp(16px,2.6cqw,26px) clamp(16px,2.8cqw,28px)}
+.transcript.explained p{margin:0 0 clamp(4px,1cqw,10px);font-size:clamp(18px,3cqw,32px);line-height:1.6;word-break:keep-all}
+.hl{padding:0;color:var(--ink);font-weight:700;background:transparent;text-decoration:none}
 .ai-badge{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:20px;background:var(--green);color:white;font-size:clamp(13px,2cqw,22px);font-weight:700}
 
 /* 완료 화면: 휴대폰으로 영수증 받기 QR */
 .receipt-qr{display:flex;align-items:center;gap:clamp(14px,2.6cqw,28px);width:min(100%,70cqw);margin:0 0 clamp(20px,3cqw,32px);padding:clamp(14px,2.4cqw,24px);border:1px solid var(--border);border-radius:12px;background:white;text-align:left}
-.receipt-qr img{width:clamp(120px,22cqw,240px);aspect-ratio:1;flex-shrink:0;image-rendering:pixelated}
+/* QR은 크게, 흰 여백(quiet zone)을 충분히 두어야 휴대폰 카메라가 빨리 읽습니다. */
+.receipt-qr img{width:clamp(180px,32cqw,340px);aspect-ratio:1;flex-shrink:0;image-rendering:pixelated;background:#fff;border-radius:6px}
 .receipt-qr strong{display:block;font-size:clamp(17px,3cqw,32px);margin-bottom:6px}
 .receipt-qr p{margin:0;font-size:clamp(14px,2.4cqw,26px);color:var(--muted)}
 .receipt-qr .receipt-qr-warn{margin-top:8px;font-size:clamp(12px,1.9cqw,20px);color:var(--amber)}
@@ -86,7 +82,7 @@
 .large .menu-card .price{font-size:clamp(24px,4cqw,44px)}
 .large .voice-shortcut{font-size:clamp(17px,2.8cqw,30px)}
 .large .list-heading strong{font-size:clamp(19px,3.2cqw,34px)}
-.large .order-item-title small,.large .empty-order,.large .more-items{font-size:clamp(16px,2.8cqw,30px)}
+.large .order-item-title small,.large .empty-order{font-size:clamp(16px,2.8cqw,30px)}
 .large .order-list-total span{font-size:clamp(17px,2.8cqw,30px)}.large .order-list-total strong{font-size:clamp(24px,4cqw,44px)}
 .large .order-list-total .primary{font-size:clamp(20px,3.4cqw,36px)}
 .large .menu-card .menu-info svg{width:clamp(22px,3.6cqw,38px);height:clamp(22px,3.6cqw,38px)}
@@ -95,6 +91,7 @@
 /* index.css의 옛 body 글꼴(Pretendard, 설치 안 됨)을 덮어써서 빌드에 넣은 Noto Sans KR이 실제로 쓰이게 합니다. */
 body{font-family:'Noto Sans KR','Malgun Gothic',system-ui,sans-serif}
 
+.done-countdown{margin:0 0 clamp(10px,1.8cqw,18px);font-size:clamp(15px,2.5cqw,26px);color:var(--muted)}.done-countdown strong{color:var(--green);font-variant-numeric:tabular-nums}
 .demo-note{margin-top:clamp(12px,2cqw,20px);font-size:clamp(13px,2.1cqw,22px);color:var(--muted)}
 
 /* 추천 결과 카드: 수량 줄과 추천 이유 사이의 기본 여백(1em씩)을 줄임 */
@@ -153,7 +150,7 @@ body{font-family:'Noto Sans KR','Malgun Gothic',system-ui,sans-serif}
 .contrast .notice,.contrast .notice.warn{background:#000;color:#ffd400;border:2px solid #ffd400}
 .contrast .receipt{--paper:#000}.contrast .receipt-qr img{background:#fff;padding:6px}
 .contrast .order-number{background:#000;border-color:#ffd400}.contrast .order-number strong{color:#ffd400}
-.contrast .hl{color:#000}.contrast .hl small{color:#000}
+.contrast .hl{color:#fff}
 .contrast button:disabled{opacity:.5}
 
 /* 추천 결과: 중식 한상 구성 */
@@ -163,3 +160,22 @@ body{font-family:'Noto Sans KR','Malgun Gothic',system-ui,sans-serif}
 .set-lines li{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:12px;margin:0;padding:clamp(6px,1.2cqw,12px) 0;border-bottom:1px dashed var(--border);font-size:clamp(16px,2.7cqw,29px)}
 .set-lines b{color:var(--green2)}.set-lines small{min-width:clamp(80px,14cqw,150px);text-align:right;color:var(--muted);font-size:.85em}
 .contrast .set-badge{background:#ffd400;color:#000}
+/* 말하기: 누르면 시작·다시 누르면 끝. 듣는 중에는 들은 문장을 바로 보여 줍니다. */
+.talk.listening{animation:talk-pulse 1.6s ease-in-out infinite}
+@keyframes talk-pulse{50%{box-shadow:0 0 0 clamp(6px,1.2cqw,12px) #8a3b2733}}
+.heard{margin:clamp(10px,1.8cqw,18px) 0 0;padding:clamp(10px,1.8cqw,18px) clamp(12px,2.2cqw,22px);border-left:4px solid #8a3b27;background:#fbf1ee;border-radius:6px;font-size:clamp(17px,2.8cqw,30px);line-height:1.5;color:var(--ink)}
+/* 카메라 작동 표시: 영상은 보여 주지 않고 아이콘과 문구로만 알립니다. */
+.camera-icon{width:1.25em;height:1.25em;flex:none;vertical-align:-.25em}
+.camera-live{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#fbf1ee;color:#8a3b27;font-size:clamp(13px,1.9cqw,20px);font-weight:700;white-space:nowrap}
+.camera-live i{width:8px;height:8px;border-radius:50%;background:#c2412a;animation:cam-blink 1.4s ease-in-out infinite}
+@keyframes cam-blink{50%{opacity:.25}}
+.camera-notice{display:flex;gap:10px;align-items:flex-start;margin:clamp(16px,3cqw,30px) 0 0;color:var(--muted);font-size:clamp(14px,2.2cqw,22px);line-height:1.6}
+.camera-notice .camera-icon{color:#8a3b27;margin-top:.15em}
+.face-note{display:flex;align-items:center;gap:12px;margin:0;padding:clamp(10px,1.8cqw,18px) clamp(16px,3cqw,30px);background:var(--tint);border-bottom:1px solid var(--border);font-size:clamp(15px,2.4cqw,24px);font-weight:600}
+.face-note span{flex:1}
+.face-note button{border:1px solid var(--green);background:white;color:var(--green);border-radius:7px;padding:8px 16px;font-weight:700;min-height:44px}
+.camera-status{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:clamp(13px,2cqw,20px);line-height:1.6}
+.contrast .camera-live,.contrast .heard{background:#262200;color:#ffd400;border-color:#ffd400}
+.contrast .face-note button{background:#000;color:#ffd400;border-color:#ffd400}
+@media(prefers-reduced-motion:reduce){.talk.listening,.camera-live i{animation:none}}
+.tools{align-items:center}

@@ -6,7 +6,6 @@ import { MenuCard } from './MenuCard';
 import { OrderList } from './OrderList';
 import { Modal } from './Modal';
 import { InputPanel } from './InputPanel';
-import { Receipt } from './Receipt';
 import { explain, matchMenus, parseCount } from './parse';
 import { extractWithServer, mergeConditions } from './aiClient';
 import { usage } from './usage';
@@ -16,6 +15,7 @@ import { menuImage } from './menuImages';
 import { addLines, findMenu, lineKey, linesTotal, suggestions, withDefaultOption } from './cart';
 import { KEYPAD, matchesChosung } from './hangul';
 import { Payment } from './Payment';
+import { useFaceAssist, type FaceGroup } from './faceAssist';
 import type { PaymentResult } from './Payment';
 import type { Order } from './Receipt';
 import './styles/styles.css';
@@ -28,7 +28,10 @@ const menus: Menu[] = menuData;
 const money = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 type Dialog = { kind: 'info'; menu: Menu } | { kind: 'home' | 'help' | 'idle' | 'settings' } | { kind: 'spoken' | 'option'; menu: Menu; quantity: number } | { kind: 'upsell'; items: Menu[] };
 const CATEGORIES = [['noodle','면'],['rice','밥'],['duck-fish','베이징덕/생선'],['dimsum','딤섬'],['vegetable','야채'],['cold','냉채/샐러드'],['soup','스프/탕'],['chicken','치킨'],['pork','돼지고기'],['beef','소고기'],['seafood','해산물']];
-const IDLE_MS = 60_000, IDLE_GRACE_MS = 20_000, DONE_MS = 45_000;
+const IDLE_MS = 60_000, IDLE_GRACE_MS = 20_000, DONE_MS = 60_000;
+// 시작 화면을 지나 이 시간 안에 얼굴 나이대를 알지 못하면 카메라를 끕니다.
+const FACE_WAIT_MS = 20_000;
+const CameraIcon = () => <svg className="camera-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.6-2h6.8L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8"/></svg>;
 // 시연 모드(운영자 단축키 Ctrl+Shift+1~4): 전시장 소음으로 음성 인식이 어려울 때 준비한 문장을 말한 것처럼 넣습니다.
 const DEMO = {
   recommend: ['두 명이고 새우는 빼고 딤섬 먹고 싶어요', '네 명이서 1인당 3만원으로 안 매운 거 추천해 주세요', '짬뽕 먹고 싶어요. 돼지고기는 빼 주세요', '혼자 왔어요. 만원 이하로 면 요리 부탁해요'],
@@ -70,13 +73,23 @@ function speak(text: string) {
   window.speechSynthesis.speak(utterance);
 }
 // 말한 문장에서 조건으로 읽은 부분을 색으로 표시합니다. 관람객이 '어떻게 알아들었는지' 바로 볼 수 있게 합니다.
+// 말한 문장에서 찾은 핵심 키워드는 굵은 글씨로만 표시합니다(밑줄·색·카드 없음).
 function Transcript({ text, ai }: { text: string; ai: boolean }) {
   const marks = explain(text, KIND_WORDS, EXCLUDE_WORDS);
-  const parts: (string | { text: string; type: string; label: string })[] = [];
+  const parts: (string | { text: string; type: string })[] = [];
   let at = 0;
-  for (const m of marks) { if (m.start > at) parts.push(text.slice(at, m.start)); parts.push({ text: text.slice(m.start, m.end), type: m.type, label: m.label }); at = m.end; }
+  for (const m of marks) { if (m.start > at) parts.push(text.slice(at, m.start)); parts.push({ text: text.slice(m.start, m.end), type: m.type }); at = m.end; }
   if (at < text.length) parts.push(text.slice(at));
-  return <div className="transcript explained"><p>“{parts.map((p, i) => typeof p === 'string' ? <span key={i}>{p}</span> : <mark key={i} className={`hl hl-${p.type}`}>{p.text}<small>{p.label}</small></mark>)}”</p>{ai && <span className="ai-badge">AI가 함께 해석했어요</span>}</div>;
+  return <div className="transcript explained">
+    <p>“{parts.map((p, i) => typeof p === 'string' ? <span key={i}>{p}</span> : <strong key={i} className={`hl hl-${p.type}`}>{p.text}</strong>)}”</p>
+    {ai && <span className="ai-badge">AI가 함께 해석했어요</span>}
+  </div>;
+}
+// 주문 완료 화면은 QR을 찍을 시간만큼(1분) 띄웠다가 처음 화면으로 돌아갑니다. 남은 시간을 손님에게 보여 줍니다.
+function DoneCountdown({ ms }: { ms: number }) {
+  const [left, setLeft] = useState(Math.round(ms / 1000));
+  useEffect(() => { const t = setInterval(() => setLeft(n => Math.max(0, n - 1)), 1000); return () => clearInterval(t); }, []);
+  return <p className="done-countdown" aria-live="off"><strong>{left}초</strong> 뒤 처음 화면으로 돌아가요</p>;
 }
 export default function KioskApp() {
   const [screen, setScreen] = useState<Screen>('welcome');
@@ -97,6 +110,11 @@ export default function KioskApp() {
   const [order, setOrder] = useState<Order | null>(null);
   const [qr, setQr] = useState('');
   const [aiUsed, setAiUsed] = useState(false);
+  // 카메라 화면 맞춤: 손님 한 명마다 한 번만 정하고, 정하면 카메라를 끕니다. 손님이 직접 바꾼 설정은 덮어쓰지 않습니다.
+  const [faceDone, setFaceDone] = useState(false);
+  const [faceNote, setFaceNote] = useState<{ text: string; undo: () => void } | null>(null);
+  const manual = useRef(false);
+  const face = useFaceAssist(!faceDone && !['payment', 'done'].includes(screen), g => { if (screen !== 'welcome') applyFace(g); });
   const aiToken = useRef(0);
   const orderCount = useRef(0);
   const content = useRef<HTMLDivElement>(null);
@@ -109,8 +127,8 @@ export default function KioskApp() {
   const spoken = ({
     welcome: '직접 메뉴를 고르거나, 말로 추천받을 수 있어요.',
     menu: '드실 메뉴를 누르면 주문에 담겨요.',
-    notice: '말로 추천받기 시작, 또는 버튼으로 취향 고르기를 눌러 주세요.',
-    input: mode === 'order' ? '버튼을 누른 채로 메뉴 이름과 개수를 말씀해 주세요.' : '버튼을 누른 채로 원하는 메뉴나 취향을 말씀해 주세요.',
+    notice: '말로 추천받기 시작 버튼을 눌러 주세요.',
+    input: mode === 'order' ? '말하기 버튼을 누르고 메뉴 이름과 개수를 말씀해 주세요. 다 말씀하시면 한 번 더 눌러 주세요.' : '말하기 버튼을 누르고 원하는 메뉴나 취향을 말씀해 주세요. 다 말씀하시면 한 번 더 눌러 주세요.',
     review: `${conditions.party}명으로 이해했어요. 맞으면 추천해 주세요 버튼을 눌러 주세요.`,
     results: results.length ? `추천 메뉴 ${results.length}가지예요. ${results.map((r, i) => `${i + 1}번, ${r.lines.map(l => `${nameOf(l.id)} ${l.quantity}개`).join(', ')}, ${money(r.total)}.`).join(' ')}` : '조건에 맞는 메뉴가 없어요. 조건을 바꿔 주세요.',
     payment: `결제 금액은 ${money(total)}이에요. 결제 방법을 선택해 주세요.`,
@@ -148,12 +166,30 @@ export default function KioskApp() {
     return () => { clearTimeout(timer); window.removeEventListener('pointerdown', bump); window.removeEventListener('keydown', bump); };
   }, [screen]);
   useEffect(() => { if (dialog?.kind !== 'idle') return; const t = setTimeout(() => reset('welcome', true), IDLE_GRACE_MS); return () => clearTimeout(t); }, [dialog]);
-  useEffect(() => { let alive = true; if (!order) return; QRCode.toString(receiptUrl(order), { type: 'svg', margin: 1, errorCorrectionLevel: 'M' }).then(svg => { if (alive) setQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`); }).catch(() => setQr('')); return () => { alive = false; }; }, [order]);
+  useEffect(() => { let alive = true; if (!order) return; QRCode.toString(receiptUrl(order, menus), { type: 'svg', margin: 4, errorCorrectionLevel: 'M' }).then(svg => { if (alive) setQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`); }).catch(() => setQr('')); return () => { alive = false; }; }, [order]);
   useEffect(() => { if (!message) return; const timer = setTimeout(() => setMessage(''), 3000); return () => clearTimeout(timer); }, [message]);
+  // 시작 화면에서는 지켜보기만 하고, 손님이 주문을 시작하면 그때 앞에 있는 사람의 나이대로 화면을 맞춥니다.
+  function applyFace(group: FaceGroup) {
+    if (faceDone) return;
+    setFaceDone(true);
+    if (manual.current || group === 'adult') return;
+    if (group === 'senior') {
+      const before = { large, voice };
+      setLarge(true); setVoice(true);
+      setFaceNote({ text: '보기 편하도록 큰 글씨와 음성 안내를 켰어요.', undo: () => { setLarge(before.large); setVoice(before.voice); } });
+    } else {
+      const before = low;
+      setLow(true);
+      setFaceNote({ text: '누르기 편하도록 버튼을 아래로 모았어요.', undo: () => setLow(before) });
+    }
+  }
+  const onWelcome = screen === 'welcome';
+  useEffect(() => { if (faceDone || onWelcome) return; const t = setTimeout(() => setFaceDone(true), FACE_WAIT_MS); return () => clearTimeout(t); }, [faceDone, onWelcome]);
+  useEffect(() => { if (!faceNote) return; const t = setTimeout(() => setFaceNote(null), 10_000); return () => clearTimeout(t); }, [faceNote]);
   // 지나온 화면을 기록해 두고 '이전 화면'은 그 기록으로 돌아갑니다. 이미 지나온 화면으로 가면 그 지점까지 기록을 되돌립니다.
   function go(next: Screen) {
     if (next === screen) return;
-    if (screen === 'welcome') usage.begin();
+    if (screen === 'welcome') { usage.begin(); if (face.group) applyFace(face.group); }
     if (next === 'menu' && screen === 'welcome') usage.path('menu');
     if (next === 'notice' || next === 'review') usage.path('recommend');
     setHistory(h => { const i = h.indexOf(next); return i >= 0 ? h.slice(0, i) : [...h, screen]; });
@@ -166,6 +202,7 @@ export default function KioskApp() {
   function reset(next: Screen = 'welcome', fresh = false) {
     if (next !== 'done') usage.finish('abandoned');
     if (fresh) { setLarge(false); setVoice(false); setContrast(false); setLow(false); }
+    if (next === 'welcome') { setFaceDone(false); manual.current = false; setFaceNote(null); }
     setSearch(null); setStaffCalled(false);
     aiToken.current++; setAiUsed(false);
     setHistory([]); setLines([]); setConditions(KioskAI.extract('')); setResults([]); 
@@ -222,8 +259,9 @@ export default function KioskApp() {
       {low && <div className="low-spacer"><span>낮은 화면 모드예요. 버튼을 아래로 모았어요.</span></div>}
       <header className="kiosk-head">
         <a className="brand" href="#" onClick={e => { e.preventDefault(); if (lines.length) setDialog({kind:'home'}); else reset(); }}>menumate</a>
-        <div className="tools"><button aria-pressed={large} onClick={() => { if (!large) usage.flag('large'); setLarge(!large); }}>{large ? '기본 글씨' : '글자 크게'}</button><button aria-pressed={voice} onClick={() => { if (!voice) usage.flag('voiceGuide'); setVoice(!voice); }}>음성 안내 {voice ? '켜짐' : '꺼짐'}</button><button onClick={() => setDialog({kind:'settings'})}>화면 설정</button></div>
+        <div className="tools">{(face.state === 'on' || face.state === 'starting') && <span className="camera-live" role="status" title="화면 설정을 맞추려고 얼굴 나이대만 추정해요. 영상은 저장하거나 화면에 보여 주지 않아요."><CameraIcon/><i aria-hidden="true"/>카메라 작동 중</span>}<button aria-pressed={large} onClick={() => { manual.current = true; if (!large) usage.flag('large'); setLarge(!large); }}>{large ? '기본 글씨' : '글자 크게'}</button><button aria-pressed={voice} onClick={() => { manual.current = true; if (!voice) usage.flag('voiceGuide'); setVoice(!voice); }}>음성 안내 {voice ? '켜짐' : '꺼짐'}</button><button onClick={() => setDialog({kind:'settings'})}>화면 설정</button></div>
       </header>
+      {faceNote && <div className="face-note" role="status"><CameraIcon/><span>{faceNote.text}</span><button onClick={() => { faceNote.undo(); manual.current = true; setFaceNote(null); }}>원래대로</button></div>}
       {screen !== 'welcome' && (() => { const st = steps(mode, screen); return <div className="progress" aria-label="주문 진행 단계">{st.labels.map((text,i) => <span key={text} className={i === st.current ? 'current' : i < st.current ? 'passed' : ''} aria-current={i === st.current ? 'step' : undefined}><b>{`0${i+1}`}</b>{text}</span>)}</div>; })()}
       {screen === 'menu' && <div className="menu-heading">
         <div className="menu-heading-title"><h1>메뉴를 골라주세요</h1><div className="heading-actions"><button className="voice-shortcut search-shortcut" aria-pressed={search !== null} onClick={() => setSearch(search === null ? '' : null)}>{search === null ? '메뉴 찾기' : '찾기 닫기'}</button></div></div>
@@ -231,20 +269,20 @@ export default function KioskApp() {
         <nav ref={categories} className="menu-categories" aria-label="메뉴 종류">{CATEGORIES.map(([id,title]) => <button key={id} className={`category-tab ${category === id ? 'selected' : ''}`} aria-pressed={category === id} onClick={e => { setCategory(id); content.current?.scrollTo?.({ top: 0 }); e.currentTarget.scrollIntoView?.({ inline: 'nearest', block: 'nearest', behavior: 'smooth' }); }}>{title}</button>)}</nav>}
       </div>}
       <div className="screen" ref={content}>
-        {screen === 'welcome' && <div className="welcome"><div className="eyebrow">우루루 본점</div><h1>무엇을<br/>도와드릴까요?</h1><p className="muted">주문 방법을 선택해 주세요.</p><div className="choice-grid">
+        {screen === 'welcome' && <div className="welcome"><div className="eyebrow">우루루 본점</div><h1>어떻게<br/>주문하실 건가요?</h1><p className="muted">주문 방법을 선택해 주세요.</p><div className="choice-grid">
           <button className="choice" onClick={() => { setMode('order'); go('menu'); }}><span className="number">직접 고르기</span><div><span className="choice-title">메뉴 보고 주문</span><small>메뉴와 가격을 한눈에 확인해요</small></div><span className="choice-icon" aria-hidden="true">▦</span></button>
-          <button className="choice" onClick={() => { setMode('recommend'); go('notice'); }}><span className="number">고민될 때</span><div><span className="choice-title">말로 추천받기</span><small>원하는 맛을 말하면 함께 골라드려요</small></div><span className="choice-icon" aria-hidden="true">✦</span></button>
-        </div></div>}
+          <button className="choice" onClick={() => { setMode('recommend'); go('notice'); }}><span className="number">고민될 때</span><div><span className="choice-title">말로 추천 받아 주문</span><small>원하는 음식을 말씀해주시면 추천해드려요</small></div><span className="choice-icon" aria-hidden="true">✦</span></button>
+        </div>{(face.state === 'on' || face.state === 'starting') && <p className="camera-notice"><CameraIcon/><span>카메라가 켜져 있어요. 글자 크기·음성 안내를 맞추려고 얼굴 나이대만 추정하고, 영상은 저장하거나 화면에 보여 주지 않아요.</span></p>}</div>}
         {screen === 'menu' && (() => { const shown = search !== null ? (search ? menus.filter(m => matchesChosung(m.name, search)) : []) : menus.filter(m => m.category === category); return search !== null && search && !shown.length ? <p className="search-empty">‘{search}’로 시작하는 메뉴가 없어요.</p> : <div className="menu-grid">{shown.map(m => <MenuCard key={m.id} menu={m} quantity={lines.filter(l => l.id === m.id).reduce((n, l) => n + l.quantity, 0)} onSelect={() => pick(m)} onInfo={() => setDialog({kind:'info',menu:m})}/>)}</div>; })()}
-        {screen === 'notice' && <><div className="eyebrow">메뉴 추천 · 이용 안내</div><h1>취향을 알려주시면<br/>메뉴를 찾아드려요</h1><p className="muted">인원, 원하는 맛, 빼고 싶은 재료를 말씀해 주세요.</p><div className="device-notice"><div className="device-row"><strong>마이크</strong><span>말하기 버튼을 누르고 있는 동안만 사용해요. 목소리는 저장하지 않아요.</span></div><div className="device-row"><strong>말하기 어려우면</strong><span>버튼으로도 똑같이 추천받을 수 있어요.</span></div></div><div className="actions vertical"><button className="primary" onClick={() => go('input')}>말로 추천받기 시작</button><button className="secondary" onClick={() => { setConditions(KioskAI.extract('')); go('review'); }}>버튼으로 취향 고르기</button></div></>}
-        {screen === 'input' && <InputPanel mode={mode} onSubmit={submit} onTouch={() => { if (mode === 'order') go('menu'); else { setConditions(KioskAI.extract('')); go('review'); } }}/>} 
+        {screen === 'notice' && <><div className="eyebrow">메뉴 추천 · 이용 안내</div><h1>취향을 알려주시면<br/>메뉴를 찾아드려요</h1><p className="muted">인원, 원하는 맛, 빼고 싶은 재료를 말씀해 주세요.</p><div className="device-notice"><div className="device-row"><strong>마이크</strong><span>말하기 버튼을 누른 뒤 다시 누를 때까지만 들어요. 목소리는 저장하지 않아요.</span></div><div className="device-row"><strong>카메라</strong><span>글자 크기·음성 안내 같은 화면 설정을 맞추려고 얼굴 나이대만 추정해요. 영상은 화면에 보이지 않고 저장하지 않아요.</span></div></div><div className="actions vertical"><button className="primary" onClick={() => go('input')}>말로 추천받기 시작</button></div></>}
+        {screen === 'input' && <InputPanel mode={mode} onSubmit={submit} onTouch={() => go('menu')}/>} 
         {screen === 'review' && <><div className="eyebrow">취향 확인</div><h1>이렇게 이해했어요</h1>{conditions.raw && <Transcript text={conditions.raw} ai={aiUsed}/>}<form onSubmit={e => { e.preventDefault(); setResults(KioskAI.recommend(conditions,menus)); go('results'); }}><div className="field-group" role="group" aria-labelledby="party-label"><span className="field" id="party-label">몇 분이 드시나요?</span><div className="stepper"><button type="button" aria-label="인원 줄이기" disabled={conditions.party<=1} onClick={() => patch({party:conditions.party-1})}>−</button><output aria-live="polite" aria-label="인원">{conditions.party}명</output><button type="button" aria-label="인원 늘리기" disabled={conditions.party>=6} onClick={() => patch({party:conditions.party+1})}>+</button></div></div>
           <div className="field-group" role="group" aria-labelledby="spicy-label"><span className="field" id="spicy-label">어느 정도 맵기를 원하시나요?</span><div className="pills">{[[0,'순한맛'],[1,'중간맛'],[3,'매운맛']].map(([value,label]) => <button type="button" key={String(label)} className={`pill ${conditions.spicy === value ? 'selected' : ''}`} aria-pressed={conditions.spicy === value} onClick={() => patch({spicy:value as number | null})}>{label}</button>)}</div></div>
           <div className="field-group" role="group" aria-labelledby="kind-label"><span className="field" id="kind-label">어떤 종류가 좋으세요?</span><div ref={kindChips} className="menu-categories choice-chips">{KIND_OPTIONS.map(s => <button type="button" key={s} className={`category-tab ${conditions.kind === s ? 'selected' : ''}`} aria-pressed={conditions.kind === s} onClick={() => patch({kind:conditions.kind === s ? '상관없음' : s})}>{s}</button>)}</div></div>
           <div className="field-group" role="group" aria-labelledby="budget-label"><span className="field" id="budget-label">1인당 예산</span><div className="pills">{conditions.totalBudget ? <button type="button" className="pill selected" aria-pressed="true">총 {money(conditions.totalBudget)} 이하</button> : null}{[...new Set([null,10000,20000,30000,50000,...(conditions.budget && !conditions.totalBudget ? [conditions.budget] : [])])].sort((x,y) => (x ?? 0) - (y ?? 0)).map(value => { const on = !conditions.totalBudget && conditions.budget === value; return <button type="button" key={String(value)} className={`pill ${on ? 'selected' : ''}`} aria-pressed={on} onClick={() => patch({budget:value,totalBudget:null})}>{value ? `${value/10000}만원 이하` : '상관없음'}</button>; })}</div>{conditions.totalBudget ? <p className="muted">말씀하신 총예산 {money(conditions.totalBudget)}을 {conditions.party}명이 나눠요. 1인당 약 {money(Math.round(conditions.totalBudget/conditions.party))}이에요.</p> : null}</div>
         <span className="field">빼고 싶은 재료</span><div className="pills">{[...new Set([...EXCLUDE_OPTIONS,...conditions.exclude])].map(s => <button className={`pill ${conditions.exclude.includes(s)?'selected':''}`} type="button" key={s} aria-pressed={conditions.exclude.includes(s)} onClick={() => patch({exclude:conditions.exclude.includes(s)?conditions.exclude.filter(x => x!==s):[...conditions.exclude,s]})}>{s}</button>)}</div><div className="notice warn">재료 정보가 완전하지 않을 수 있어요. 알레르기가 있다면 직원에게 확인해 주세요.</div><div className="actions"><button className="primary">맞아요, 추천해주세요</button><button className="secondary" type="button" onClick={() => { go('input'); }}>다시 말할게요</button></div></form></>}
         {screen === 'results' && <><div className="eyebrow">메뉴 추천</div><h1>이 메뉴는 어떠세요?</h1><p className="muted">{conditions.party}명 · {conditions.exclude.length ? `${conditions.exclude.join(', ')} 제외` : '선택한 취향 기준'}</p>{results.length ? results.map((r,i) => <article className={`result ${r.set ? 'result-set' : ''}`} key={`${i}-${r.main.id}`}><div className="rank">추천 0{i+1}{r.set && <span className="set-badge">{r.light ? '식사 + 곁들임' : '중식 한상'}</span>}</div>{r.set ? <><div className="result-top"><h2>{r.light ? (conditions.party === 1 ? '혼자 드시는 구성' : `${conditions.party}명 가벼운 구성`) : `${conditions.party}명 한상 구성`}</h2><strong className="price">{money(r.total)}</strong></div><ul className="set-lines">{r.lines.map(l => { const m = menus.find(x => x.id === l.id)!; return <li key={l.id}><span>{m.name}</span><b>{l.quantity}개</b><small>{money(m.price * l.quantity)}</small></li>; })}</ul></> : <div className="result-top"><div><h2>{r.lines.map(l=>menus.find(m=>m.id===l.id)!.name).join(' + ')}</h2><p className="muted">{r.lines.map(l=>`${l.quantity}개`).join(' + ')}</p></div><strong className="price">{money(r.total)}</strong></div>}<ul className="reasons">{r.reasons.map(s=><li key={s}>{s}</li>)}</ul><button className="primary" onClick={() => { add(r.lines.map(l => withDefaultOption(l, menus))); go('menu'); setMessage('추천 조합을 담았어요. 아래 목록을 확인해주세요.'); }}>이 조합 담기</button></article>) : <div className="notice warn">현재 조건에 맞는 조합이 없어요. 조건을 수정해 주세요.</div>}<div className="notice warn">알레르기·교차접촉 여부는 매장에 직접 확인해 주세요.</div><div className="actions"><button className="secondary" onClick={()=>go('review')}>조건 수정하기</button><button className="secondary" onClick={()=>go('menu')}>직접 메뉴 고르기</button></div></>}
-        {screen === 'done' && <div className="done"><div className="done-mark">✓</div><h1>주문이 완료되었어요</h1>{order && <div className="order-number"><span>주문 번호</span><strong>{order.number}</strong><p>{order.payment?.dine === '포장' ? '포장 주문이에요. 번호가 불리면 카운터에서 받아 가세요.' : '매장 식사 주문이에요. 번호가 불리면 카운터에서 받아 가세요.'}</p></div>}<p className="muted">영수증은 아래 QR 코드로 휴대폰에서 받을 수 있어요.</p>{order && <Receipt order={order}/>}{order && qr && <div className="receipt-qr"><img src={qr} alt="휴대폰으로 영수증 받기 QR 코드"/><div><strong>휴대폰으로 영수증 받기</strong><p>카메라로 QR 코드를 찍으면 영수증이 열려요.</p>{import.meta.env.DEV && isLocalBase() && <p className="receipt-qr-warn">운영자 안내: 지금 주소는 이 컴퓨터 안에서만 열려요. 휴대폰에서 열리게 하려면 배포 주소를 VITE_RECEIPT_BASE_URL에 넣어 주세요.</p>}</div></div>}<button className="primary" onClick={()=>reset('welcome', true)}>처음 화면으로 돌아가기</button><p className="demo-note">전시 체험용 주문이라 실제 결제는 되지 않았어요.</p></div>}
+        {screen === 'done' && <div className="done"><div className="done-mark">✓</div><h1>주문이 완료되었어요</h1>{order && <div className="order-number"><span>주문 번호</span><strong>{order.number}</strong><p>{order.payment?.dine === '포장' ? '포장 주문이에요. 번호가 불리면 카운터에서 받아 가세요.' : '매장 식사 주문이에요. 번호가 불리면 카운터에서 받아 가세요.'}</p></div>}<p className="muted">아래 QR 코드를 휴대폰 카메라로 찍으면 영수증을 받을 수 있어요.</p>{order && qr && <div className="receipt-qr"><img src={qr} alt="휴대폰으로 영수증 받기 QR 코드"/><div><strong>휴대폰으로 영수증 받기</strong><p>카메라로 QR 코드를 찍으면 영수증이 열려요.</p>{import.meta.env.DEV && isLocalBase() && <p className="receipt-qr-warn">운영자 안내: 지금 주소는 이 컴퓨터 안에서만 열려요. 휴대폰에서 열리게 하려면 배포 주소를 VITE_RECEIPT_BASE_URL에 넣어 주세요.</p>}</div></div>}<DoneCountdown ms={DONE_MS}/><button className="primary" onClick={()=>reset('welcome', true)}>처음 화면으로 돌아가기</button><p className="demo-note">전시 체험용 주문이라 실제 결제는 되지 않았어요.</p></div>}
         {screen === 'payment' && <Payment lines={lines} menus={menus} onBack={() => go('menu')} onComplete={complete}/>}
       </div>
       {showDock && <OrderList message={screen === 'menu' ? message : ''} lines={lines} menus={menus} onQuantity={(key,delta)=>setLines(ls=>ls.map(l=>lineKey(l)===key?{...l,quantity:Math.max(1,l.quantity+delta)}:l))} onRemove={key=>setLines(ls=>ls.filter(l=>lineKey(l)!==key))} onOrder={checkout}/>} 
@@ -257,7 +295,7 @@ export default function KioskApp() {
       {dialog.kind==='idle' && <><p>{IDLE_GRACE_MS/1000}초 뒤 처음 화면으로 돌아가요. 담은 메뉴는 지워져요.</p><button className="primary" onClick={()=>setDialog(null)}>계속 주문하기</button></>}
       {dialog.kind==='option' && <><p>{dialog.quantity}개 · {money(dialog.menu.price*dialog.quantity)}</p><div className="option-choices">{dialog.menu.options!.map(op => <button key={op} className="primary" onClick={()=>{ add([{id:dialog.menu.id,quantity:dialog.quantity,option:op}]); setMessage(`${dialog.menu.name}(${op}) ${dialog.quantity}개를 담았어요`); setDialog(null); if (screen === 'input') go('menu'); }}>{op}</button>)}</div></>}
       {dialog.kind==='upsell' && <><p>담으신 메뉴와 잘 어울리는 메뉴예요.</p><ul className="upsell-list">{dialog.items.map(m => <li key={m.id}><span><strong>{m.name}</strong><small>{money(m.price)}</small></span><button className="secondary" disabled={lines.some(l => l.id === m.id)} onClick={()=>{ add([withDefaultOption({id:m.id,quantity:1}, menus)]); setMessage(`${m.name} 1개를 담았어요`); }}>{lines.some(l => l.id === m.id) ? '담았어요' : '추가'}</button></li>)}</ul><button className="primary" onClick={()=>{ setDialog(null); go('payment'); }}>결제하러 가기</button></>}
-      {dialog.kind==='settings' && <div className="settings-list">{([['글자 크게', large, () => { if (!large) usage.flag('large'); setLarge(!large); }], ['음성 안내', voice, () => { if (!voice) usage.flag('voiceGuide'); setVoice(!voice); }], ['고대비 화면', contrast, () => setContrast(!contrast)], ['낮은 화면 (휠체어·어린이)', low, () => setLow(!low)]] as [string, boolean, () => void][]).map(([label, on, toggle]) => <button key={label} className={`setting ${on ? 'on' : ''}`} aria-pressed={on} onClick={toggle}><span>{label}</span><b>{on ? '켜짐' : '꺼짐'}</b></button>)}<button className="primary" onClick={()=>setDialog(null)}>확인</button></div>}
+      {dialog.kind==='settings' && <div className="settings-list">{([['글자 크게', large, () => { manual.current = true; if (!large) usage.flag('large'); setLarge(!large); }], ['음성 안내', voice, () => { manual.current = true; if (!voice) usage.flag('voiceGuide'); setVoice(!voice); }], ['고대비 화면', contrast, () => setContrast(!contrast)], ['낮은 화면 (휠체어·어린이)', low, () => { manual.current = true; setLow(!low); }]] as [string, boolean, () => void][]).map(([label, on, toggle]) => <button key={label} className={`setting ${on ? 'on' : ''}`} aria-pressed={on} onClick={toggle}><span>{label}</span><b>{on ? '켜짐' : '꺼짐'}</b></button>)}<p className="camera-status"><CameraIcon/>{face.state === 'error' ? `카메라 화면 맞춤을 쓸 수 없어요. ${face.error}` : face.state === 'off' ? '카메라 화면 맞춤: 이번 손님은 이미 맞췄어요(처음 화면에서 다시 켜져요).' : '카메라 화면 맞춤: 작동 중이에요. 영상은 저장하지 않아요.'}</p><button className="primary" onClick={()=>setDialog(null)}>확인</button></div>}
       {dialog.kind==='help' && (staffCalled ? <><p className="staff-called">키오스크에서 호출 알림음을 울렸어요. 가까운 직원이 오지 않으면 손을 들어 알려 주세요.</p><button className="primary" onClick={()=>setDialog(null)}>확인</button></> : <><p>메뉴 카드를 누르면 주문에 담겨요. 설명 아이콘(ⓘ)은 메뉴 설명을 열고, 아래 목록에서 개수를 바꾸거나 지울 수 있어요.</p><button className="primary" onClick={()=>{ chime(); setStaffCalled(true); }}>직원 호출하기</button></>)}
     </Modal>}
     </section></main>

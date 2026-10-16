@@ -65,7 +65,7 @@ export const KioskAI = {
   const ofKind=(cats: string[])=>c.kind!=='상관없음'&&pool.some(p=>cats.includes(p.m.category)&&p.m.kind.includes(c.kind));
   const pick=(cats: string[],extra: (m: Menu)=>boolean,n: number)=>pool.filter(p=>cats.includes(p.m.category)&&extra(p.m)&&(!ofKind(cats)||p.m.kind.includes(c.kind))).sort((a,b)=>b.score-a.score||a.m.price-b.m.price).slice(0,n);
   // 식사 종류: 짜장·짬뽕·볶음밥처럼 겹치지 않게 고르면 점수를 더 줍니다.
-  const mealType=(m: Menu)=>(m.keywords??[]).map(k=>k==='간짜장'?'짜장':k).find(k=>['짜장','짬뽕','볶음밥','덮밥','탕면','냉면','차우면','딴딴면','우육탕면','굴탕면','잡탕밥','잡채밥'].includes(k))??m.name;
+  const mealType=(m: Menu)=>(m.keywords??[]).map(k=>k==='간짜장'?'짜장':k).find(k=>['짜장','짬뽕','볶음밥','덮밥','탕면','냉면','차우면','딴딴면','우육탕면','잡탕밥','잡채밥'].includes(k))??m.name;
   // 식사 후보는 가격순으로만 자르면 짬뽕처럼 조금 비싼 대표 메뉴가 빠지므로, 종류마다 가장 알맞은 메뉴를 먼저 하나씩 넣습니다.
   const allMeals=pick(MEAL,()=>true,99);
   const meals=[...new Map(allMeals.map(p=>[mealType(p.m),p])).values()].map(p=>allMeals.find(x=>mealType(x.m)===mealType(p.m))!).slice(0,7);

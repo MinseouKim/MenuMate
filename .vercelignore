@@ -1,0 +1,11 @@
+.git
+.vercel
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+team-source/server
+ururu-menu
+scripts
+*.docx
+*.log

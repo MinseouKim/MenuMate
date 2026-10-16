@@ -26,7 +26,8 @@ if exist "team-source\server\.env" (
 echo [4/4] 키오스크 화면 시작...
 start "menumate-kiosk" /min cmd /c "npm run preview"
 timeout /t 4 /nobreak >nul
-start "" msedge --kiosk "http://127.0.0.1:4173/" --edge-kiosk-type=fullscreen --no-first-run --disable-features=TranslateUI
+rem --use-fake-ui-for-media-stream: 전체 화면 키오스크에서 마이크·카메라 허용 창이 손님에게 뜨지 않도록 자동으로 허용합니다(실제 마이크·카메라를 씀).
+start "" msedge --kiosk "http://127.0.0.1:4173/" --edge-kiosk-type=fullscreen --no-first-run --disable-features=TranslateUI --use-fake-ui-for-media-stream
 exit /b 0
 
 :fail

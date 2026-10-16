@@ -7,7 +7,7 @@ export function mediaErrorMessage(error: unknown, device: Device): string {
   if (name === 'NotAllowedError' || name === 'SecurityError') return `${device} 권한이 막혀 있어요. 주소창 왼쪽 아이콘에서 ${device}를 '허용'으로 바꾼 뒤 새로고침해 주세요. 앱 안의 미리보기 창이라면 Chrome에서 직접 열어 주세요.`;
   if (name === 'NotFoundError' || name === 'OverconstrainedError') return `연결된 ${device}를 찾지 못했어요. ${device} 연결을 확인해 주세요.`;
   if (name === 'NotReadableError' || name === 'AbortError') return `다른 프로그램이 ${device}를 사용 중이에요. 화상회의 앱 등을 닫고 다시 시도해 주세요.`;
-  return `${device}를 시작하지 못했어요. 버튼으로 골라 주세요.`;
+  return device === '카메라' ? '카메라를 시작하지 못했어요.' : `${device}를 시작하지 못했어요. 메뉴판에서 직접 골라 주세요.`;
 }
 
 /** 마이크 권한만 미리 받아 두고 바로 끕니다. 성공하면 null, 실패하면 안내 문구를 돌려줍니다. */

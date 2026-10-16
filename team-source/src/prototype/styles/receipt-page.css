@@ -26,3 +26,7 @@ html:has(.receipt-page),body:has(.receipt-page){height:auto;overflow:auto}
 .stats-actions{display:grid;gap:10px}
 .stats-actions .primary,.stats-actions .secondary{display:block;text-align:center;text-decoration:none;min-height:52px;line-height:1.4;padding:14px;font-size:16px}
 .receipt-page .survey-link{display:block;text-align:center;text-decoration:none;min-height:52px;padding:14px;font-size:17px;margin-bottom:8px}
+body:has(.receipt-page){margin:0;background:#f4f6f5}
+/* 결제 수단·금액 줄(키오스크에서는 payment.css가 맡지만 영수증 전용 페이지는 그 파일을 불러오지 않습니다). */
+.receipt-page .receipt-payment{width:100%;border-top:1px dashed var(--border);padding-top:16px;margin-top:16px}
+.receipt-page .receipt-payment>div{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}

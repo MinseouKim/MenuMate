@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { WebSpeechSttProvider } from './services/stt/webSpeechSttProvider';
@@ -47,20 +47,21 @@ describe('React prototype', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('카드결제로 결제할까요?');
     await user.click(screen.getByRole('button',{name:'결제 진행하기'}));
     expect(screen.getByRole('heading',{name:'주문이 완료되었어요'})).toBeInTheDocument();
-    const receipt=screen.getByRole('region',{name:'영수증'});
-    expect(receipt).toHaveTextContent('주문 번호001');
-    expect(receipt).toHaveTextContent(`하가우1개${won(hargow.price)}`);
-    expect(within(receipt).getByText('합계').parentElement).toHaveTextContent(won(hargow.price));
+    expect(document.querySelector('.order-number')).toHaveTextContent('주문 번호001');
+    // 전시에서는 영수증을 휴대폰 QR로만 줍니다. 키오스크 화면에는 영수증을 그리지 않습니다.
+    expect(screen.queryByRole('region',{name:'영수증'})).not.toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:'처음 화면으로 돌아가기'}));
     await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
     expect(screen.getByRole('button',{name:'주문하기'})).toBeDisabled();
   });
   it('touch recommendation preserves quantities and budget', async () => {
-    const budget=50000;
-    const top=KioskAI.recommend({...KioskAI.extract(''),party:2,spicy:0,budget},menus)[0];
+    const budget=50000;const said='딤섬 먹고 싶어요. 새우는 빼주세요';const base=KioskAI.extract(said);
+    const top=KioskAI.recommend({...base,party:2,spicy:0,budget},menus)[0];
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
-    await user.click(screen.getByRole('button',{name:'버튼으로 취향 고르기'}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
+    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
+    await user.click(screen.getByRole('button',{name:said}));
+    expect(screen.getByLabelText('인원')).toHaveTextContent(`${base.party}명`);
     await user.click(screen.getByRole('button',{name:'인원 늘리기'}));
     expect(screen.getByLabelText('인원')).toHaveTextContent('2명');
     await user.click(screen.getByRole('button',{name:'순한맛'}));
@@ -76,41 +77,46 @@ describe('React prototype', () => {
     const start=vi.spyOn(WebSpeechSttProvider.prototype,'start');
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{ throw new DOMException('denied','NotAllowedError'); }}});
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
     await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
-    fireEvent.keyDown(screen.getByRole('button',{name:/누르고 있는 동안 말하기/}),{key:'Enter'});
+    await user.click(screen.getByRole('button',{name:/눌러서 말하기/}));
     expect(await screen.findByRole('alert')).toHaveTextContent('주소창 왼쪽 아이콘에서 마이크를');
     expect(start).not.toHaveBeenCalled();
   });
-  it('releasing before the permission is granted asks to press again', async () => {
+  it('one press starts listening after the permission, the next press finishes and submits', async () => {
     vi.spyOn(WebSpeechSttProvider.prototype,'isSupported').mockReturnValue(true);
-    const start=vi.spyOn(WebSpeechSttProvider.prototype,'start').mockImplementation(()=>{});
+    let callbacks!: Parameters<WebSpeechSttProvider['start']>[0];
+    const start=vi.spyOn(WebSpeechSttProvider.prototype,'start').mockImplementation(c=>{callbacks=c;});
+    const stop=vi.spyOn(WebSpeechSttProvider.prototype,'stop').mockImplementation(()=>{callbacks.onResult('두 명이고 새우는 빼고 딤섬');callbacks.onEnd();});
     let grant!: () => void;
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:()=>new Promise(r=>{grant=()=>r({getTracks:()=>[]});})}});
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
     await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
-    const talk=screen.getByRole('button',{name:/누르고 있는 동안 말하기/});
-    fireEvent.keyDown(talk,{key:'Enter'});fireEvent.keyUp(talk,{key:'Enter'});
-    await act(async()=>grant());
-    expect(screen.getByRole('status')).toHaveTextContent('다시 누르고 말해 주세요');
+    await user.click(screen.getByRole('button',{name:/눌러서 말하기/}));
     expect(start).not.toHaveBeenCalled();
-    fireEvent.keyDown(talk,{key:'Enter'});
+    await act(async()=>grant());
     expect(start).toHaveBeenCalledOnce();
+    act(()=>callbacks.onInterim?.('두 명이고'));
+    expect(screen.getByText('“두 명이고”')).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:/눌러서 끝내기/}));
+    expect(stop).toHaveBeenCalledOnce();
+    expect(await screen.findByRole('heading',{name:'이렇게 이해했어요'})).toBeInTheDocument();
   });
   it('previous-screen returns along the path actually taken', async () => {
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
-    await user.click(screen.getByRole('button',{name:'버튼으로 취향 고르기'}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
+    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
+    await user.click(screen.getByRole('button',{name:'딤섬 먹고 싶어요. 새우는 빼주세요'}));
+    await user.click(screen.getByRole('button',{name:'이전 화면'}));
+    expect(screen.getByRole('button',{name:/눌러서 말하기/})).toBeInTheDocument();
+    await user.click(screen.getByRole('button',{name:'메뉴판에서 직접 고르기'}));
+    await user.click(screen.getByRole('button',{name:'이전 화면'}));
+    expect(screen.getByRole('button',{name:/눌러서 말하기/})).toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:'이전 화면'}));
     expect(screen.getByRole('heading',{name:/취향을 알려주시면/})).toBeInTheDocument();
-    await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
-    await user.click(screen.getByRole('button',{name:'버튼으로 고르기'}));
     await user.click(screen.getByRole('button',{name:'이전 화면'}));
-    expect(screen.getByRole('button',{name:/누르고 있는 동안 말하기/})).toBeInTheDocument();
-    await user.click(screen.getByRole('button',{name:'이전 화면'}));
-    await user.click(screen.getByRole('button',{name:'이전 화면'}));
-    expect(screen.getByRole('heading',{name:/무엇을/})).toBeInTheDocument();
+    expect(screen.getByRole('heading',{name:/어떻게/})).toBeInTheDocument();
   });
   it('puts the newest item at the top of the order list', async () => {
     const user=userEvent.setup();render(<App/>);
@@ -133,7 +139,7 @@ describe('React prototype', () => {
       await act(async()=>{ vi.advanceTimersByTime(2_000); });
       expect(screen.getByRole('dialog')).toHaveTextContent('계속 주문하시겠어요?');
       await act(async()=>{ vi.advanceTimersByTime(20_000); });
-      expect(screen.getByRole('heading',{name:/무엇을/})).toBeInTheDocument();
+      expect(screen.getByRole('heading',{name:/어떻게/})).toBeInTheDocument();
       await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
       expect(screen.getByRole('button',{name:'주문하기'})).toBeDisabled();
     } finally { vi.useRealTimers(); }
@@ -147,6 +153,25 @@ describe('React prototype', () => {
       await act(async()=>{ vi.advanceTimersByTime(61_000); });
       await act(async()=>{ vi.advanceTimersByTime(20_000); });
       expect(screen.getByRole('button',{name:'글자 크게'})).toHaveAttribute('aria-pressed','false');
+    } finally { vi.useRealTimers(); }
+  });
+  it('keeps the done screen for 1 minute with a countdown, then resets', async () => {
+    vi.useFakeTimers({shouldAdvanceTime:true});
+    try {
+      const user=userEvent.setup({advanceTimers:vi.advanceTimersByTime});render(<App/>);
+      await user.click(screen.getByRole('button',{name:/메뉴 보고 주문/}));
+      await user.click(screen.getByRole('button',{name:'딤섬'}));
+      await user.click(screen.getByRole('button',{name:/^하가우 선택/}));
+      await user.click(screen.getByRole('button',{name:'주문하기'}));
+      await user.click(screen.getByRole('button',{name:'매장에서 먹기'}));
+      await user.click(screen.getByRole('button',{name:/결제하기$/}));
+      await user.click(screen.getByRole('button',{name:'결제 진행하기'}));
+      expect(document.querySelector('.done-countdown')).toHaveTextContent(/^(60|59)초 뒤 처음 화면으로 돌아가요$/);
+      await act(async()=>{ vi.advanceTimersByTime(50_000); });
+      expect(screen.getByRole('heading',{name:'주문이 완료되었어요'})).toBeInTheDocument();
+      expect(document.querySelector('.done-countdown')).toHaveTextContent(/^(10|9)초/);
+      await act(async()=>{ vi.advanceTimersByTime(10_500); });
+      expect(screen.getByRole('heading',{name:/어떻게/})).toBeInTheDocument();
     } finally { vi.useRealTimers(); }
   });
   it('shows a QR code for the receipt after payment', async () => {
@@ -173,7 +198,7 @@ describe('React prototype', () => {
     const user=userEvent.setup();render(<App/>);
     await user.keyboard('{Control>}{Shift>}1{/Shift}{/Control}');
     expect(screen.getByRole('heading',{name:'이렇게 이해했어요'})).toBeInTheDocument();
-    expect(screen.getByText('새우 제외')).toBeInTheDocument();
+    expect(screen.getByText('새우는 빼고',{selector:'strong'})).toBeInTheDocument();
   });
   it('voice guide reads the recommendations aloud', async () => {
     const said: string[] = [];
@@ -182,18 +207,22 @@ describe('React prototype', () => {
     try {
       const user=userEvent.setup();render(<App/>);
       await user.click(screen.getByRole('button',{name:/음성 안내/}));
-      await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
-      await user.click(screen.getByRole('button',{name:'버튼으로 취향 고르기'}));
+      await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
+      await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
+      await user.click(screen.getByRole('button',{name:'딤섬 먹고 싶어요. 새우는 빼주세요'}));
       await user.click(screen.getByRole('button',{name:'맞아요, 추천해주세요'}));
-      expect(said.at(-1)).toMatch(/^추천 메뉴 3가지예요\. 1번, .+원\./);
+      expect(said.at(-1)).toMatch(/^추천 메뉴 \d가지예요\. 1번, .+원\./);
     } finally { Reflect.deleteProperty(window,'speechSynthesis'); }
   });
   it('highlights how the request was understood', async () => {
     const user=userEvent.setup();render(<App/>);
-    await user.click(screen.getByRole('button',{name:/말로 추천받기/}));
+    await user.click(screen.getByRole('button',{name:/말로 추천 받아 주문/}));
     await user.click(screen.getByRole('button',{name:'말로 추천받기 시작'}));
     await user.click(screen.getByRole('button',{name:'두 명이고 베이징덕 먹고 싶어요'}));
-    expect(screen.getByText('인원 2명')).toBeInTheDocument();
-    expect(screen.getByText('종류 베이징덕/생선')).toBeInTheDocument();
+    // 키워드는 문장 속 굵은 글씨로만 보여 주고, 따로 카드나 밑줄은 없습니다.
+    expect(screen.getByText('두 명',{selector:'strong.hl'})).toBeInTheDocument();
+    expect(screen.getByText('베이징덕',{selector:'strong.hl'})).toBeInTheDocument();
+    expect(document.querySelector('.keywords')).toBeNull();
+    expect(document.querySelector('.transcript mark')).toBeNull();
   });
 });
