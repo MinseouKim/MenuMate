@@ -1,0 +1,427 @@
+{
+  "storeName": "우루루 본점",
+  "version": "2026-10-24-dummy",
+  "categories": [
+    {
+      "id": "stew",
+      "name": "찌개·탕",
+      "sortOrder": 1
+    },
+    {
+      "id": "gukbap",
+      "name": "국밥·죽",
+      "sortOrder": 2
+    },
+    {
+      "id": "rice",
+      "name": "밥·덮밥",
+      "sortOrder": 3
+    },
+    {
+      "id": "noodle",
+      "name": "면",
+      "sortOrder": 4
+    },
+    {
+      "id": "grill",
+      "name": "고기·전",
+      "sortOrder": 5
+    }
+  ],
+  "items": [
+    {
+      "id": "m001",
+      "name": "된장찌개",
+      "price": 9000,
+      "categoryId": "stew",
+      "description": "구수한 집된장으로 끓인 찌개",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "m002",
+      "name": "김치찌개",
+      "price": 9000,
+      "categoryId": "stew",
+      "description": "잘 익은 김치와 돼지고기를 넣은 찌개",
+      "image": null,
+      "tags": [
+        "soup",
+        "spicy"
+      ],
+      "priority": 2,
+      "isAvailable": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "m003",
+      "name": "순두부찌개",
+      "price": 9500,
+      "categoryId": "stew",
+      "description": "몽글몽글한 순두부를 얼큰하게 끓인 찌개",
+      "image": null,
+      "tags": [
+        "soup",
+        "spicy",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "m004",
+      "name": "부대찌개",
+      "price": 11000,
+      "categoryId": "stew",
+      "description": "햄과 소시지, 라면사리를 넣은 푸짐한 찌개",
+      "image": null,
+      "tags": [
+        "soup",
+        "spicy",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 4
+    },
+    {
+      "id": "m005",
+      "name": "갈비탕",
+      "price": 13000,
+      "categoryId": "stew",
+      "description": "소갈비를 오래 고아 낸 맑은 탕",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "hearty"
+      ],
+      "priority": 1,
+      "isAvailable": true,
+      "sortOrder": 5
+    },
+    {
+      "id": "m006",
+      "name": "육개장",
+      "price": 11000,
+      "categoryId": "stew",
+      "description": "고사리와 소고기를 넣은 얼큰한 국",
+      "image": null,
+      "tags": [
+        "soup",
+        "spicy",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 6
+    },
+    {
+      "id": "m007",
+      "name": "돼지국밥",
+      "price": 9500,
+      "categoryId": "gukbap",
+      "description": "뽀얀 돼지뼈 국물에 밥을 말아 먹는 국밥",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "m008",
+      "name": "순대국밥",
+      "price": 9500,
+      "categoryId": "gukbap",
+      "description": "순대와 머리고기를 듬뿍 넣은 국밥",
+      "image": null,
+      "tags": [
+        "soup",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "m009",
+      "name": "콩나물국밥",
+      "price": 8000,
+      "categoryId": "gukbap",
+      "description": "시원한 콩나물 국물에 수란을 곁들인 국밥",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "m010",
+      "name": "전복죽",
+      "price": 12000,
+      "categoryId": "gukbap",
+      "description": "전복을 곱게 갈아 넣은 고소한 죽",
+      "image": null,
+      "tags": [
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 4
+    },
+    {
+      "id": "m011",
+      "name": "호박죽",
+      "price": 8000,
+      "categoryId": "gukbap",
+      "description": "달큰한 늙은 호박으로 쑨 죽",
+      "image": null,
+      "tags": [
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 5
+    },
+    {
+      "id": "m012",
+      "name": "비빔밥",
+      "price": 10000,
+      "categoryId": "rice",
+      "description": "제철 나물과 고추장을 비벼 먹는 밥",
+      "image": null,
+      "tags": [
+        "mild",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "m013",
+      "name": "돌솥비빔밥",
+      "price": 11000,
+      "categoryId": "rice",
+      "description": "뜨거운 돌솥에 누룽지까지 즐기는 비빔밥",
+      "image": null,
+      "tags": [
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "m014",
+      "name": "제육덮밥",
+      "price": 10000,
+      "categoryId": "rice",
+      "description": "매콤하게 볶은 돼지고기 덮밥",
+      "image": null,
+      "tags": [
+        "spicy",
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "m015",
+      "name": "불고기덮밥",
+      "price": 11000,
+      "categoryId": "rice",
+      "description": "달콤한 간장 불고기를 올린 덮밥",
+      "image": null,
+      "tags": [
+        "mild",
+        "hearty",
+        "soft"
+      ],
+      "priority": 1,
+      "isAvailable": true,
+      "sortOrder": 4
+    },
+    {
+      "id": "m016",
+      "name": "오징어덮밥",
+      "price": 10500,
+      "categoryId": "rice",
+      "description": "오징어를 매콤하게 볶아 올린 덮밥",
+      "image": null,
+      "tags": [
+        "spicy"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 5
+    },
+    {
+      "id": "m017",
+      "name": "계란말이밥",
+      "price": 8500,
+      "categoryId": "rice",
+      "description": "폭신한 계란말이와 따뜻한 밥",
+      "image": null,
+      "tags": [
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 6
+    },
+    {
+      "id": "m018",
+      "name": "잔치국수",
+      "price": 7000,
+      "categoryId": "noodle",
+      "description": "멸치 국물에 말아 낸 잔치국수",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "m019",
+      "name": "칼국수",
+      "price": 9000,
+      "categoryId": "noodle",
+      "description": "바지락으로 국물을 낸 손칼국수",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "m020",
+      "name": "비빔국수",
+      "price": 8000,
+      "categoryId": "noodle",
+      "description": "새콤달콤 매콤한 비빔국수",
+      "image": null,
+      "tags": [
+        "spicy"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "m021",
+      "name": "물냉면",
+      "price": 10000,
+      "categoryId": "noodle",
+      "description": "시원한 육수의 물냉면",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild"
+      ],
+      "priority": 0,
+      "isAvailable": false,
+      "sortOrder": 4
+    },
+    {
+      "id": "m022",
+      "name": "수제비",
+      "price": 8500,
+      "categoryId": "noodle",
+      "description": "얇게 뜬 반죽을 맑은 국물에 끓인 수제비",
+      "image": null,
+      "tags": [
+        "soup",
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 5
+    },
+    {
+      "id": "m023",
+      "name": "LA갈비",
+      "price": 18000,
+      "categoryId": "grill",
+      "description": "달콤한 양념에 재운 소갈비 구이",
+      "image": null,
+      "tags": [
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 1
+    },
+    {
+      "id": "m024",
+      "name": "해물파전",
+      "price": 14000,
+      "categoryId": "grill",
+      "description": "오징어와 새우를 듬뿍 넣은 파전",
+      "image": null,
+      "tags": [
+        "hearty"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 2
+    },
+    {
+      "id": "m025",
+      "name": "김치전",
+      "price": 11000,
+      "categoryId": "grill",
+      "description": "잘 익은 김치로 부친 바삭한 전",
+      "image": null,
+      "tags": [
+        "spicy"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 3
+    },
+    {
+      "id": "m026",
+      "name": "두부부침",
+      "price": 9000,
+      "categoryId": "grill",
+      "description": "노릇하게 부친 두부에 양념장을 곁들임",
+      "image": null,
+      "tags": [
+        "mild",
+        "soft"
+      ],
+      "priority": 0,
+      "isAvailable": true,
+      "sortOrder": 4
+    }
+  ]
+}
