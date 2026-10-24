@@ -11,6 +11,7 @@ import { SimulatedPaymentGateway, type PaymentGateway } from './payment/gateway.
 import { payOrder, paymentSchema } from './payment/pay.js';
 import { QUESTIONS, toQuestion } from './questions.js';
 import { recommend } from './recommend.js';
+import { registerStatic } from './static.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
@@ -100,6 +101,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     { schema: paymentSchema },
     async (req) => payOrder({ prisma, gateway, now }, req.params.orderId, req.body),
   );
+
+  await registerStatic(app, config);
 
   return app;
 }

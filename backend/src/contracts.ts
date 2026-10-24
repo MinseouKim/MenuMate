@@ -52,5 +52,7 @@ export type ErrorCode =
   | 'MENU_UNAVAILABLE'
   | 'ORDER_NOT_FOUND'
   | 'ORDER_ALREADY_PAID'
+  /** 없는 경로나 파일 (/api, /static, /models). api.md 코드 표에 추가 요청 중 */
+  | 'NOT_FOUND'
   | 'INTERNAL';
 export interface ErrorResponse { error: { code: ErrorCode; message: string } }
