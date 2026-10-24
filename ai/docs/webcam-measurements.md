@@ -2,10 +2,18 @@
 
 판정 기준값(`stableFrames`, `minConfidence`, `noFaceGraceMs`)을 정하기 위한 실제 웹캠 측정. 근거가 충분할 때만 기본값을 바꾼다.
 
+## 실측 기기
+| 항목 | 값 |
+|------|-----|
+| 노트북 | MacBook Pro (Mac16,8, Apple M4 Pro) — 1·2차 모두 |
+| 브라우저 | Chrome 156 macOS, 백엔드 webgpu |
+| 웹캠 | Logitech Brio 500 (외장 USB, 사용자 응답. **실측 당시 연결 여부 확인 중** — 지금 이 Mac에서는 내장 "MacBook Pro 카메라"만 감지됨) |
+| 해상도 | 1280×720 |
+
 **현재 결론 (2차 이후): 기본값 유지 — stableFrames 5, minConfidence 0.7, noFaceGraceMs 0. 55세 이상 판정은 미검증.**
 
 ## 1차 (2026-10-25, 사용자)
-- 조건: Mac 내장/외장 웹캠 1280×720, 데모 기본 설정(5프레임 · 0.7 · 8초 · 6fps · 유예 0), 받은 로그 4줄
+- 조건: MacBook Pro M4 Pro, 웹캠은 위 '실측 기기' 참고, 1280×720, 데모 기본 설정(5프레임 · 0.7 · 8초 · 6fps · 유예 0), 받은 로그 4줄
 
 ```
 12:14:51 카메라 1280x720
@@ -50,7 +58,7 @@
 | `stableFrames` | 1번·5번의 확정 시간이 2초를 넘거나, 연령대가 섞여 나와 확정이 늦으면 조정 |
 
 ## 2차 (2026-10-25, 사용자, "로그 전체 복사" 원문)
-- 조건: Chrome 156 macOS, 1280×720, **백엔드 webgpu (로드 1,027ms)**, 추론 간격 평균 163ms (6.1fps), 기본 설정. 노트북 기종·웹캠 종류는 미수령.
+- 조건: MacBook Pro M4 Pro, Chrome 156 macOS, 1280×720, **백엔드 webgpu (로드 1,027ms)**, 추론 간격 평균 163ms (6.1fps), 기본 설정. 웹캠은 위 '실측 기기' 참고.
 - 판정 8회, 모두 `non_senior`. `no_face`, `timeout`, `senior`는 한 번도 없음.
 
 | # | 시각 | 요청 순서상 추정 항목 | low_confidence | 확정까지 | confidence |
