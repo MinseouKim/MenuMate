@@ -157,6 +157,7 @@
 | D56 | 얼굴 끊김 유예 | `noFaceGraceMs` 설정 추가(`VITE_AI_NO_FACE_GRACE_MS`, 기본 0 = 기존 동작). 값은 웹캠 실측 후 결정 | ✅ | AI 제안 |
 | D57 | 카테고리 수 제한 | 카테고리 최대 6개는 화면이 아니라 메뉴 데이터 규칙으로 둠. 시드 검증에서 6개 초과면 실패 | ✅ | 화면에서 자르면 일부 메뉴를 고를 수 없게 됨 |
 | D58 | 1차 통합 | 2026-10-25 세 브랜치를 main에 병합. vitest를 세 패키지 모두 5로 통일, 루트 package-lock.json 커밋. 실제 서버·DB·모델로 55+ 흐름(Shift+S)이 주문번호까지 동작 확인 | ✅ | 10/26 계획보다 하루 앞당김 |
+| D59 | 판정 기준값 확정 | stableFrames 5, minConfidence 0.7, noFaceGraceMs 0 유지. 실측(MacBook Pro M4 Pro 내장 카메라, Chrome webgpu): 정면 확정 0.67초(최대 1.84초), confidence 0.73 이상, 검출 끊김 0회, 고령 인물 사진 3/3 senior | ✅ | `ai/docs/webcam-measurements.md`. 실제 55+ 인물·경계 나이·조명·안경·마스크는 미검증. 전시 전 Brio 500(모니터 위)으로 재확인 필요 |
 | D50 | DB 경로 기준 | `DATABASE_URL` 상대 경로는 `backend/` 폴더 기준. Prisma 기본(`prisma/` 기준)과 달라 Backend가 래퍼로 맞춤 | ✅ | DB 파일이 git 제외 폴더 밖에 생기는 문제 방지 |
 
 ## 7. 미결 사항
