@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MenuMate AI 데모</title>
+<style>
+  :root { --bg:#111; --panel:#1c1c1c; --fg:#eee; --mute:#999; --ok:#4caf50; --warn:#ffb300; --bad:#ef5350; --accent:#64b5f6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+  main { display:grid; grid-template-columns: minmax(320px, 640px) 1fr; gap:16px; padding:16px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section { background:var(--panel); border-radius:10px; padding:14px; }
+  h1 { font-size:18px; margin:0 0 4px; } h2 { font-size:15px; margin:0 0 8px; color:var(--accent); }
+  video { width:100%; border-radius:8px; background:#000; transform:scaleX(-1); }
+  button { font:inherit; padding:6px 12px; margin:2px; border-radius:6px; border:1px solid #444; background:#2a2a2a; color:var(--fg); cursor:pointer; }
+  button:hover { background:#333; }
+  #status { font-size:28px; font-weight:700; margin:8px 0; }
+  .senior { color:var(--warn); } .non_senior { color:var(--ok); } .timeout, .error { color:var(--bad); }
+  .bar { height:10px; background:#333; border-radius:5px; overflow:hidden; margin:4px 0 10px; }
+  .bar > div { height:100%; background:var(--accent); width:0; transition:width .1s; }
+  dl { display:grid; grid-template-columns:auto 1fr; gap:2px 12px; margin:0; } dt { color:var(--mute); }
+  #log { height:260px; overflow:auto; font:12px/1.4 ui-monospace, Menlo, monospace; margin:0; padding:0; list-style:none; }
+  table { border-collapse:collapse; width:100%; font-size:13px; } td, th { border-bottom:1px solid #333; padding:4px 6px; text-align:left; }
+  textarea { width:100%; font:inherit; background:#000; color:var(--fg); border:1px solid #444; border-radius:6px; }
+  small { color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <section>
+      <h1>MenuMate AI 데모 <small>(@menumate/ai, 개발용)</small></h1>
+      <small>영상은 브라우저 안에서만 처리하고 저장하지 않습니다. 이 페이지는 추정 나이 숫자를 보여 주지 않습니다 (D2).</small>
+      <video id="video" playsinline muted></video>
+      <div>
+        <button id="startCam">카메라 켜기</button>
+        <button id="reset">reset()</button>
+        <button id="forceS">force('senior') ⇧S</button>
+        <button id="forceN">force('non_senior') ⇧N</button>
+      </div>
+    </section>
+  </div>
+  <div>
+    <section>
+      <h2>판정</h2>
+      <div id="status">대기</div>
+      <div class="bar"><div id="runBar"></div></div>
+      <div class="bar"><div id="timeBar" style="background:var(--warn)"></div></div>
+      <dl>
+        <dt>백엔드</dt><dd id="backend">-</dd>
+        <dt>설정</dt><dd id="config">-</dd>
+        <dt>추론 간격</dt><dd id="interval">-</dd>
+      </dl>
+      <small>URL로 설정 변경: ?stableFrames=5&amp;minConfidence=0.7&amp;decideTimeoutMs=8000&amp;fps=6&amp;noFaceGraceMs=0</small>
+    </section>
+    <section style="margin-top:16px">
+      <h2>이벤트</h2>
+      <ul id="log"></ul>
+    </section>
+    <section style="margin-top:16px">
+      <h2>음성 (TTS)</h2>
+      <dl><dt>선택된 음성</dt><dd id="voice">-</dd></dl>
+      <textarea id="ttsText" rows="2">안녕하세요. 메뉴메이트입니다. 천천히 읽어 드릴게요.</textarea>
+      <button id="speak">읽기</button><button id="cancel">멈추기</button>
+      <details><summary>브라우저 음성 목록</summary><table id="voices"></table></details>
+    </section>
+    <section style="margin-top:16px">
+      <h2>나이 모델 속도 비교</h2>
+      <small>/models/age/candidates/ 의 후보를 같은 조건으로 30회 실행합니다. (models:setup -- --candidates 필요)</small><br>
+      <button id="bench">벤치마크 실행</button>
+      <table id="benchOut"></table>
+    </section>
+  </div>
+</main>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>
