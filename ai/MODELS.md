@@ -14,12 +14,13 @@
 | SHA-256 | `b4578f35940bf5a1a655214a1cce5cab13eba73c1297cd78e1a04c2380b0152f` |
 | 위치 | `models/face/blaze_face_short_range.tflite` |
 
-## 나이 추정 (PM 승인 대기, 권고: 후보 B)
+## 나이 추정 (확정: 후보 B, 사용자 승인 2026-10-25, D35)
 
 `models/age/age_estimator.onnx` 하나로 고정. 어떤 후보인지는 ONNX 입력 이름으로 자동 인식한다.
-지금 `models:setup` 기본값은 후보 A다 (승인 후 B로 변경 예정). `--age=<id>`로 고를 수 있다.
+`models:setup` 기본값은 후보 B다 (`scripts/model-sources.mjs`의 `SELECTED_AGE_MODEL`). 후보 A는 gram 대책으로 `--age=insightface-genderage`로 남겨 둔다.
+**상업화 때는 후보 B의 학습 데이터(UTKFace, 비상업 연구용) 라이선스 검토가 필요하다.**
 
-| 항목 | 후보 A `insightface-genderage` | 후보 B `vit-age-gender` |
+| 항목 | 후보 A `insightface-genderage` (gram 대책용) | **후보 B `vit-age-gender` (확정)** |
 |------|------|------|
 | 이름 | InsightFace buffalo_l genderage | age-gender-prediction (ViT-B/16) ONNX |
 | 출처 | https://huggingface.co/public-data/insightface (커밋 `33c1063c49c785b7652d3fd529f86fa4f149392b`, `models/buffalo_l/genderage.onnx`) | https://huggingface.co/onnx-community/age-gender-prediction-ONNX (커밋 `6c138f6454d37dd55e5d4648e23e1ec23844e705`, `onnx/model.onnx`). 원본 `abhilash88/age-gender-prediction` |

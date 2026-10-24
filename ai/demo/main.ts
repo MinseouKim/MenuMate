@@ -29,10 +29,15 @@ let gate: AgeGate | null = null;
 let lastEventAt = 0;
 const intervals: number[] = [];
 
+/** 실측 보고용 전체 기록 (오래된 것부터). 이벤트 내용만 담기므로 나이 숫자는 없다. */
+const history: string[] = [];
+
 function log(text: string, cls = '') {
+  const line = `${new Date().toLocaleTimeString()}  ${text}`;
+  history.push(line);
   const li = document.createElement('li');
   li.className = cls;
-  li.textContent = `${new Date().toLocaleTimeString()}  ${text}`;
+  li.textContent = line;
   $('log').prepend(li);
   while ($('log').childElementCount > 200) $('log').lastElementChild!.remove();
 }
@@ -99,6 +104,23 @@ $('startCam').onclick = async () => {
     gate.start(video);
   } catch (e) {
     log(`시작 실패: ${(e as Error).name} ${(e as Error).message}`, 'error');
+  }
+};
+$('copyLog').onclick = async () => {
+  const text = [
+    `설정: ${$('config').textContent}`,
+    `백엔드: ${$('backend').textContent}`,
+    `추론 간격: ${$('interval').textContent}`,
+    `브라우저: ${navigator.userAgent}`,
+    '',
+    ...history,
+  ].join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    $('copyLog').textContent = `복사됨 (${history.length}줄)`;
+  } catch {
+    $<HTMLTextAreaElement>('logText').value = text; // 복사가 막히면 아래 칸에서 직접 복사
+    $('logText').hidden = false;
   }
 };
 $('reset').onclick = () => {

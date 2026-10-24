@@ -1,6 +1,6 @@
 # 나이 추정 모델 후보 비교 (D35)
 
-- 작성: AI / 상태: **PM 승인 대기** (2026-10-24)
+- 작성: AI / 상태: **확정 — 후보 B, 사용자 승인 (2026-10-25, D35)**. 상업화 때 학습 데이터(UTKFace) 라이선스 검토 필요
 - 결론 요약: **후보 B (ViT age-gender, fp32)를 권고.** 정확도가 확실히 높고 Mac WebGPU에서 충분히 빠르다. 대신 파일이 크고(345MB) WebGPU가 없으면 느리며, 학습 데이터가 비상업 라이선스다.
 
 ## 1. 후보
@@ -90,7 +90,7 @@ Chromium 152 (Claude 앱 내장 브라우저), Apple Silicon Mac, 데모 페이�
 | 크기 | 345MB. 로컬 서버에서 받으므로 로드 약 1초. 저장소에는 안 올림 |
 | 라이선스 | 모델은 Apache-2.0, 학습 데이터(UTKFace)가 비상업 → 전시는 문제없음, 상용화 때 재검토 |
 
-PM 승인 후 할 일: `scripts/setup-models.mjs`의 `SELECTED_AGE_MODEL`을 `vit-age-gender`로 바꾸고, [`MODELS.md`](../MODELS.md)와 PM 문서(D35)에 기록한다.
+반영 완료: `scripts/model-sources.mjs`의 `SELECTED_AGE_MODEL`을 `vit-age-gender`로 바꾸고 [`MODELS.md`](../MODELS.md)를 갱신했다. PM 문서 D35에 기록됨.
 
 ## 6. 남은 확인
 - 실제 웹캠·설치 위치(모니터 위, D31)에서의 판정 시간과 `low_confidence` 빈도 → `stableFrames`, `minConfidence` 권장값 (PM을 통해 사람의 실측 필요)
