@@ -1,6 +1,6 @@
 # AI 파이프라인 입출력 명세
 
-- 작성: AI / 상태: v1 초안 (2026-10-24)
+- 작성: AI / 상태: v1.1 (2026-10-24, PM 승인 사항 반영)
 - 공개 API는 [`docs/contracts/ai-output.md`](../../docs/contracts/ai-output.md)가 기준이다. 이 문서는 그 안에서 일어나는 일을 적는다.
 - 관련 결정: D2, D3, D16, D18, D22, D27, D35
 
@@ -71,6 +71,7 @@ frameGroup = age >= seniorAge(55) ? 'senior' : 'non_senior'
 confidence = detectionScore × min(1, 얼굴 폭 px / 80)
 ```
 
+- **신뢰도 정의 (ai-output v1.1, PM 승인)**: 프레임 신뢰도 = 검출 점수 × min(1, 얼굴 폭 px / 80), `decided.confidence` = 확정에 쓴 연속 프레임 신뢰도의 평균.
 - 나이 모델은 불확실도를 주지 않으므로 **신뢰도는 검출 점수와 얼굴 크기**로 만든다. 멀리 지나가는 사람(얼굴 폭 80px 미만)은 신뢰도가 낮아져 판정에 쓰이지 않는다.
 - 나이 숫자는 `FaceObservation.age`로 리듀서에만 들어가고 이벤트에는 나가지 않는다 (테스트로 고정).
 
@@ -81,7 +82,7 @@ stateDiagram-v2
   [*] --> idle
   idle --> detecting: 얼굴 보임 (detecting)
   detecting --> detecting: 프레임마다 (detecting: run/required, elapsedMs)
-  detecting --> idle: 얼굴 사라짐 (no_face, 연속·타이머 초기화)
+  detecting --> idle: 얼굴 사라짐, 유예 초과 (no_face, 연속·타이머 초기화)
   detecting --> decided: 같은 연령대 연속 stableFrames (decided)
   detecting --> timeout: 처음 보인 뒤 decideTimeoutMs (timeout)
   decided --> idle: reset()
@@ -99,9 +100,10 @@ stateDiagram-v2
 | 확정 | `run >= stableFrames`(5) → `decided`, `confidence` = 연속 프레임 신뢰도 평균 (소수 셋째 자리) |
 | 타임아웃 | 얼굴이 처음 보인 시각부터 `decideTimeoutMs`(8000) 이상이고 확정이 안 됐으면 `timeout`. 같은 프레임에서 확정 조건도 맞으면 확정 |
 | no_face | 얼굴이 있다가 없어지면 1번. 대기 중 계속 없으면 이벤트 없음 |
+| 깜빡임 유예 | `noFaceGraceMs`(기본 0). 얼굴이 마지막으로 보인 뒤 이 시간 안의 빈 프레임은 무시하고(이벤트 없음) 연속 기록을 유지한다. 타임아웃 시간은 계속 흐른다. 0이면 계약 v1과 같이 한 프레임만 빠져도 no_face. 실측 후 값을 정한다 |
 | 고정 | `decided`·`timeout` 뒤에는 `reset()` 전까지 모든 프레임 무시 (D18) |
 | force | 언제든 즉시 `decided(source: 'forced', confidence: 1)` |
-| error | 추론 예외가 연속되는 동안 첫 번째만 `error(inference_failed)`. 루프는 계속 |
+| error | 추론 예외가 연속되는 동안 첫 번째만 `error(inference_failed)`. 루프는 계속. 프론트는 판정 전 error를 timeout과 같이 처리 (kiosk-flow v1.1) |
 
 ## 7. 지연 시간
 

@@ -5,7 +5,8 @@ import { FaceDetector as MpFaceDetector, FilesetResolver } from '@mediapipe/task
 import * as ort from 'onnxruntime-web';
 import { createAgeGateCore, type AgeEstimator, type FaceDetector } from './ageGateCore';
 import { findAgeModel, rgbaToTensor, squareCrop, type AgeModelSpec, type Box } from './ageModels';
-import { AgeGateError, DEFAULT_FPS, DEFAULT_RULES, type AgeGate, type AgeGateConfig } from './types';
+import { resolveFps, resolveRules } from './resolveRules';
+import { AgeGateError, type AgeGate, type AgeGateConfig } from './types';
 
 export async function createAgeGate(config: AgeGateConfig): Promise<AgeGate> {
   if (typeof WebAssembly !== 'object') {
@@ -18,15 +19,7 @@ export async function createAgeGate(config: AgeGateConfig): Promise<AgeGate> {
     throw e instanceof AgeGateError ? e : new AgeGateError('model_load_failed', String(e), { cause: e });
   });
 
-  return createAgeGateCore(detector, estimator, {
-    rules: {
-      seniorAge: config.seniorAge ?? DEFAULT_RULES.seniorAge,
-      stableFrames: config.stableFrames ?? DEFAULT_RULES.stableFrames,
-      minConfidence: config.minConfidence ?? DEFAULT_RULES.minConfidence,
-      decideTimeoutMs: config.decideTimeoutMs ?? DEFAULT_RULES.decideTimeoutMs,
-    },
-    fps: config.fps ?? DEFAULT_FPS,
-  });
+  return createAgeGateCore(detector, estimator, { rules: resolveRules(config), fps: resolveFps(config) });
 }
 
 async function loadFaceDetector(config: AgeGateConfig): Promise<FaceDetector> {

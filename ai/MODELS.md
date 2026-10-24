@@ -27,6 +27,13 @@
 | 크기 | 1,322,532 bytes (1.3MB) | 344,969,849 bytes (345MB) |
 | SHA-256 | `4fde69b1c810857b88c64a335084f1c3fe8f01246c9a191b48c7bb756d6652fb` | `0c35c868ea8ffba6d5fe727c1a6b82d9da600e690342d58ca268270560e28304` |
 
+## gram(Windows, 외장 GPU 없음) 이전 때 대책 (전시 이후, PM 결정 2026-10-24)
+후보 B는 WebGPU가 없으면 프레임당 약 1.2초(WASM 1스레드)라 5프레임 확정에 약 6초가 걸린다. 순서대로 시도한다.
+1. gram Chrome에서 WebGPU가 되는지 데모(`gate.backend`)로 확인. 되면 할 일 없음.
+2. 안 되면 프론트 `.env`에서 `VITE_AI_STABLE_FRAMES=3`.
+3. 그래도 느리면 gram에서만 `npm run models:setup -w ai -- --age=insightface-genderage` (후보 A, 2ms). 파일 이름이 같고 입력 이름으로 자동 인식하므로 코드 수정 없음. 단 정확도가 낮고 비상업 라이선스.
+4. WASM 멀티스레드는 페이지가 crossOriginIsolated여야 한다. Backend가 COOP/COEP 헤더를 붙여야 하므로 gram 이전 때 Backend와 함께 다룬다.
+
 ## 런타임 (npm 패키지에서 복사)
 
 | 패키지 | 버전 | 라이선스 | 복사 위치 |

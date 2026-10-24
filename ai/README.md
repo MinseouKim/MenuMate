@@ -35,6 +35,7 @@ const gate = await createAgeGate({
   stableFrames: Number(import.meta.env.VITE_AI_STABLE_FRAMES),
   minConfidence: Number(import.meta.env.VITE_AI_MIN_CONFIDENCE),
   decideTimeoutMs: Number(import.meta.env.VITE_AI_DECIDE_TIMEOUT_MS),
+  // noFaceGraceMs: 실측 후 정함. 기본 0. 빈 값·숫자가 아닌 값은 모두 기본값으로 처리된다
 }); // 실패하면 AgeGateError → 터치로 일반 메뉴판 (D46)
 
 const off = gate.onUpdate((u) => dispatch({ type: 'AI', update: u }));

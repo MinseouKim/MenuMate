@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ageGateReducer, initialAgeGateState, pickLargestFace } from './ageGateReducer';
-import { DEFAULT_RULES, type AgeGateState, type AgeGateUpdate, type FrameInput } from './types';
+import { DEFAULT_RULES, type AgeGateRules, type AgeGateState, type AgeGateUpdate, type FrameInput } from './types';
 
 const face = (age: number, confidence = 0.9, area = 10_000) => ({ age, confidence, area });
 const frame = (t: number, ...faces: ReturnType<typeof face>[]): FrameInput => ({ t, faces });
 
 /** 프레임들을 차례로 넣고 마지막 상태와 모든 이벤트를 돌려준다. */
-function run(frames: FrameInput[], rules = DEFAULT_RULES, start: AgeGateState = initialAgeGateState()) {
+function run(frames: FrameInput[], rules: AgeGateRules = DEFAULT_RULES, start: AgeGateState = initialAgeGateState()) {
   let state = start;
   const updates: (AgeGateUpdate | null)[] = [];
   for (const f of frames) {
@@ -144,6 +144,37 @@ describe('ageGateReducer', () => {
     const copy = structuredClone(s);
     ageGateReducer(s, frame(0, face(62)), DEFAULT_RULES);
     expect(s).toEqual(copy);
+  });
+});
+
+describe('noFaceGraceMs (얼굴 검출 깜빡임 유예)', () => {
+  const grace = { ...DEFAULT_RULES, noFaceGraceMs: 500 };
+
+  it('기본값은 0이다 (계약과 같은 동작)', () => {
+    expect(DEFAULT_RULES.noFaceGraceMs).toBe(0);
+  });
+
+  it('유예 시간 안에 얼굴이 빠지면 이벤트 없이 연속 기록을 유지한다', () => {
+    const { updates } = run([frame(0, face(62)), frame(166, face(62)), frame(332), frame(498, face(62))], grace);
+    expect(updates[2]).toBeNull();
+    expect(updates[3]).toMatchObject({ type: 'detecting', frameGroup: 'senior', run: 3, elapsedMs: 498 });
+  });
+
+  it('마지막으로 얼굴이 보인 뒤 유예 시간이 지나면 no_face로 초기화한다', () => {
+    const { updates, state } = run([frame(0, face(62)), frame(300), frame(500)], grace);
+    expect(updates[1]).toBeNull();
+    expect(updates[2]).toEqual({ type: 'no_face' });
+    expect(state).toEqual(initialAgeGateState());
+  });
+
+  it('유예 중에도 타임아웃 시간은 흐른다', () => {
+    const frames = [frame(0, face(60, 0.3)), frame(7_900, face(60, 0.3)), frame(8_100)];
+    expect(run(frames, grace).last).toEqual({ type: 'timeout' });
+  });
+
+  it('유예가 0이면 한 프레임만 빠져도 no_face', () => {
+    const { updates } = run([frame(0, face(62)), frame(166)], { ...DEFAULT_RULES, noFaceGraceMs: 0 });
+    expect(updates[1]).toEqual({ type: 'no_face' });
   });
 });
 

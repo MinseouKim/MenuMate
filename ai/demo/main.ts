@@ -18,10 +18,11 @@ const config = {
   minConfidence: num('minConfidence', DEFAULT_RULES.minConfidence),
   decideTimeoutMs: num('decideTimeoutMs', DEFAULT_RULES.decideTimeoutMs),
   fps: num('fps', DEFAULT_FPS),
+  noFaceGraceMs: num('noFaceGraceMs', DEFAULT_RULES.noFaceGraceMs),
 };
 $('config').textContent =
   `${config.ageModelUrl.split('/').pop()} · ${config.stableFrames}프레임 · 신뢰도 ${config.minConfidence} · ` +
-  `${config.decideTimeoutMs / 1000}초 · ${config.fps}fps · ${globalThis.crossOriginIsolated ? '멀티스레드' : '1스레드'}`;
+  `${config.decideTimeoutMs / 1000}초 · ${config.fps}fps · 유예 ${config.noFaceGraceMs}ms · ${globalThis.crossOriginIsolated ? '멀티스레드' : '1스레드'}`;
 
 const video = $<HTMLVideoElement>('video');
 let gate: AgeGate | null = null;

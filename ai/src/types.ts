@@ -12,6 +12,7 @@ export interface AgeGateConfig {
   minConfidence?: number;    // 기본 0.7
   decideTimeoutMs?: number;  // 기본 8000 (D16)
   fps?: number;              // 기본 6
+  noFaceGraceMs?: number;    // 기본 0. 얼굴이 이 시간보다 짧게 빠지면 no_face로 보지 않음 (검출 깜빡임 대비, PM 요청 2026-10-24)
 }
 
 /** 판정 규칙에 쓰는 값. `ageGateReducer`의 세 번째 인자. */
@@ -20,13 +21,16 @@ export interface AgeGateRules {
   stableFrames: number;
   minConfidence: number;
   decideTimeoutMs: number;
+  /** 없으면 0 (계약 v1과 같은 동작: 한 프레임만 빠져도 no_face) */
+  noFaceGraceMs?: number;
 }
 
-export const DEFAULT_RULES: Readonly<AgeGateRules> = Object.freeze({
+export const DEFAULT_RULES: Readonly<Required<AgeGateRules>> = Object.freeze({
   seniorAge: 55,
   stableFrames: 5,
   minConfidence: 0.7,
   decideTimeoutMs: 8000,
+  noFaceGraceMs: 0,
 });
 
 export const DEFAULT_FPS = 6;
@@ -86,6 +90,8 @@ export interface AgeGateState {
   runConfidenceSum: number;
   /** 얼굴이 처음 보인 시각. 타임아웃 기준 (D16) */
   firstSeenAt: number | null;
+  /** 얼굴이 마지막으로 보인 시각. 깜빡임 유예(noFaceGraceMs) 기준 */
+  lastSeenAt: number | null;
 }
 
 export interface SpeakerConfig {
