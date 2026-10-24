@@ -2,5 +2,27 @@
   "name": "@menumate/backend",
   "private": true,
   "version": "0.0.0",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "tsx scripts/prisma.ts migrate deploy && tsx scripts/prisma.ts generate",
+    "db:migrate:dev": "tsx scripts/prisma.ts migrate dev",
+    "db:seed": "tsx src/seed/cli.ts",
+    "pretest": "prisma generate"
+  },
+  "dependencies": {
+    "@fastify/static": "^9.0.0",
+    "@prisma/client": "6.19.3",
+    "fastify": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prisma": "6.19.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  }
 }

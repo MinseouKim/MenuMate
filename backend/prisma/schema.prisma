@@ -1,0 +1,110 @@
+// MenuMate Backend 스키마 (docs/ERD.md 참고)
+// 얼굴, 나이, 연령대는 어떤 테이블에도 저장하지 않는다 (D2, D47).
+// 금액은 원 단위 정수. enum 대신 문자열 + 코드 검증 (PostgreSQL 전환 대비).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// 메뉴 JSON의 storeName, version. 행은 id=1 하나뿐
+model StoreInfo {
+  id          Int      @id
+  storeName   String
+  menuVersion String
+  seededAt    DateTime
+}
+
+model Category {
+  id        String @id
+  name      String
+  sortOrder Int
+  menus     Menu[]
+}
+
+model Menu {
+  id          String    @id
+  name        String
+  price       Int
+  categoryId  String
+  description String?
+  image       String?
+  priority    Int       @default(0)
+  isAvailable Boolean   @default(true)
+  sortOrder   Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  tags        MenuTag[]
+
+  @@index([categoryId])
+}
+
+/// 고정 태그 5개: spicy, mild, soup, soft, hearty
+model Tag {
+  id    String    @id
+  menus MenuTag[]
+}
+
+model MenuTag {
+  menuId String
+  tagId  String
+  menu   Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([menuId, tagId])
+}
+
+model Order {
+  id           String           @id
+  /// dine_in | takeout
+  orderType    String
+  /// pending_payment | paid
+  status       String
+  totalAmount  Int
+  /// 결제 성공 시 발급하는 3자리 번호 ("001"~"999")
+  orderNumber  String?
+  /// 주문번호를 발급한 키오스크 로컬 날짜 (YYYY-MM-DD)
+  orderDateKey String?
+  paidAt       DateTime?
+  createdAt    DateTime         @default(now())
+  items        OrderItem[]
+  payments     PaymentAttempt[]
+}
+
+/// menuId는 Menu FK가 아니다. 메뉴를 다시 시드해도 지난 주문이 남도록 이름과 단가를 복사해 둔다.
+model OrderItem {
+  id        Int    @id @default(autoincrement())
+  orderId   String
+  lineNo    Int
+  menuId    String
+  name      String
+  unitPrice Int
+  quantity  Int
+  lineTotal Int
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, lineNo])
+}
+
+model PaymentAttempt {
+  id        Int      @id @default(autoincrement())
+  orderId   String
+  /// card_simulated
+  method    String
+  /// success | fail
+  result    String
+  reason    String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+/// 날짜별 마지막 주문번호. 서버를 다시 켜도 이어진다.
+model DailyOrderCounter {
+  dateKey    String @id
+  lastNumber Int
+}
