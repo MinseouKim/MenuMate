@@ -49,6 +49,7 @@ export function DoneScreen({ k }: { k: KioskController }) {
 
   return (
     <div className="screen">
+      <TopBar mode={state.mode} storeName={k.catalog.menu?.storeName} onToggleMode={c.toggleMode} />
       <div className="body center">
         <div className="spacer" />
         <p className="hero">주문이 끝났어요</p>

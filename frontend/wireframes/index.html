@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MenuMate 와이어프레임</title>
+<!--
+  MenuMate 키오스크 와이어프레임 (D39). 세로 1080x1920, 화면 10개 x 쉬운/일반 모드 = 20장.
+  Figma로 옮기기 쉽게 모든 요소를 단순한 상자(flex 세로·가로 쌓기)로만 만들었다.
+  색은 실제 디자인 토큰과 같다 (frontend/src/styles/global.css). 서체는 Figma에서 Black Han Sans(제목), Pretendard(본문)로 바꾼다.
+  조작: ← → 화면 이동, E 모드 전환, 오른쪽 목록 클릭.
+-->
+<style>
+  :root {
+    --bg:#f1f3f4; --surface:#fff; --ink:#000; --mute:#3f4448; --line:#b9c0c5;
+    --indigo:#1b3a8c; --red:#a3121a; --yellow:#f6c343;
+    --t1:#cddcf2; --t2:#f5d0cd; --t3:#f8e4a6; --t4:#d3e8d6; --t5:#e2e2dc;
+    --font: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --sign: 'Black Han Sans', var(--font);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#2b2f33; color:#fff; font-family:var(--font); display:flex; height:100vh; overflow:hidden; }
+  .stage { flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .side { width:300px; background:#1d2023; padding:20px; overflow:auto; font-size:14px; }
+  .side h1 { font-size:18px; margin:0 0 6px; }
+  .side p { color:#b6bcc2; margin:0 0 14px; line-height:1.5; }
+  .side ol { list-style:none; padding:0; margin:0 0 16px; }
+  .side li { padding:4px 0; cursor:pointer; color:#cfd4d8; }
+  .side li.on { color:#fff; font-weight:800; }
+  .side .ctl { display:flex; gap:6px; margin-bottom:12px; }
+  .side button { flex:1; font:inherit; padding:8px; border-radius:6px; border:1px solid #555; background:#2b2f33; color:#fff; cursor:pointer; }
+  .side button.on { background:#f6c343; color:#000; border-color:#f6c343; }
+  .note { background:#2b2f33; border-radius:8px; padding:12px; color:#dfe3e6; line-height:1.55; white-space:pre-line; }
+
+  /* ---- 1080x1920 프레임 ---- */
+  .frame { width:1080px; height:1920px; flex:none; background:var(--bg); color:var(--ink); display:flex; flex-direction:column; transform-origin:center; overflow:hidden; }
+  .frame { --fs:26px; --title:46px; --hero:68px; --btn:76px; --btnlg:108px; --gap:20px; --pad:40px; --stroke:3px; }
+  .frame.easy { --fs:36px; --title:58px; --hero:88px; --btn:108px; --btnlg:152px; --gap:28px; --pad:48px; --stroke:4px; }
+  .frame { font-size:var(--fs); line-height:1.4; }
+  .col { display:flex; flex-direction:column; gap:var(--gap); }
+  .grow { flex:1; min-height:0; }
+  .pad { padding:var(--pad); }
+  .center { align-items:center; justify-content:center; text-align:center; }
+  .row { display:flex; gap:var(--gap); align-items:center; }
+  .row > .b { flex:1; }
+  .h { font-family:var(--sign); font-size:var(--title); line-height:1.2; }
+  .hero { font-family:var(--sign); font-size:var(--hero); line-height:1.15; }
+  .m { color:var(--mute); }
+  .b { min-height:var(--btn); border:var(--stroke) solid var(--ink); border-radius:14px; background:var(--surface); display:flex; align-items:center; justify-content:center; font-weight:700; padding:0 28px; }
+  .b.p { background:var(--indigo); border-color:var(--indigo); color:#fff; }
+  .b.q { border-color:var(--line); background:transparent; }
+  .b.lg { min-height:var(--btnlg); }
+  .b.dis { opacity:.35; }
+  .top { background:var(--ink); color:#fff; display:flex; align-items:center; gap:var(--gap); padding:20px var(--pad); min-height:calc(var(--btn) + 40px); }
+  .top .b { background:transparent; color:#fff; border-color:#fff; }
+  .top .s { font-family:var(--sign); font-size:calc(var(--fs) * 1.15); flex:1; }
+  .bar { background:var(--surface); border-top:var(--stroke) solid var(--ink); padding:24px var(--pad); display:flex; align-items:center; gap:var(--gap); }
+  .price { color:var(--red); font-weight:800; }
+  .tile { background:var(--surface); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; border:var(--stroke) solid var(--surface); position:relative; }
+  .tile.in { border-color:var(--ink); }
+  .ph { aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; font-family:var(--sign); font-size:calc(var(--fs)*1.2); }
+  .tile .i { padding:14px 18px 18px; }
+  .badge { position:absolute; top:12px; right:12px; background:var(--yellow); border:3px solid var(--ink); border-radius:8px; padding:2px 14px; font-weight:800; font-size:calc(var(--fs)*.85); }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap); }
+  .easy .grid { grid-template-columns:repeat(2,1fr); }
+  .tabs { display:flex; flex-wrap:wrap; gap:12px; }
+  .tab { min-height:var(--btn); padding:0 26px; border:var(--stroke) solid var(--line); border-radius:14px; background:var(--surface); display:flex; align-items:center; font-weight:700; }
+  .tab.on { background:var(--yellow); border-color:var(--ink); }
+  .steps { display:flex; gap:12px; } .steps i { flex:1; height:14px; border-radius:7px; background:var(--line); } .steps i.on { background:var(--indigo); }
+  .ans { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); }
+  .ans .b { min-height:calc(var(--btnlg)*1.7); font-family:var(--sign); font-size:var(--hero); font-weight:400; }
+  .ans.stack { grid-template-columns:1fr; } .ans.stack .b { min-height:calc(var(--btnlg)*1.4); font-size:var(--title); }
+  .rec { flex-direction:row; } .rec .ph { width:34%; aspect-ratio:auto; } .rec .i { padding:22px 26px; display:flex; flex-direction:column; gap:6px; justify-content:center; }
+  .chip { display:inline-block; border:2px solid var(--ink); border-radius:8px; padding:2px 12px; margin:0 8px 0 0; font-size:calc(var(--fs)*.85); font-weight:700; }
+  .line { display:flex; align-items:center; gap:var(--gap); padding:22px 26px; background:var(--surface); }
+  .step { width:var(--btn); padding:0; }
+  .sign { background:var(--indigo); color:#fff; flex:0 0 1180px; padding:64px 72px 80px; display:flex; flex-direction:column; justify-content:space-between; }
+  .notice { padding:28px var(--pad) 40px; text-align:center; font-size:24px; color:var(--mute); background:var(--bg); }
+  .ring { width:220px; height:220px; border-radius:50%; border:16px solid var(--indigo); }
+  .ticket { background:var(--surface); border:6px solid var(--ink); border-radius:10px; padding:40px 80px; }
+  .anno { outline:4px dashed #e8590c; outline-offset:4px; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage"><div class="frame" id="frame"></div></div>
+<aside class="side">
+  <h1>MenuMate 와이어프레임</h1>
+  <p>세로 1080×1920. 화면 10개를 쉬운 화면(55+)과 일반 화면으로 각각 그렸습니다. ← → 로 넘기고 E로 모드를 바꿉니다.</p>
+  <div class="ctl"><button id="mEasy">쉬운 화면</button><button id="mNormal">일반 화면</button></div>
+  <ol id="list"></ol>
+  <div class="note" id="note"></div>
+</aside>
+<script>
+const MENU = [['된장찌개','9,000원','t1'],['김치찌개','9,000원','t1'],['순두부찌개','9,500원','t1'],['갈비탕','13,000원','t1'],['육개장','11,000원','t1']];
+const topBar = (easy, back = true) => `<div class="top">${back ? '<div class="b">‹ 이전</div>' : ''}<div class="s">우루루 본점</div><div class="b">${easy ? '일반 화면으로 보기' : '쉬운 화면으로 보기'}</div></div>`;
+const bar = (n, sum) => `<div class="bar"><div class="grow col" style="gap:0">${n ? `<span>담은 메뉴 ${n}개</span><span class="price">${sum}</span>` : '<span class="m">메뉴를 누르면 담겨요</span>'}</div><div class="b p lg${n ? '' : ' dis'}" style="min-width:300px">주문하기</div></div>`;
+const tile = ([name, price, tint], inCart) => `<div class="tile${inCart ? ' in' : ''}"><div class="ph" style="background:var(--${tint})">${name}</div><div class="i"><b>${name}</b><div class="price">${price}</div></div>${inCart ? '<span class="badge">1개 담음</span>' : ''}</div>`;
+const camera = '<div class="notice">연령대 추정을 위해 카메라를 사용하며 영상은 저장되지 않습니다</div>';
+
+const SCREENS = [
+  { id:'idle', name:'1. 대기', note:'• 화면 어디를 눌러도 일반 메뉴판으로 시작 (D46)\n• 하단 카메라 안내 상시 (D20)\n• 서버가 꺼져 있으면 "잠시 후 이용해 주세요", 터치 막음\n• 판정 전이라 모드 구분 없음 (두 모드 같은 화면)',
+    html: () => `<div class="sign"><div style="font-family:var(--sign);font-size:56px">MenuMate</div><div style="font-family:var(--sign);font-size:230px;line-height:1.02">어서<br>오세요</div></div>
+      <div class="col grow" style="padding:56px 72px"><div style="font-size:36px;font-weight:600">화면 앞에 서 계시면 보기 편한 화면으로 바꿔 드려요</div><div class="grow"></div><div class="b p lg">눌러서 주문 시작</div></div>${camera}` },
+  { id:'detecting', name:'2. 인식 중', note:'• 얼굴이 보이면 표시. 8초 안에 확정 안 되면 일반 메뉴판 (D16)\n• 점: 같은 판정 연속 프레임 수 (5개 차면 확정)\n• 나이·연령대 글자는 보이지 않음 (D2)\n• 누르면 바로 일반 메뉴판',
+    html: () => `<div class="col grow pad center" style="background:#fff"><div class="ring"></div><div class="hero">반가워요</div><div style="font-size:30px;font-weight:600">보기 편한 화면을 준비하고 있어요</div><div class="row" style="gap:16px">${'<i style="width:32px;height:32px;border-radius:50%;background:var(--indigo)"></i>'.repeat(2)}${'<i style="width:32px;height:32px;border-radius:50%;border:4px solid #000"></i>'.repeat(3)}</div><div class="m">기다리지 않으려면 화면을 눌러 주세요</div></div>${camera}` },
+  { id:'survey', name:'3. 음성 질문', note:'• 들어오면 TTS로 질문을 읽음. 첫 질문은 인사말 포함\n• 네/아니요 2개만 크게 (선택지 4개 이하)\n• "그냥 메뉴 볼래요"는 모든 질문에 (D17)\n• 4번째 답 뒤 "추천 메뉴를 고르고 있어요"\n• 질문 문구는 서버(GET /api/questions)에서 받음',
+    html: e => `${topBar(e)}<div class="col grow pad"><div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div><div class="m" style="font-weight:600">질문 2 / 4</div>
+      <div style="font-family:var(--sign);font-size:${e ? 104 : 68}px;line-height:1.25">따뜻한 국물이 있는 음식이 좋으세요?</div><div><div class="b q" style="display:inline-flex">(스피커 아이콘) 다시 듣기</div></div><div class="grow"></div>
+      <div class="ans"><div class="b p">네</div><div class="b">아니요</div></div><div class="b q">그냥 메뉴 볼래요</div></div>` },
+  { id:'recommend', name:'4. 추천 3개', note:'• 카드를 누르면 바로 담김, 담기면 테두리 + "1개 담음"\n• 추천 이유는 reasons 를 문구로 (questions.md 표)\n• 점수 숫자는 보이지 않음\n• "이전"은 마지막 질문으로',
+    html: e => `${topBar(e)}<div class="col grow pad"><div class="h">이런 메뉴는 어떠세요?</div><div class="m" style="font-weight:600">마음에 드는 메뉴를 누르면 담겨요</div>
+      ${[['된장찌개','9,000원','t1','따뜻한 국물|부드러운 식감'],['잔치국수','7,500원','t3','따뜻한 국물|순한 맛'],['불고기덮밥','11,000원','t2','순한 맛|사장님 추천']].map(([n,p,t,r],i)=>`<div class="tile rec${i===0?' in':''}"><div class="ph" style="background:var(--${t})">${n}</div><div class="i"><span style="color:var(--indigo);font-weight:800;font-size:calc(var(--fs)*.85)">추천 ${i+1}</span><span class="h">${n}</span><span class="price">${p}</span><div>${r.split('|').map(x=>`<span class="chip">${x}</span>`).join('')}</div></div>${i===0?'<span class="badge">1개 담음</span>':''}</div>`).join('')}
+      <div class="grow"></div><div class="b">다른 메뉴 보기</div></div>${bar(1,'9,000원')}` },
+  { id:'menu', name:'5. 메뉴판', note:'• 일반: 3열, 스크롤 / 쉬운: 2×2, "앞 메뉴·다음 메뉴"로 4개씩\n• 사진이 없으면 카테고리 색 카드 + 메뉴명 (D40)\n• "AI와 대화하기" → 질문 4개 (D9, D19)\n• 메뉴명·가격·카테고리는 GET /api/menu',
+    html: e => `${topBar(e, false)}<div class="col grow pad"><div class="b p lg">(말풍선 아이콘) AI와 대화하기</div><div class="tabs"><div class="tab on">찌개·탕</div><div class="tab">밥·덮밥</div><div class="tab">면</div><div class="tab">구이·볶음</div><div class="tab">곁들임</div></div>
+      <div class="grid">${(e ? MENU.slice(0,4) : MENU).map((m,i)=>tile(m, i===0)).join('')}</div>${e ? '<div class="row"><div class="b dis">앞 메뉴</div><span class="m">1 / 2</span><div class="b">다음 메뉴</div></div>' : ''}</div>${bar(1,'9,000원')}` },
+  { id:'order_type', name:'6. 매장/포장', note:'• 처음 "주문하기"를 누를 때 한 번만 묻고, 다음부터는 바로 장바구니 (D42)\n• 버튼 2개를 위아래로 크게',
+    html: e => `${topBar(e)}<div class="col grow pad center"><div class="hero">드시고 가세요?<br>포장하세요?</div><div class="ans stack" style="width:100%"><div class="b p">매장에서 먹기</div><div class="b">포장하기</div></div></div>` },
+  { id:'cart', name:'7. 장바구니', note:'• 수량 1~9. −로 0이 되면 줄 삭제, 다 비면 메뉴판\n• 장바구니를 바꾸면 이전 주문(orderId)을 버리고 결제 때 새로 만듦\n• 가격은 서버가 계산 (화면 합계는 안내용)',
+    html: e => `${topBar(e)}<div class="col grow pad"><div class="h">주문 내용을 확인해 주세요</div><div class="m" style="font-weight:600">매장에서 먹기</div>
+      <div class="col" style="gap:2px">${[['된장찌개','18,000원',2],['김치찌개','9,000원',1]].map(([n,p,q])=>`<div class="line"><div class="grow"><b>${n}</b><div class="price" style="font-size:calc(var(--fs)*.85)">${p}</div></div><div class="b step">−</div><b style="font-family:var(--sign);font-size:calc(var(--fs)*1.4);min-width:64px;text-align:center">${q}</b><div class="b step">+</div></div>`).join('')}</div>
+      <div class="grow"></div><div class="row" style="justify-content:space-between;border-top:var(--stroke) solid #000;padding-top:8px"><span class="h">합계</span><span class="price" style="font-size:var(--title)">27,000원</span></div><div class="b p lg">27,000원 결제하기</div><div class="b q">메뉴 더 담기</div></div>` },
+  { id:'paying', name:'8. 결제 중', note:'• 결제 시뮬레이션 (PAYMENT_SIM_DELAY_MS 동안)\n• 버튼 없음. 쉬운 화면은 TTS로 "결제하고 있어요"',
+    html: e => `${topBar(e, false)}<div class="col grow pad center"><div style="width:150px;height:150px;border-radius:50%;border:14px solid var(--line);border-top-color:var(--indigo)"></div><div class="hero">결제하고 있어요</div><div class="h m">잠시만 기다려 주세요</div></div>` },
+  { id:'pay_failed', name:'9. 결제 실패', note:'• 서버가 준 실패 이유를 그대로 표시\n• 장바구니 유지. "다시 결제하기"는 같은 orderId\n• 시연: Shift+F 로 다음 결제 1회 실패',
+    html: e => `${topBar(e, false)}<div class="col grow pad center"><div class="grow"></div><div class="hero" style="color:var(--red)">결제가 되지 않았어요</div><div style="font-weight:600">카드 승인이 되지 않았어요. 다시 시도해 주세요.</div><div class="m" style="font-weight:600">담은 메뉴는 그대로 있어요</div><div class="grow"></div><div class="b p lg" style="width:100%">다시 결제하기</div><div class="b lg" style="width:100%">장바구니로</div></div>` },
+  { id:'done', name:'10. 주문번호', note:'• 3자리 번호, 매일 001부터 (D43)\n• TTS: "주문번호는 7번입니다"\n• 10초 뒤 또는 "처음으로" → 대기, 연령·취향·장바구니 삭제 (D30)',
+    html: e => `${topBar(e, false)}<div class="col grow pad center"><div class="grow"></div><div class="hero">주문이 끝났어요</div><div class="ticket col center" style="gap:0"><div style="font-weight:600">주문번호</div><div style="font-family:var(--sign);font-size:300px;line-height:1">007</div></div><div class="h">번호를 부르면 받아 가세요</div><div class="grow"></div><div class="m">9초 뒤 처음 화면으로 돌아가요</div><div class="b p lg" style="width:100%">처음으로</div></div>` },
+];
+
+let idx = 0, easy = true;
+const $ = id => document.getElementById(id);
+function render() {
+  const s = SCREENS[idx];
+  $('frame').className = 'frame' + (easy ? ' easy' : '');
+  $('frame').innerHTML = s.html(easy);
+  $('list').innerHTML = SCREENS.map((x, i) => `<li class="${i === idx ? 'on' : ''}" data-i="${i}">${x.name}</li>`).join('');
+  $('note').textContent = `${s.name} · ${easy ? '쉬운 화면' : '일반 화면'}\n\n${s.note}`;
+  $('mEasy').className = easy ? 'on' : ''; $('mNormal').className = easy ? '' : 'on';
+  location.hash = `${s.id}-${easy ? 'easy' : 'normal'}`;
+  fit();
+}
+function fit() {
+  const st = $('stage');
+  $('frame').style.transform = `scale(${Math.min(st.clientWidth / 1080, st.clientHeight / 1920) * 0.96})`;
+}
+$('list').onclick = e => { const i = e.target.dataset.i; if (i !== undefined) { idx = +i; render(); } };
+$('mEasy').onclick = () => { easy = true; render(); };
+$('mNormal').onclick = () => { easy = false; render(); };
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') idx = (idx + 1) % SCREENS.length;
+  else if (e.key === 'ArrowLeft') idx = (idx + SCREENS.length - 1) % SCREENS.length;
+  else if (e.key.toLowerCase() === 'e') easy = !easy;
+  else return;
+  render();
+});
+addEventListener('resize', fit);
+function fromHash() {
+  const m = location.hash.slice(1).match(/^(.+)-(easy|normal)$/);
+  const i = m ? SCREENS.findIndex(s => s.id === m[1]) : -1;
+  if (i >= 0) { idx = i; easy = m[2] === 'easy'; }
+}
+addEventListener('hashchange', () => { fromHash(); render(); });
+fromHash();
+render();
+</script>
+</body>
+</html>
