@@ -13,8 +13,10 @@ const gate: AgeGate = {
   force: group => listeners.forEach(cb => cb({ type: 'decided', group, confidence: 1, source: 'forced' })),
   onUpdate: cb => { listeners.add(cb); return () => listeners.delete(cb); },
 };
+// 모델 로딩을 테스트마다 조절한다. 기본은 바로 준비됨
+let gateReady: Promise<AgeGate | null> = Promise.resolve(gate);
 vi.mock('./ai/loadAi', () => ({
-  loadAi: async () => ({ ageGate: gate, speaker: silentSpeaker, modelReady: false }),
+  loadAi: () => ({ speaker: Promise.resolve(silentSpeaker), ageGate: gateReady }),
 }));
 
 const { App } = await import('./App');
@@ -24,6 +26,7 @@ let serverUp = true;
 
 beforeEach(() => {
   listeners.clear();
+  gateReady = Promise.resolve(gate);
   requests = [];
   serverUp = true;
   const backend = createMockBackend({ payDelayMs: 0 });
@@ -153,5 +156,29 @@ describe('키오스크 전체 흐름', () => {
     serverUp = false;
     render(<App />);
     await screen.findByText('잠시 후 이용해 주세요');
+  });
+
+  it('모델이 아직 로딩 중이어도 대기 화면이 바로 보이고 터치·단축키로 시작한다 (D46)', async () => {
+    gateReady = new Promise(() => {}); // 345MB 모델이 끝나지 않는 상황
+    render(<App />);
+    await screen.findByText('어서 오세요');
+    await waitFor(() => expect(requests.some(r => r.path === '/api/menu')).toBe(true));
+    fireEvent.click(screen.getByText('어서 오세요'));
+    await screen.findByRole('button', { name: 'AI와 대화하기' });
+  });
+
+  it('모델 로딩 중에도 시연 단축키(Shift+S)는 동작한다', async () => {
+    gateReady = new Promise(() => {});
+    render(<App />);
+    await screen.findByText('어서 오세요');
+    await waitFor(() => expect(requests.some(r => r.path === '/api/questions')).toBe(true));
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+  });
+
+  it('추론 오류가 오면 일반 메뉴판으로 (kiosk-flow v1.1)', async () => {
+    await start();
+    emit({ type: 'error', code: 'inference_failed', message: 'x' });
+    await screen.findByRole('button', { name: '쉬운 화면으로 보기' });
   });
 });

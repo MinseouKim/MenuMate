@@ -40,6 +40,7 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
             ? { ...s, screen: 'survey', mode: 'easy', ageGroup: 'senior', surveyIndex: 0, answers: [], lastInteractionAt: a.now }
             : { ...s, screen: 'menu', mode: 'normal', ageGroup: 'non_senior', lastInteractionAt: a.now };
         case 'timeout':
+        case 'error': // 판정 전 추론 오류는 타임아웃과 같게 (kiosk-flow v1.1)
           return { ...s, screen: 'menu', mode: 'normal', ageGroup: 'undecided', lastInteractionAt: a.now };
         default:
           return s;

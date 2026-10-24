@@ -40,6 +40,18 @@ describe('연령 판정', () => {
     expect(s).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
   });
 
+  it('판정 전 추론 오류(inference_failed)는 타임아웃과 같이 일반 메뉴판 (kiosk-flow v1.1)', () => {
+    const error: KioskAction = { type: 'AI_UPDATE', now: T, update: { type: 'error', code: 'inference_failed', message: 'x' } };
+    expect(run([detecting, error])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
+    expect(run([error])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
+    const decided = run([detecting, senior]);
+    expect(kioskReducer(decided, error)).toBe(decided);
+  });
+
+  it('대기 화면에서 타임아웃이 와도 일반 메뉴판 (kiosk-flow v1.1)', () => {
+    expect(run([{ type: 'AI_UPDATE', now: T, update: { type: 'timeout' } }])).toMatchObject({ screen: 'menu', ageGroup: 'undecided' });
+  });
+
   it('대기 화면에서 강제 판정(단축키)도 바로 반영된다', () => {
     expect(run([senior]).screen).toBe('survey');
   });

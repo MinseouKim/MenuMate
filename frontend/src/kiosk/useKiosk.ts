@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { api, errorMessage } from '../api/client';
 import type { Answer, MenuResponse, OrderType, Question } from '../api/contracts';
 import { simulatedPayment } from '../api/payment';
-import { loadAi, type AiServices } from '../ai/loadAi';
+import { forcedOnlyAgeGate, silentSpeaker } from '../ai/fallback';
+import { loadAi } from '../ai/loadAi';
+import type { AgeGate, AgeGateUpdate, Speaker } from '../ai/types';
 import { config } from '../config';
 import { SPEECH } from './copy';
 import { initialState, kioskReducer, shouldAutoReset } from './reducer';
@@ -30,14 +32,16 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
 
   const stateRef = useRef<KioskState>(state);
   stateRef.current = state;
-  const aiRef = useRef<AiServices | null>(null);
+  // 모델이 준비되기 전에는 단축키만 받는 판정기와 무음 음성을 쓴다. 준비되면 바꿔 끼운다
+  const [fallbackGate] = useState(forcedOnlyAgeGate);
+  const aiRef = useRef<{ ageGate: AgeGate; speaker: Speaker }>({ ageGate: fallbackGate, speaker: silentSpeaker });
   const sessionRef = useRef(0);           // 초기화할 때마다 올린다. 이전 세션의 늦은 응답은 버린다
   const forceFailNextRef = useRef(false); // Shift+F
 
   const speak = useCallback((text: string) => {
-    aiRef.current?.speaker.speak(text).catch(() => {});
+    aiRef.current.speaker.speak(text).catch(() => {});
   }, []);
-  const stopSpeaking = useCallback(() => aiRef.current?.speaker.cancel(), []);
+  const stopSpeaking = useCallback(() => aiRef.current.speaker.cancel(), []);
 
   // ---------- 메뉴·질문 ----------
   const loadCatalog = useCallback(async () => {
@@ -68,22 +72,30 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
   }, [idleSince, loadCatalog]);
 
   // ---------- 카메라와 연령 판정 ----------
+  // 화면은 AI를 기다리지 않는다. 큰 모델을 받는 동안에도 대기 화면·터치·단축키가 동작한다 (D46)
   useEffect(() => {
     let disposed = false;
-    let unsubscribe = () => {};
     let stream: MediaStream | null = null;
-    (async () => {
-      const ai = await loadAi();
+    const onUpdate = (update: AgeGateUpdate) => {
+      if (update.type === 'detecting') setDetectProgress({ run: update.run, required: update.required });
+      else setDetectProgress(null);
+      if (update.type === 'error') console.error('[ai] 추론 오류', update.code);
+      dispatch({ type: 'AI_UPDATE', update, now: Date.now() });
+    };
+    let unsubscribe = aiRef.current.ageGate.onUpdate(onUpdate);
+    const loading = loadAi();
+
+    loading.speaker.then(speaker => {
       if (disposed) return;
-      aiRef.current = ai;
-      setSpeakerAvailable(ai.speaker.available);
-      unsubscribe = ai.ageGate.onUpdate(update => {
-        if (update.type === 'detecting') setDetectProgress({ run: update.run, required: update.required });
-        else setDetectProgress(null);
-        if (update.type === 'error') console.error('[ai] 추론 오류', update.code);
-        dispatch({ type: 'AI_UPDATE', update, now: Date.now() });
-      });
-      if (!ai.modelReady) return;
+      aiRef.current.speaker = speaker;
+      setSpeakerAvailable(speaker.available);
+    });
+
+    loading.ageGate.then(async gate => {
+      if (disposed || !gate) return;
+      unsubscribe();
+      aiRef.current.ageGate = gate;
+      unsubscribe = gate.onUpdate(onUpdate);
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
       } catch (e) {
@@ -94,12 +106,13 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
       if (disposed || !video) return;
       video.srcObject = stream;
       await video.play().catch(() => {});
-      if (stateRef.current.screen === 'idle' || stateRef.current.screen === 'detecting') ai.ageGate.start(video);
-    })();
+      if (stateRef.current.screen === 'idle' || stateRef.current.screen === 'detecting') gate.start(video);
+    });
+
     return () => {
       disposed = true;
       unsubscribe();
-      aiRef.current?.ageGate.stop();
+      aiRef.current.ageGate.stop();
       stream?.getTracks().forEach(t => t.stop());
     };
   }, [videoRef]);
@@ -108,7 +121,7 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const judging = state.screen === 'idle' || state.screen === 'detecting';
   useEffect(() => {
     if (!judging) {
-      aiRef.current?.ageGate.stop();
+      aiRef.current.ageGate.stop();
       setDetectProgress(null);
     }
   }, [judging]);
@@ -122,12 +135,10 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     setPayFailReason(null);
     setDetectProgress(null);
     dispatch({ type: 'RESET', now: Date.now() });
-    const ai = aiRef.current;
+    const gate = aiRef.current.ageGate;
     const video = videoRef.current;
-    if (ai) {
-      ai.ageGate.reset();
-      if (video?.srcObject) ai.ageGate.start(video);
-    }
+    gate.reset();
+    if (video?.srcObject) gate.start(video);
   }, [stopSpeaking, videoRef]);
 
   useEffect(() => {
@@ -153,8 +164,8 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const onKey = (e: KeyboardEvent) => {
       if (!e.shiftKey || e.repeat) return;
       switch (e.code) {
-        case 'KeyS': aiRef.current?.ageGate.force('senior'); break;
-        case 'KeyN': aiRef.current?.ageGate.force('non_senior'); break;
+        case 'KeyS': aiRef.current.ageGate.force('senior'); break;
+        case 'KeyN': aiRef.current.ageGate.force('non_senior'); break;
         case 'KeyF': forceFailNextRef.current = true; break;
         case 'KeyR': reset(); break;
         default: return;
