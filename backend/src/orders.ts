@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import type { CreateOrderRequest, Order, OrderType } from './contracts.js';
 import { AppError } from './errors.js';
+import { toLocalIso } from './time.js';
 
 export const MAX_QUANTITY = 9;
 export const MAX_LINES = 20;
@@ -41,7 +42,7 @@ export function toOrderView(o: OrderRow): Order {
       .map(({ menuId, name, unitPrice, quantity, lineTotal }) => ({ menuId, name, unitPrice, quantity, lineTotal })),
     totalAmount: o.totalAmount,
     orderNumber: o.orderNumber,
-    paidAt: o.paidAt ? o.paidAt.toISOString() : null,
+    paidAt: o.paidAt ? toLocalIso(o.paidAt) : null,
   };
 }
 

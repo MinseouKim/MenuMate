@@ -1,18 +1,24 @@
 import type { PrismaClient } from '@prisma/client';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import type {
-  CreateOrderRequest, HealthResponse, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
+  CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
 } from './contracts.js';
 import type { Config } from './config.js';
 import { AppError, errorBody } from './errors.js';
 import { loadCatalog } from './menu.js';
 import { createOrder, createOrderSchema } from './orders.js';
+import { SimulatedPaymentGateway, type PaymentGateway } from './payment/gateway.js';
+import { payOrder, paymentSchema } from './payment/pay.js';
 import { QUESTIONS, toQuestion } from './questions.js';
 import { recommend } from './recommend.js';
 
 export interface AppDeps {
   prisma: PrismaClient;
   config: Config;
+  /** 기본값: config의 PAYMENT_SIM_RESULT, PAYMENT_SIM_DELAY_MS로 만든 시뮬레이션 */
+  gateway?: PaymentGateway;
+  /** 주문번호 날짜와 paidAt에 쓰는 시계 (테스트에서 바꿈) */
+  now?: () => Date;
   logger?: boolean;
 }
 
@@ -38,7 +44,11 @@ const recommendationSchema = {
 } as const;
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
-  const { prisma } = deps;
+  const { prisma, config } = deps;
+  const gateway =
+    deps.gateway ??
+    new SimulatedPaymentGateway({ defaultResult: config.paymentSimResult, delayMs: config.paymentSimDelayMs });
+  const now = deps.now ?? (() => new Date());
   const app = Fastify({
     logger: deps.logger ?? true,
     // "2" → 2 같은 형 변환을 끈다. 요청 형식이 틀리면 그대로 VALIDATION_FAILED
@@ -84,6 +94,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     reply.status(201);
     return createOrder(prisma, req.body);
   });
+
+  app.post<{ Params: { orderId: string }; Body: PaymentRequest }>(
+    '/api/orders/:orderId/payment',
+    { schema: paymentSchema },
+    async (req) => payOrder({ prisma, gateway, now }, req.params.orderId, req.body),
+  );
 
   return app;
 }
