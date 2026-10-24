@@ -46,6 +46,7 @@
 | `VITE_AI_STABLE_FRAMES` | `5` | 판정 확정에 필요한 연속 프레임 |
 | `VITE_AI_MIN_CONFIDENCE` | `0.7` | 판정에 쓰는 최소 신뢰도 |
 | `VITE_AI_DECIDE_TIMEOUT_MS` | `8000` | 판정 타임아웃 (D16) |
+| `VITE_AI_NO_FACE_GRACE_MS` | `0` | 얼굴 검출이 잠깐 끊겨도 연속 기록을 유지하는 시간. 0이면 바로 no_face. 웹캠 실측 후 조정 |
 | `VITE_IDLE_RESET_MS` | `60000` | 무입력 초기화 (D30) |
 | `VITE_DONE_RESET_MS` | `10000` | 주문번호 화면 초기화 (D30) |
 | `VITE_TTS_RATE` | `0.85` | 음성 안내 속도 |

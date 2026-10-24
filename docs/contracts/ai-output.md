@@ -24,6 +24,8 @@ interface AgeGateConfig {
   minConfidence?: number;    // 기본 0.7. 이 미만 프레임은 버리고 연속 기록을 끊음
   decideTimeoutMs?: number;  // 기본 8000 (D16). 얼굴이 처음 보인 뒤부터 잼
   fps?: number;              // 기본 6. 추론 주기
+  noFaceGraceMs?: number;    // 기본 0 (v1.1). 0보다 크면 얼굴이 마지막으로 보인 뒤 이 시간 안의 빈 프레임은
+                             // 이벤트 없이 무시하고 연속 기록 유지. 타임아웃 시간은 계속 흐름
 }
 function createAgeGate(config: AgeGateConfig): Promise<AgeGate>;
 ```

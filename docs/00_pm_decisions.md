@@ -154,6 +154,8 @@
 | D53 | 가짜 구현 스위치 | `VITE_MOCK_AI`, `VITE_MOCK_API` 추가. production 빌드에서 true면 빌드 실패 | ✅ | 전시에 가짜가 섞이는 사고 방지 |
 | D54 | 서체 | Black Han Sans(제목), Pretendard(본문). 둘 다 OFL, 프로젝트에 포함 | ✅ | |
 | D55 | 디자인 방향 | 한식당 벽 메뉴판·간판 모티프. 흰 판 + 먹색, 쪽빛 버튼 #1B3A8C, 가격 고추색 #A3121A, 선택 치자색 #F6C343, 사진 없음은 옅은 오방색 카드 | ✅ | Frontend 제안, frontend-design 스킬 |
+| D56 | 얼굴 끊김 유예 | `noFaceGraceMs` 설정 추가(`VITE_AI_NO_FACE_GRACE_MS`, 기본 0 = 기존 동작). 값은 웹캠 실측 후 결정 | ✅ | AI 제안 |
+| D57 | 카테고리 수 제한 | 카테고리 최대 6개는 화면이 아니라 메뉴 데이터 규칙으로 둠. 시드 검증에서 6개 초과면 실패 | ✅ | 화면에서 자르면 일부 메뉴를 고를 수 없게 됨 |
 | D50 | DB 경로 기준 | `DATABASE_URL` 상대 경로는 `backend/` 폴더 기준. Prisma 기본(`prisma/` 기준)과 달라 Backend가 래퍼로 맞춤 | ✅ | DB 파일이 git 제외 폴더 밖에 생기는 문제 방지 |
 
 ## 7. 미결 사항
