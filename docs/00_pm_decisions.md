@@ -149,6 +149,11 @@
 | # | 항목 | 결정 | 상태 | 근거 / 영향 |
 |---|------|------|------|-------------|
 | D49 | API 계약 v1.1 | 추천 요청의 잘못된 questionId·answer, 합친 수량 9 초과, 결제 method 누락·오류는 `VALIDATION_FAILED`. 같은 점수의 reasons는 Tag 선언 순서, `store_pick`은 맨 끝. 없는 경로·파일은 404 `NOT_FOUND` 추가 | ✅ | Backend 질문 5개 (2026-10-24) |
+| D51 | kiosk-flow v1.1 | idle에서도 판정 수신, AI `error`는 판정 전이면 timeout과 같음, "이전" 버튼 목적지 확정, easy 모드 "선택지 4개"는 고르는 대상에만 적용(탭 제외, 최대 6개) | ✅ | Frontend 보고 (2026-10-24) |
+| D52 | ai-output v1.1 | no_face 1회 전송, error 첫 1회 전송, 확정 후 추론 중지, confidence 정의 | ✅ | AI 보고 (2026-10-24). no_face 유예(`noFaceGraceMs`)는 실측 후 결정 |
+| D53 | 가짜 구현 스위치 | `VITE_MOCK_AI`, `VITE_MOCK_API` 추가. production 빌드에서 true면 빌드 실패 | ✅ | 전시에 가짜가 섞이는 사고 방지 |
+| D54 | 서체 | Black Han Sans(제목), Pretendard(본문). 둘 다 OFL, 프로젝트에 포함 | ✅ | |
+| D55 | 디자인 방향 | 한식당 벽 메뉴판·간판 모티프. 흰 판 + 먹색, 쪽빛 버튼 #1B3A8C, 가격 고추색 #A3121A, 선택 치자색 #F6C343, 사진 없음은 옅은 오방색 카드 | ✅ | Frontend 제안, frontend-design 스킬 |
 | D50 | DB 경로 기준 | `DATABASE_URL` 상대 경로는 `backend/` 폴더 기준. Prisma 기본(`prisma/` 기준)과 달라 Backend가 래퍼로 맞춤 | ✅ | DB 파일이 git 제외 폴더 밖에 생기는 문제 방지 |
 
 ## 7. 미결 사항

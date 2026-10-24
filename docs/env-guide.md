@@ -49,6 +49,8 @@
 | `VITE_IDLE_RESET_MS` | `60000` | 무입력 초기화 (D30) |
 | `VITE_DONE_RESET_MS` | `10000` | 주문번호 화면 초기화 (D30) |
 | `VITE_TTS_RATE` | `0.85` | 음성 안내 속도 |
+| `VITE_MOCK_AI` | `true` | 가짜 AgeGate/Speaker 사용. 통합 후 `false`. **production 빌드에서 true면 빌드 실패** |
+| `VITE_MOCK_API` | `true` | 가짜 Backend 사용. 통합 후 `false`. **production 빌드에서 true면 빌드 실패** |
 | `VITE_DEV_SHORTCUTS` | `true` | 시연용 단축키 (D24). 관람객용 빌드에서도 켜 두되 화면에는 표시 안 함 |
 
 AI 판정 기준값(프레임, 신뢰도)은 AI가 실측 후 값을 정하고, 전시장에서 `.env`만 바꿔 조정한다.

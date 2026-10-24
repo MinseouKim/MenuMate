@@ -1,7 +1,7 @@
 # 계약: 키오스크 화면 흐름
 
 - 주관: Frontend / 검토: AI, Backend / 승인: PM
-- 상태: v1 확정 (2026-10-24)
+- 상태: v1.1 확정 (2026-10-24, idle에서 판정 수신, AI error 처리, "이전" 목적지, easy 선택지 기준 명확화)
 - 관련 결정: D9, D16, D17, D20, D24, D26, D28, D29, D30, D42, D43
 
 화면 상태는 순수 리듀서(`(state, action) => state`)로 만들고, React 화면은 그 상태를 그리기만 한다. 프로토타입 `Kiosk` 모듈이 출발점이다.
@@ -42,9 +42,10 @@ interface KioskState {
 |------|----------|------|------|
 | idle | AI `detecting` | detecting | |
 | detecting | AI `no_face` | idle | |
-| detecting | AI `decided: senior` | survey | mode=easy, TTS 인사 후 1번 질문 |
-| detecting | AI `decided: non_senior` | menu | mode=normal |
-| detecting | AI `timeout` (8초) | menu | mode=normal, ageGroup=undecided (D16) |
+| idle / detecting | AI `decided: senior` | survey | mode=easy, TTS 인사 후 1번 질문. idle에서도 받음 (Shift+S, v1.1) |
+| idle / detecting | AI `decided: non_senior` | menu | mode=normal |
+| idle / detecting | AI `timeout` (8초) | menu | mode=normal, ageGroup=undecided (D16) |
+| idle / detecting | AI `error` | menu | timeout과 같음. 판정 후 화면에서 오면 무시 (v1.1) |
 | idle / detecting | 화면 터치 | menu | mode=normal. 카메라를 안 봐도 주문할 수 있어야 함 |
 | menu | "AI와 대화하기" | survey | mode 유지 (D9, D19) |
 | survey | 네 / 아니요 | survey 또는 recommend | 4번째 답 뒤 `POST /api/recommendations` |
@@ -66,7 +67,14 @@ interface KioskState {
 
 **초기화**: 상태 전체를 처음 값으로 되돌리고 `ageGate.reset()`, `speaker.cancel()`을 호출한다. 연령·취향·장바구니가 남지 않아야 한다.
 
-뒤로 가기: survey, recommend, order_type, cart에는 "이전" 버튼을 둔다. 전이표에 없는 동작은 무시한다(상태 변화 없음).
+뒤로 가기: survey, recommend, order_type, cart에는 "이전" 버튼을 둔다. 전이표에 없는 동작은 무시한다(상태 변화 없음). (v1.1)
+
+| 지금 | "이전" 누르면 |
+|------|--------------|
+| survey 1번 질문 | menu |
+| survey 2~4번 질문 | 이전 질문 (그 답은 지움) |
+| recommend | survey 4번 질문 |
+| order_type, cart | 추천을 받았으면 recommend, 아니면 menu |
 
 ## 3. 예외 상황
 
@@ -90,5 +98,5 @@ interface KioskState {
 
 ## 5. 화면 기준 (D25, D31, RULES 참고)
 - 세로 1080×1920 고정 캔버스. 창이 더 넓으면 가운데에 두고 양옆은 배경색.
-- easy 모드: 본문 28px 이상, 버튼 높이 72px 이상, 대비 7:1 이상, 한 화면 선택지 4개 이하.
+- easy 모드: 본문 28px 이상, 버튼 높이 72px 이상, 대비 7:1 이상, 한 화면 선택지 4개 이하. "선택지"는 고르는 대상(메뉴 카드, 답 버튼)이고, 카테고리 탭 같은 이동용 버튼은 제외한다. 탭도 72px·28px 이상, 최대 6개. (v1.1)
 - 판정 후 모든 화면 상단에 모드 전환 버튼.
