@@ -104,7 +104,7 @@
 | D27 | On-device 방식 | 브라우저 안에서 WebAssembly/WebGPU로 추론 | ✅ | Mac과 gram에서 같은 코드 |
 | D14 | 음성 대화 | STT/TTS On-device, 취향 분석은 규칙 기반 | 🔁 D28 (STT 부분) | 취향 분석 규칙 기반은 유효 |
 | D28 | 음성 (전시) | 질문은 OS 내장 한국어 음성(TTS)으로 읽고, 답은 큰 "네/아니요" 버튼. On-device 음성 인식은 2차 범위 | ✅ | Chrome 기본 음성 인식은 서버 전송이라 제외 |
-| D35 | AI 모델 | 얼굴 검출 MediaPipe Face Detector. 나이 추정은 ONNX Runtime Web 후보 2개를 비교해 10/26 확정. TTS는 기기 내장 음성만(네트워크 음성 제외) | ✅ | 모델 라이선스를 이 문서에 기록 |
+| D35 | AI 모델 | 얼굴 검출 MediaPipe Face Detector. 나이 추정은 **onnx-community/age-gender-prediction-ONNX (ViT-B/16 fp32, 커밋 6c138f6, 345MB)**. 2026-10-25 사용자 승인. TTS는 기기 내장 음성만(네트워크 음성 제외) | ✅ | 모델 라이선스 Apache-2.0, **학습 데이터 UTKFace는 비상업용** → 전시 사용 가능, 상업화 시 라이선스·법률 검토 필요. gram(WebGPU 없음)에서 느리면 InsightFace genderage(비상업 연구용)로 교체 가능. 비교: `ai/docs/model-comparison.md` |
 
 ### 기술·환경
 | # | 항목 | 결정 | 상태 | 근거 / 영향 |
