@@ -15,18 +15,18 @@ export function CartScreen({ k }: { k: KioskController }) {
       <TopBar mode={state.mode} storeName={catalog.menu?.storeName} onToggleMode={c.toggleMode} onBack={c.back} />
       <div className="body">
         <p className="title">주문 내용을 확인해 주세요</p>
-        {state.orderType && <p className="mute">{ORDER_TYPE_LABEL[state.orderType]}</p>}
+        {state.orderType && <p className="lead mute">{ORDER_TYPE_LABEL[state.orderType]}</p>}
         <div className="lines">
           {state.cart.map(line => {
             const item = items.find(i => i.id === line.menuId);
             if (!item) return null;
             return (
               <div key={line.menuId} className="line">
-                <div className="name">{item.name}<div className="mute caption">{won(item.price * line.quantity)}</div></div>
+                <div className="name">{item.name}<div className="price caption">{won(item.price * line.quantity)}</div></div>
                 <div className="stepper">
-                  <button className="btn btn-outline" aria-label={`${item.name} 하나 빼기`} onClick={() => c.changeQty(line.menuId, -1)}>−</button>
+                  <button className="btn" aria-label={`${item.name} 하나 빼기`} onClick={() => c.changeQty(line.menuId, -1)}>−</button>
                   <span className="qty">{line.quantity}</span>
-                  <button className="btn btn-outline" aria-label={`${item.name} 하나 더하기`} disabled={line.quantity >= MAX_QUANTITY}
+                  <button className="btn" aria-label={`${item.name} 하나 더하기`} disabled={line.quantity >= MAX_QUANTITY}
                     onClick={() => c.changeQty(line.menuId, 1)}>+</button>
                 </div>
               </div>
@@ -34,9 +34,9 @@ export function CartScreen({ k }: { k: KioskController }) {
           })}
         </div>
         <div className="spacer" />
-        <div className="total"><span>합계</span><span>{won(amount)}</span></div>
+        <div className="total"><span className="title">합계</span><span className="price">{won(amount)}</span></div>
         <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>{won(amount)} 결제하기</button>
-        <button className="btn btn-ghost btn-block" onClick={c.back}>메뉴 더 담기</button>
+        <button className="btn btn-quiet btn-block" onClick={c.back}>메뉴 더 담기</button>
       </div>
     </div>
   );

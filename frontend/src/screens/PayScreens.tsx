@@ -24,11 +24,13 @@ export function PayFailedScreen({ k }: { k: KioskController }) {
     <div className="screen">
       <TopBar mode={k.state.mode} storeName={k.catalog.menu?.storeName} onToggleMode={c.toggleMode} />
       <div className="body center">
-        <p className="hero" style={{ color: 'var(--danger)' }}>결제가 되지 않았어요</p>
-        <p className="title">{k.payFailReason ?? '다시 시도해 주세요.'}</p>
+        <div className="spacer" />
+        <p className="hero error-text">결제가 되지 않았어요</p>
+        <p className="lead" role="alert">{k.payFailReason ?? '다시 시도해 주세요.'}</p>
+        <p className="lead mute">담은 메뉴는 그대로 있어요</p>
         <div className="spacer" />
         <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>다시 결제하기</button>
-        <button className="btn btn-outline btn-block btn-lg" onClick={c.backToCart}>장바구니로</button>
+        <button className="btn btn-block btn-lg" onClick={c.backToCart}>장바구니로</button>
       </div>
     </div>
   );
@@ -48,9 +50,12 @@ export function DoneScreen({ k }: { k: KioskController }) {
   return (
     <div className="screen">
       <div className="body center">
-        <p className="title" style={{ color: 'var(--ok)' }}>주문이 끝났어요</p>
-        <p className="title mute">주문번호</p>
-        <div className="order-number">{state.orderNumber}</div>
+        <div className="spacer" />
+        <p className="hero">주문이 끝났어요</p>
+        <div className="ticket">
+          <p className="lead">주문번호</p>
+          <div className="order-number" aria-label={`주문번호 ${state.orderNumber}`}>{state.orderNumber}</div>
+        </div>
         <p className="title">번호를 부르면 받아 가세요</p>
         <div className="spacer" />
         <p className="mute">{left}초 뒤 처음 화면으로 돌아가요</p>

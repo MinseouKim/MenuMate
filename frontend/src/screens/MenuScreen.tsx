@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CartBar } from '../components/CartBar';
-import { MenuThumb, Notice, TopBar } from '../components/common';
+import { ChatIcon, MenuThumb, Notice, TopBar } from '../components/common';
 import { won } from '../kiosk/copy';
 import type { KioskController } from '../kiosk/useKiosk';
 
@@ -33,13 +33,13 @@ export function MenuScreen({ k }: { k: KioskController }) {
         {notice && <Notice message={notice} actionLabel="닫기" onAction={c.dismissNotice} />}
         {!menu ? (
           catalog.loadError
-            ? <div className="center body"><p className="panel-error">{catalog.loadError}</p>
+            ? <div className="center body"><p className="title error-text" role="alert">{catalog.loadError}</p>
                 <button className="btn btn-primary btn-lg" onClick={c.retryLoad}>다시 시도</button></div>
             : <div className="center body"><div className="spinner" /></div>
         ) : (
           <>
             <button className="btn btn-primary btn-block btn-lg" onClick={c.openChat}>
-              🗣 AI와 대화하기 · 질문 4개로 메뉴 추천
+              <ChatIcon />AI와 대화하기
             </button>
             <div className="tabs" role="tablist">
               {categories.map(cat => (
@@ -51,22 +51,23 @@ export function MenuScreen({ k }: { k: KioskController }) {
             </div>
             <div className="grid">
               {shown.map(item => (
-                <button key={item.id} className={`card${qty(item.id) ? ' in-cart' : ''}`} onClick={() => c.addToCart(item.id)}>
+                <button key={item.id} className={`tile${qty(item.id) ? ' in-cart' : ''}`}
+                  aria-label={`${item.name} ${won(item.price)} 담기`} onClick={() => c.addToCart(item.id)}>
                   <MenuThumb item={item} categories={categories} />
                   <div className="info">
                     <span className="name">{item.name}</span>
                     <span className="price">{won(item.price)}</span>
                     {!easy && item.description && <span className="desc">{item.description}</span>}
                   </div>
-                  {qty(item.id) > 0 && <span className="badge">{qty(item.id)}개</span>}
+                  {qty(item.id) > 0 && <span className="badge">{qty(item.id)}개 담음</span>}
                 </button>
               ))}
             </div>
             {easy && pages > 1 && (
-              <div style={{ display: 'flex', gap: 'var(--gap)', alignItems: 'center' }}>
-                <button className="btn btn-outline" style={{ flex: 1 }} disabled={page === 0} onClick={() => setPage(p => p - 1)}>‹ 앞 메뉴</button>
+              <div className="row">
+                <button className="btn" disabled={page === 0} onClick={() => setPage(p => p - 1)}>앞 메뉴</button>
                 <span className="mute">{page + 1} / {pages}</span>
-                <button className="btn btn-outline" style={{ flex: 1 }} disabled={page >= pages - 1} onClick={() => setPage(p => p + 1)}>다음 메뉴 ›</button>
+                <button className="btn" disabled={page >= pages - 1} onClick={() => setPage(p => p + 1)}>다음 메뉴</button>
               </div>
             )}
           </>

@@ -19,7 +19,12 @@ export function CartBar({ cart, items, onCheckout }: { cart: CartLine[]; items: 
   return (
     <footer className="cartbar">
       <div className="sum">
-        {count === 0 ? <span className="mute">메뉴를 눌러 담아 주세요</span> : <>담은 메뉴 {count}개 · <b>{won(amount)}</b></>}
+        {count === 0 ? <span className="mute">메뉴를 누르면 담겨요</span> : (
+          <>
+            <span>담은 메뉴 {count}개</span>
+            <span className="price">{won(amount)}</span>
+          </>
+        )}
       </div>
       <button className="btn btn-primary btn-lg" disabled={count === 0} onClick={onCheckout}>주문하기</button>
     </footer>

@@ -1,4 +1,4 @@
-import { Notice, TopBar } from '../components/common';
+import { Notice, SpeakerIcon, TopBar } from '../components/common';
 import type { KioskController } from '../kiosk/useKiosk';
 
 /** 음성 질문: TTS로 읽고 큰 네/아니요로 답한다 (D28). 모든 단계에 "그냥 메뉴 볼래요" (D17) */
@@ -11,33 +11,36 @@ export function SurveyScreen({ k }: { k: KioskController }) {
     <div className="screen">
       <TopBar mode={state.mode} storeName={catalog.menu?.storeName} onToggleMode={c.toggleMode}
         onBack={waiting ? undefined : c.back} />
-      <div className="body center">
+      <div className="body">
         {catalog.questions === null ? (
-          catalog.loadError
-            ? <Notice message={catalog.loadError} actionLabel="다시 시도" onAction={c.retryLoad} />
-            : <div className="spinner" />
+          <div className="body center">
+            {catalog.loadError
+              ? <Notice message={catalog.loadError} actionLabel="다시 시도" onAction={c.retryLoad} />
+              : <div className="spinner" />}
+          </div>
         ) : waiting ? (
-          <>
+          <div className="body center">
             <div className="spinner" />
             <p className="hero">추천 메뉴를<br />고르고 있어요</p>
-          </>
+          </div>
         ) : q && (
           <>
-            <div className="progress" aria-label={`질문 ${state.surveyIndex + 1} / ${total}`}>
+            <div className="steps" aria-hidden>
               {Array.from({ length: total }, (_, i) => <i key={i} className={i <= state.surveyIndex ? 'on' : ''} />)}
             </div>
-            <p className="title mute">질문 {state.surveyIndex + 1} / {total}</p>
+            <p className="lead mute">질문 {state.surveyIndex + 1} / {total}</p>
             <p className="question">{q.text}</p>
-            {k.speakerAvailable && <button className="btn btn-ghost" onClick={c.readQuestion}>🔊 다시 듣기</button>}
+            {k.speakerAvailable && (
+              <div><button className="btn btn-quiet" onClick={c.readQuestion}><SpeakerIcon />다시 듣기</button></div>
+            )}
             <div className="spacer" />
             <div className="answers">
               <button className="btn btn-primary" onClick={() => c.answer('yes')}>네</button>
-              <button className="btn btn-outline" onClick={() => c.answer('no')}>아니요</button>
+              <button className="btn" onClick={() => c.answer('no')}>아니요</button>
             </div>
           </>
         )}
-        <div className="spacer" />
-        <button className="btn btn-ghost btn-block btn-lg" onClick={c.exitSurvey}>그냥 메뉴 볼래요</button>
+        <button className="btn btn-quiet btn-block" onClick={c.exitSurvey}>그냥 메뉴 볼래요</button>
       </div>
     </div>
   );

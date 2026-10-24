@@ -29,11 +29,11 @@ export function TopBar({ mode, storeName, onToggleMode, onBack }: {
 }) {
   return (
     <header className="topbar">
-      {onBack && <button className="btn btn-outline" onClick={onBack}>‹ 이전</button>}
+      {onBack && <button className="btn" onClick={onBack}><ChevronLeft />이전</button>}
       <span className="store">{storeName ?? 'MenuMate'}</span>
       <span className="spacer" />
       {mode && (
-        <button className="btn btn-outline" onClick={onToggleMode}>
+        <button className="btn" onClick={onToggleMode}>
           {mode === 'easy' ? '일반 화면으로 보기' : '쉬운 화면으로 보기'}
         </button>
       )}
@@ -41,8 +41,8 @@ export function TopBar({ mode, storeName, onToggleMode, onBack }: {
   );
 }
 
-// 사진이 없을 때 카테고리 색 카드 (D40). 카테고리 순서로 색을 고른다 (이름을 코드에 박지 않음)
-const CARD_COLORS = ['#f6d7b0', '#cfe3c4', '#f3c6c0', '#c9dcec', '#e7d3ee', '#efe1a6', '#d6d0c4'];
+// 사진이 없을 때 카테고리 색 카드 (D40). 오방색을 옅게 한 색을 카테고리 순서대로 쓴다 (이름을 코드에 박지 않음)
+const CARD_COLORS = ['#cddcf2', '#f5d0cd', '#f8e4a6', '#d3e8d6', '#e2e2dc', '#e4d6ee'];
 
 export function MenuThumb({ item, categories }: { item: MenuItem; categories: Category[] }) {
   const [broken, setBroken] = useState(false);
@@ -58,7 +58,27 @@ export function Notice({ message, actionLabel, onAction }: { message: string; ac
   return (
     <div className="notice" role="alert">
       <span>{message}</span>
-      <button className="btn btn-outline" onClick={onAction}>{actionLabel}</button>
+      <button className="btn" onClick={onAction}>{actionLabel}</button>
     </div>
   );
 }
+
+// 아이콘은 인라인 SVG로 둔다 (아이콘 폰트·CDN 없음, D32)
+export const ChevronLeft = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 5l-7 7 7 7" />
+  </svg>
+);
+
+export const SpeakerIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+  </svg>
+);
+
+export const ChatIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round">
+    <path d="M4 5h16v11H9l-5 4z" />
+  </svg>
+);

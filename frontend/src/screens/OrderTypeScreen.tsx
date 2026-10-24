@@ -10,10 +10,9 @@ export function OrderTypeScreen({ k }: { k: KioskController }) {
       <TopBar mode={state.mode} storeName={catalog.menu?.storeName} onToggleMode={c.toggleMode} onBack={c.back} />
       <div className="body center">
         <p className="hero">드시고 가세요?<br />포장하세요?</p>
-        <div className="spacer" style={{ flex: 'none', height: 40 }} />
-        <div className="answers">
+        <div className="answers stack">
           <button className="btn btn-primary" onClick={() => c.chooseOrderType('dine_in')}>{ORDER_TYPE_LABEL.dine_in}</button>
-          <button className="btn btn-outline" onClick={() => c.chooseOrderType('takeout')}>{ORDER_TYPE_LABEL.takeout}</button>
+          <button className="btn" onClick={() => c.chooseOrderType('takeout')}>{ORDER_TYPE_LABEL.takeout}</button>
         </div>
       </div>
     </div>

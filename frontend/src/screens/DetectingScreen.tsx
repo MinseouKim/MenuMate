@@ -7,9 +7,9 @@ export function DetectingScreen({ k }: { k: KioskController }) {
   return (
     <div className="screen idle" onClick={k.commands.touchStart}>
       <div className="body center">
-        <div className="pulse" />
+        <div className="ring" aria-hidden />
         <p className="hero">반가워요</p>
-        <p className="title mute">맞춤 화면을 준비하고 있어요</p>
+        <p className="lead">보기 편한 화면을 준비하고 있어요</p>
         {p && (
           <div className="dots" aria-hidden>
             {Array.from({ length: p.required }, (_, i) => <i key={i} className={i < p.run ? 'on' : ''} />)}
