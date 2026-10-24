@@ -1,11 +1,12 @@
 import type { PrismaClient } from '@prisma/client';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import type {
-  HealthResponse, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
+  CreateOrderRequest, HealthResponse, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
 } from './contracts.js';
 import type { Config } from './config.js';
 import { AppError, errorBody } from './errors.js';
 import { loadCatalog } from './menu.js';
+import { createOrder, createOrderSchema } from './orders.js';
 import { QUESTIONS, toQuestion } from './questions.js';
 import { recommend } from './recommend.js';
 
@@ -78,6 +79,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       return { items: recommend(catalog.items, req.body.answers) };
     },
   );
+
+  app.post<{ Body: CreateOrderRequest }>('/api/orders', { schema: createOrderSchema }, async (req, reply) => {
+    reply.status(201);
+    return createOrder(prisma, req.body);
+  });
 
   return app;
 }
