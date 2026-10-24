@@ -36,6 +36,7 @@ export function loadAi(): AiLoad {
     stableFrames: config.aiStableFrames,
     minConfidence: config.aiMinConfidence,
     decideTimeoutMs: config.aiDecideTimeoutMs,
+    noFaceGraceMs: config.aiNoFaceGraceMs,
   }) ?? null).catch((e: unknown) => {
     console.error('[ai] 연령 판정 모델을 불러오지 못했습니다. 터치와 단축키로만 진행합니다', e);
     return null;

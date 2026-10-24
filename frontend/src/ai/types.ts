@@ -11,6 +11,7 @@ export interface AgeGateConfig {
   stableFrames?: number;
   minConfidence?: number;
   decideTimeoutMs?: number;
+  noFaceGraceMs?: number;  // 얼굴이 잠깐 안 보여도 no_face 로 보지 않는 시간 (env-guide VITE_AI_NO_FACE_GRACE_MS)
   fps?: number;
 }
 

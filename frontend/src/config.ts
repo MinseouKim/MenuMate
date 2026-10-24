@@ -15,6 +15,7 @@ export const config = {
   aiStableFrames: num(env.VITE_AI_STABLE_FRAMES, 5),
   aiMinConfidence: num(env.VITE_AI_MIN_CONFIDENCE, 0.7),
   aiDecideTimeoutMs: num(env.VITE_AI_DECIDE_TIMEOUT_MS, 8000),
+  aiNoFaceGraceMs: num(env.VITE_AI_NO_FACE_GRACE_MS, 0),
   idleResetMs: num(env.VITE_IDLE_RESET_MS, 60000),
   doneResetMs: num(env.VITE_DONE_RESET_MS, 10000),
   ttsRate: num(env.VITE_TTS_RATE, 0.85),
