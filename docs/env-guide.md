@@ -23,7 +23,7 @@
 |------|--------|------|
 | `PORT` | `4000` | API 서버 포트 |
 | `HOST` | `127.0.0.1` | 같은 노트북에서만 접속 |
-| `DATABASE_URL` | `file:./data/menumate.db` | **DB 접속정보.** SQLite 파일 경로 (Prisma 형식). PostgreSQL로 바꾸면 `postgresql://user:pass@localhost:5432/menumate` 형식으로 바꾸고 `.env`는 절대 커밋하지 않음 |
+| `DATABASE_URL` | `file:./data/menumate.db` | **DB 접속정보.** SQLite 파일 경로 (Prisma 형식). 상대 경로는 **`backend/` 폴더 기준**이다 (Prisma 기본은 `prisma/` 기준이라 Backend가 래퍼로 맞춤). PostgreSQL로 바꾸면 `postgresql://user:pass@localhost:5432/menumate` 형식으로 바꾸고 `.env`는 절대 커밋하지 않음 |
 | `MENU_SEED_FILE` | `./seed/menu.dummy.json` | 시드에 쓸 메뉴 JSON. 우루루 실데이터가 오면 이 값만 바꿈 (D33) |
 | `MENU_IMAGE_DIR` | `./data/menu-images` | 메뉴 사진 폴더 → `/static/menu-images/*` |
 | `MODEL_DIR` | `../ai/models` | **AI 모델 경로.** 이 폴더를 `/models/*`로 제공 |

@@ -1,7 +1,7 @@
 # 계약: Backend API
 
 - 주관: Backend / 검토: Frontend, AI / 승인: PM
-- 상태: v1 확정 (2026-10-24)
+- 상태: v1.1 확정 (2026-10-24, Backend 질문 5개 반영: 검증 규칙 4개 명확화 + `NOT_FOUND` 추가)
 - 관련 결정: D2, D5, D13, D19, D26, D32, D36, D43
 
 ## 공통
@@ -25,6 +25,7 @@
 | `MENU_UNAVAILABLE` | 409 | 품절 메뉴 |
 | `ORDER_NOT_FOUND` | 404 | 없는 주문 id |
 | `ORDER_ALREADY_PAID` | 409 | 이미 결제된 주문에 다시 결제 |
+| `NOT_FOUND` | 404 | `/api` 아래 없는 경로, 없는 `/static`·`/models` 파일. message: "요청한 내용을 찾을 수 없어요." (v1.1 추가) |
 | `INTERNAL` | 500 | 그 밖의 서버 오류 |
 
 ## TypeScript 타입
@@ -72,6 +73,8 @@ interface Order {
 ```
 - 질문 4개를 다 보내지 않아도 된다 (중간 종료, D17). 빈 배열도 허용.
 - 같은 `questionId`가 두 번 오면 `VALIDATION_FAILED`.
+- 질문 목록에 없는 `questionId`, `yes`/`no`/`skip`이 아닌 `answer`도 `VALIDATION_FAILED`. (v1.1)
+- `reasons`에서 기여 점수가 같은 태그끼리는 Tag 선언 순서(`spicy`, `mild`, `soup`, `soft`, `hearty`)를 따르고, `store_pick`은 항상 맨 끝. (v1.1)
 
 응답: `200 { "items": Recommendation[] }` — 항상 3개 (메뉴가 3개 미만이면 있는 만큼). 계산은 `questions.md`.
 
@@ -80,7 +83,7 @@ interface Order {
 ```json
 { "orderType": "dine_in", "items": [ { "menuId": "m001", "quantity": 2 } ] }
 ```
-- `items` 1~20줄, `quantity` 1~9. 같은 `menuId`가 여러 줄이면 서버가 합친다.
+- `items` 1~20줄, `quantity` 1~9. 같은 `menuId`가 여러 줄이면 서버가 합치고, 합친 수량이 9를 넘으면 `VALIDATION_FAILED`. (v1.1)
 - **가격은 서버가 DB 기준으로 계산한다.** 클라이언트가 가격을 보내지 않는다.
 
 응답: `201 Order` (`status: "pending_payment"`, `orderNumber: null`)
@@ -90,6 +93,7 @@ interface Order {
 ```json
 { "method": "card_simulated", "simulate": "success" }
 ```
+- `method`는 필수이고 지금은 `"card_simulated"`만 허용. 다른 값이면 `VALIDATION_FAILED`. (v1.1)
 - `simulate`: `"success"` | `"fail"`. 생략하면 서버 설정 `PAYMENT_SIM_RESULT`(기본 `success`)를 따른다. 시연에서 실패 화면을 보여 줄 때만 `"fail"`을 쓴다.
 - 결제 로직은 `PaymentGateway` 인터페이스 뒤에 둔다. 지금 구현체는 시뮬레이션 하나다 (D13).
 
