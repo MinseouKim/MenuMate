@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+
+# Backend 로컬 데이터 (SQLite, 메뉴 사진)
+backend/data/
+
+# AI 모델 파일 (npm run models:setup -w ai 로 받음)
+ai/models/

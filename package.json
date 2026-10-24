@@ -1,0 +1,13 @@
+{
+  "name": "menumate",
+  "private": true,
+  "version": "2.0.0",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "ai"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}
