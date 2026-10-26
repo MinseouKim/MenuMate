@@ -70,3 +70,17 @@ def test_validator_catches_bad_values():
     out['menus'][0]['reviewCount'] = 2.5
     errs = validate_backend_schema(out)
     assert len(errs) == 2
+
+
+def test_d82_weights_and_age_fit_basis():
+    out = build()
+    assert out['weights'] == {'ageFit': 3, 'reputation': 1.5}
+    assert all(m['ageFitBasis'] == 'rule' for m in out['menus'])  # 통계 없이 만들면 모두 규칙
+    # 통계(관찰 칸 6개 이상)가 있는 메뉴만 'stats'
+    ratios = {'된장찌개': {'19~29세': 5.0, '30~49세': 8.0, '50~64세': 11.0}}
+    out2 = build_engine(sample_reviews(), MENUS, freqfood=(ratios, {'된장찌개': 33}), version='t', now='n', min_reviews=20)
+    basis = {m['menuId']: m['ageFitBasis'] for m in out2['menus']}
+    assert basis == {'m001': 'stats', 'm002': 'rule', 'm004': 'rule'}
+    by = {m['menuId']: m for m in out2['menus']}
+    assert by['m002']['ageFit']['35to54'] == 0.5  # D81
+    assert validate_backend_schema(out2) == []

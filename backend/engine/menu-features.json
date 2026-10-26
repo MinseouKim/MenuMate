@@ -1,9 +1,9 @@
 {
   "engineVersion": "2026-10-27-v1",
-  "generatedAt": "2026-10-27T03:07:23+09:00",
+  "generatedAt": "2026-10-27T03:14:40+09:00",
   "weights": {
-    "ageFit": 2,
-    "reputation": 2
+    "ageFit": 3,
+    "reputation": 1.5
   },
   "sources": [
     {
@@ -37,12 +37,13 @@
       },
       "ageFit": {
         "under35": 0.286,
-        "35to54": 0.513,
+        "35to54": 0.537,
         "55plus": 0.624
       },
       "reputation": 0.644,
       "reviewCount": 3723,
       "adFilteredCount": 3,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 4723,
         "ratedReviews": 2927,
@@ -66,12 +67,13 @@
       },
       "ageFit": {
         "under35": 0.427,
-        "35to54": 0.512,
+        "35to54": 0.514,
         "55plus": 0.538
       },
       "reputation": 0.616,
       "reviewCount": 3223,
       "adFilteredCount": 13,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 4208,
         "ratedReviews": 1989,
@@ -95,12 +97,13 @@
       },
       "ageFit": {
         "under35": 0.514,
-        "35to54": 0.517,
+        "35to54": 0.5,
         "55plus": 0.531
       },
       "reputation": 0.504,
       "reviewCount": 3522,
       "adFilteredCount": 4,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 6153,
         "ratedReviews": 2652,
@@ -124,12 +127,13 @@
       },
       "ageFit": {
         "under35": 0.596,
-        "35to54": 0.546,
+        "35to54": 0.5,
         "55plus": 0.408
       },
       "reputation": 0.668,
       "reviewCount": 1891,
       "adFilteredCount": 11,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 3082,
         "ratedReviews": 1142,
@@ -153,12 +157,13 @@
       },
       "ageFit": {
         "under35": 0.425,
-        "35to54": 0.558,
+        "35to54": 0.5,
         "55plus": 0.65
       },
       "reputation": 0.318,
       "reviewCount": 1977,
       "adFilteredCount": 1,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 2587,
         "ratedReviews": 1409,
@@ -182,12 +187,13 @@
       },
       "ageFit": {
         "under35": 0.613,
-        "35to54": 0.573,
+        "35to54": 0.5,
         "55plus": 0.437
       },
       "reputation": 0.721,
       "reviewCount": 1549,
       "adFilteredCount": 12,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 2034,
         "ratedReviews": 1066,
@@ -211,12 +217,13 @@
       },
       "ageFit": {
         "under35": 0.408,
-        "35to54": 0.544,
+        "35to54": 0.5,
         "55plus": 0.636
       },
       "reputation": 0.648,
       "reviewCount": 1148,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 1832,
         "ratedReviews": 921,
@@ -238,12 +245,13 @@
       },
       "ageFit": {
         "under35": 0.539,
-        "35to54": 0.558,
+        "35to54": 0.5,
         "55plus": 0.486
       },
       "reputation": 0.64,
       "reviewCount": 5685,
       "adFilteredCount": 72,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 8883,
         "ratedReviews": 3278,
@@ -267,12 +275,13 @@
       },
       "ageFit": {
         "under35": 0.272,
-        "35to54": 0.532,
+        "35to54": 0.543,
         "55plus": 0.651
       },
       "reputation": 0.725,
       "reviewCount": 664,
       "adFilteredCount": 0,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 899,
         "ratedReviews": 432,
@@ -296,12 +305,13 @@
       },
       "ageFit": {
         "under35": 0.387,
-        "35to54": 0.438,
+        "35to54": 0.5,
         "55plus": 0.584
       },
       "reputation": 0.673,
       "reviewCount": 671,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 925,
         "ratedReviews": 541,
@@ -323,12 +333,13 @@
       },
       "ageFit": {
         "under35": 0.329,
-        "35to54": 0.423,
+        "35to54": 0.5,
         "55plus": 0.643
       },
       "reputation": 0.64,
       "reviewCount": 130,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 147,
         "ratedReviews": 97,
@@ -350,12 +361,13 @@
       },
       "ageFit": {
         "under35": 0.484,
-        "35to54": 0.485,
+        "35to54": 0.495,
         "55plus": 0.5
       },
       "reputation": 0.531,
       "reviewCount": 5203,
       "adFilteredCount": 5,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 7349,
         "ratedReviews": 3789,
@@ -379,12 +391,13 @@
       },
       "ageFit": {
         "under35": 0.499,
-        "35to54": 0.49,
+        "35to54": 0.495,
         "55plus": 0.485
       },
       "reputation": 0.453,
       "reviewCount": 138,
       "adFilteredCount": 0,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 156,
         "ratedReviews": 92,
@@ -408,12 +421,13 @@
       },
       "ageFit": {
         "under35": 0.508,
-        "35to54": 0.531,
+        "35to54": 0.552,
         "55plus": 0.441
       },
       "reputation": 0.655,
       "reviewCount": 2756,
       "adFilteredCount": 38,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 3867,
         "ratedReviews": 1888,
@@ -437,12 +451,13 @@
       },
       "ageFit": {
         "under35": 0.448,
-        "35to54": 0.549,
+        "35to54": 0.595,
         "55plus": 0.464
       },
       "reputation": 0.555,
       "reviewCount": 5503,
       "adFilteredCount": 53,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 7784,
         "ratedReviews": 3340,
@@ -466,12 +481,13 @@
       },
       "ageFit": {
         "under35": 0.608,
-        "35to54": 0.43,
+        "35to54": 0.5,
         "55plus": 0.272
       },
       "reputation": 0.775,
       "reviewCount": 356,
       "adFilteredCount": 3,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 466,
         "ratedReviews": 236,
@@ -493,12 +509,13 @@
       },
       "ageFit": {
         "under35": 0.414,
-        "35to54": 0.442,
+        "35to54": 0.5,
         "55plus": 0.568
       },
       "reputation": 0.645,
       "reviewCount": 1312,
       "adFilteredCount": 10,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 1783,
         "ratedReviews": 823,
@@ -520,12 +537,13 @@
       },
       "ageFit": {
         "under35": 0.34,
-        "35to54": 0.523,
+        "35to54": 0.52,
         "55plus": 0.631
       },
       "reputation": 0.592,
       "reviewCount": 773,
       "adFilteredCount": 0,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 970,
         "ratedReviews": 534,
@@ -549,12 +567,13 @@
       },
       "ageFit": {
         "under35": 0.534,
-        "35to54": 0.509,
+        "35to54": 0.496,
         "55plus": 0.472
       },
       "reputation": 0.636,
       "reviewCount": 10276,
       "adFilteredCount": 2,
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 16747,
         "ratedReviews": 7529,
@@ -578,12 +597,13 @@
       },
       "ageFit": {
         "under35": 0.635,
-        "35to54": 0.474,
+        "35to54": 0.5,
         "55plus": 0.286
       },
       "reputation": 0.701,
       "reviewCount": 2395,
       "adFilteredCount": 4,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 3283,
         "ratedReviews": 1823,
@@ -605,12 +625,13 @@
       },
       "ageFit": {
         "under35": 0.362,
-        "35to54": 0.487,
+        "35to54": 0.5,
         "55plus": 0.623
       },
       "reputation": 0.502,
       "reviewCount": 12443,
       "adFilteredCount": 11,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 22801,
         "ratedReviews": 9284,
@@ -634,12 +655,13 @@
       },
       "ageFit": {
         "under35": 0.48,
-        "35to54": 0.535,
+        "35to54": 0.5,
         "55plus": 0.57
       },
       "reputation": 0.729,
       "reviewCount": 2220,
       "adFilteredCount": 4,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 3309,
         "ratedReviews": 1536,
@@ -661,12 +683,13 @@
       },
       "ageFit": {
         "under35": 0.484,
-        "35to54": 0.429,
+        "35to54": 0.5,
         "55plus": 0.399
       },
       "reputation": 0.648,
       "reviewCount": 158,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 187,
         "ratedReviews": 133,
@@ -688,12 +711,13 @@
       },
       "ageFit": {
         "under35": 0.528,
-        "35to54": 0.461,
+        "35to54": 0.5,
         "55plus": 0.406
       },
       "reputation": 0.634,
       "reviewCount": 1631,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 2348,
         "ratedReviews": 1203,
@@ -715,12 +739,13 @@
       },
       "ageFit": {
         "under35": 0.575,
-        "35to54": 0.443,
+        "35to54": 0.5,
         "55plus": 0.329
       },
       "reputation": 0.692,
       "reviewCount": 266,
       "adFilteredCount": 1,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 308,
         "ratedReviews": 179,
@@ -742,12 +767,13 @@
       },
       "ageFit": {
         "under35": 0.301,
-        "35to54": 0.419,
+        "35to54": 0.5,
         "55plus": 0.684
       },
       "reputation": 0.758,
       "reviewCount": 107,
       "adFilteredCount": 0,
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 145,
         "ratedReviews": 86,

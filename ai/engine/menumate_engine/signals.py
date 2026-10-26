@@ -28,7 +28,7 @@ BAND_MIX = {
 # 특징 × 연령대 가중치 (특징이 0.5에서 벗어난 만큼 더하거나 뺌). 근거는 engine.md 3장.
 AGE_RULE_WEIGHTS = {
     'under35': {'spicy': 0.20, 'hearty': 0.15, 'soft': -0.10, 'soup': -0.05, 'mild': -0.10, 'light': -0.05},
-    '35to54': {'soup': 0.10, 'hearty': 0.10, 'spicy': 0.05, 'light': 0.05},
+    '35to54': {},  # D81: 쓰지 않음 (blend_age_fit)
     '55plus': {'soup': 0.15, 'soft': 0.20, 'mild': 0.15, 'light': 0.15, 'spicy': -0.15, 'hearty': -0.05},
 }
 
@@ -68,10 +68,19 @@ def age_fit_rule(features: dict[str, float]) -> dict[str, float]:
     }
 
 
+# D81: 35~54세 규칙은 통계와 반대 방향이었다(상관 −0.48). 이 연령대는 규칙을 쓰지 않고
+# 통계가 있으면 통계만, 없으면 중립 0.5로 둔다.
+RULE_BANDS = ('under35', '55plus')
+
+
 def blend_age_fit(stat: dict[str, float] | None, rule: dict[str, float]) -> dict[str, float]:
-    if stat is None:
-        return dict(rule)
-    return {b: round(STAT_WEIGHT * stat[b] + (1 - STAT_WEIGHT) * rule[b], 3) for b in AGE_BANDS}
+    out = {}
+    for b in AGE_BANDS:
+        if b in RULE_BANDS:
+            out[b] = round(rule[b], 3) if stat is None else round(STAT_WEIGHT * stat[b] + (1 - STAT_WEIGHT) * rule[b], 3)
+        else:
+            out[b] = 0.5 if stat is None else round(stat[b], 3)
+    return out
 
 
 CENSORED_FACTOR = 0.8

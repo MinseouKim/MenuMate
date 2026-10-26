@@ -40,11 +40,20 @@ def test_age_fit_rule_from_features():
 
 
 def test_blend_uses_rule_only_without_stats():
-    rule = {'under35': 0.4, '35to54': 0.5, '55plus': 0.6}
-    stat = {'under35': 0.2, '35to54': 0.5, '55plus': 0.9}
-    assert blend_age_fit(None, rule) == rule
+    rule = {'under35': 0.4, '35to54': 0.7, '55plus': 0.6}
+    stat = {'under35': 0.2, '35to54': 0.3, '55plus': 0.9}
+    no_stat = blend_age_fit(None, rule)
+    assert no_stat['under35'] == 0.4 and no_stat['55plus'] == 0.6
     b = blend_age_fit(stat, rule)
     assert b['55plus'] == pytest.approx(0.7 * 0.9 + 0.3 * 0.6, abs=1e-3)
+
+
+def test_35to54_ignores_rule_d81():
+    # D81: 35~54세는 규칙이 통계와 반대 방향(상관 −0.48)이라 규칙을 쓰지 않는다.
+    # 통계가 있으면 통계만, 없으면 중립 0.5
+    rule = {'under35': 0.4, '35to54': 0.9, '55plus': 0.6}
+    assert blend_age_fit(None, rule)['35to54'] == 0.5
+    assert blend_age_fit({'under35': 0.2, '35to54': 0.3, '55plus': 0.9}, rule)['35to54'] == pytest.approx(0.3)
 
 
 def test_load_freqfood_imputes_censored_cells(tmp_path):

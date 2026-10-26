@@ -25,8 +25,8 @@ REPO = Path(__file__).resolve().parents[3]
 OUT_FILE = REPO / 'backend' / 'engine' / 'menu-features.json'
 REPORT_FILE = Path(__file__).resolve().parent.parent / 'out' / 'engine_report.json'
 
-# questions-v2.md에서 정한다. Backend는 파일의 weights를 읽는다.
-WEIGHTS = {'ageFit': 2, 'reputation': 2}
+# 질문 v2(D82)에서 정했다. Backend는 파일의 weights를 읽는다.
+WEIGHTS = {'ageFit': 3, 'reputation': 1.5}  # D82
 MIN_REVIEWS = 20
 V1_TAGS = ('spicy', 'mild', 'soup', 'soft', 'hearty')
 
@@ -125,6 +125,8 @@ def build_engine(
                 'reputation': rep_v,
                 'reviewCount': int(count[m]),
                 'adFilteredCount': int(ad[m]),
+                # 추천 이유 age_fit은 통계 근거가 있는 메뉴에만 붙인다 (D82). Backend가 읽는다.
+                'ageFitBasis': 'stats' if stat else 'rule',
                 # 아래는 설명용. Backend는 읽지 않는다.
                 'evidence': {
                     'sentences': int(stats[m]['n']),
