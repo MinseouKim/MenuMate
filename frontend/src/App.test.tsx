@@ -350,3 +350,58 @@ describe('사전 사용성 점검 (frontend/docs/usability-review.md)', () => {
     expect(screen.queryByText(lines(TEXT.survey.intro))).toBeNull();
   });
 });
+
+describe('55+ 빛 테두리 (D78)', () => {
+  const glowing = () => [...document.querySelectorAll('.glow')].map(e => e.getAttribute('aria-label') || e.textContent?.trim());
+  const atMostTwo = () => expect(document.querySelectorAll('.glow').length).toBeLessThanOrEqual(2);
+
+  it('대기 화면은 "큰 글씨로 주문"만 빛난다', async () => {
+    await start();
+    expect(glowing()).toEqual([TEXT.idle.startEasy]);
+  });
+
+  it('큰 글씨 화면마다 지금 눌러야 할 버튼 1~2개만 빛난다', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    expect(glowing()).toEqual([TEXT.survey.yes, TEXT.survey.no]);
+    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    await screen.findByText(TEXT.recommend.title);
+    expect(glowing()).toEqual([]); // 담기 전에는 주문하기가 비활성이라 빛나지 않는다
+    click(FIRST_REC);
+    expect(glowing()).toEqual([TEXT.cartBar.checkout]);
+    click(TEXT.cartBar.checkout);
+    expect(glowing()).toEqual([DINE_IN, TAKEOUT]);
+    click(DINE_IN);
+    expect(glowing()).toHaveLength(1);
+    expect(glowing()[0]).toMatch(/결제하기$/);
+    shift('KeyF');
+    click(PAY);
+    atMostTwo();
+    await screen.findByText(TEXT.payFailed.title);
+    expect(glowing()).toEqual([TEXT.payFailed.retry]);
+    click(TEXT.payFailed.retry);
+    await screen.findByText(TEXT.done.title);
+    expect(glowing()).toEqual([]);
+  });
+
+  it('기본 화면에서는 빛나지 않는다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('된장찌개', 9000));
+    expect(glowing()).toEqual([]);
+    click(TEXT.menu.chat);
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    expect(glowing()).toEqual([]);
+  });
+
+  it('모드를 큰 글씨로 바꾸면 그 화면에서 바로 빛난다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.common.toEasy);
+    expect(glowing()).toEqual([TEXT.cartBar.checkout]);
+  });
+});

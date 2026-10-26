@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cartTotals } from '../components/CartBar';
-import { TopBar } from '../components/common';
+import { glowIf, TopBar } from '../components/common';
 import { ORDER_TYPE_LABEL, TEXT, won } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
 import { MAX_QUANTITY } from '../kiosk/reducer';
@@ -14,6 +14,7 @@ export function CartScreen() {
   const items = catalog.menu?.items ?? [];
   const { amount } = cartTotals(state.cart, items);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const glow = glowIf(state.mode === 'easy');
   const askRemove = (menuId: string) => { setConfirming(menuId); c.askRemove(menuId); };
   const remove = (menuId: string) => { setConfirming(null); c.removeLine(menuId); };
 
@@ -26,7 +27,7 @@ export function CartScreen() {
           // 다 비워도 장바구니에 머문다 (v1.2)
           <div className="body center">
             <p className="title">{TEXT.cart.empty}</p>
-            <button className="btn btn-primary btn-lg btn-block" onClick={c.goMenu}>{TEXT.cart.goMenu}</button>
+            <button className={`btn btn-primary btn-lg btn-block${glow}`} onClick={c.goMenu}>{TEXT.cart.goMenu}</button>
           </div>
         )}
         {state.orderType && <p className="lead mute">{ORDER_TYPE_LABEL[state.orderType]}</p>}
@@ -63,7 +64,7 @@ export function CartScreen() {
         {state.cart.length > 0 && (<>
         <div className="spacer" />
         <div className="total"><span className="title">{TEXT.cart.total}</span><span className="price">{won(amount)}</span></div>
-        <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>{TEXT.cart.pay(amount)}</button>
+        <button className={`btn btn-primary btn-block btn-lg${glow}`} onClick={c.pay}>{TEXT.cart.pay(amount)}</button>
         <button className="btn btn-quiet btn-block" onClick={c.back}>{TEXT.cart.more}</button>
         </>)}
       </div>

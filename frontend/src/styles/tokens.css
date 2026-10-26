@@ -116,6 +116,14 @@
   --add-strip-h: 64px;     /* 메뉴 카드 아래 "담기" 띠 (U1) */
   --cat-btn-h: 140px;      /* 큰 글씨 메뉴판 1단계 종류 버튼 (U5) */
   --answer-icon: 1.3em;    /* 네/아니요 ○ ✕ 기호 (U2) */
+
+  /* ---------- 55+ 빛 테두리 (D78) ---------- */
+  /* 한 주기 1.2초 = 초당 약 0.8회. 광과민성 기준(초당 3회 미만, WCAG 2.3.1)보다 훨씬 느리다 */
+  --glow-period: 1.2s;
+  --glow-color: var(--color-selected);
+  --glow-ring: 4px;        /* 가장 어두울 때 테두리 바깥 빛 */
+  --glow-spread: 10px;     /* 가장 밝을 때 */
+  --glow-blur: 24px;
   --motion-ring: 1.6s;
   --motion-spinner: 1s;
 }

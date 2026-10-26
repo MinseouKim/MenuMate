@@ -25,7 +25,7 @@ export function RecommendScreen() {
         <div className="spacer" />
         <button className="btn btn-block" onClick={c.goMenu}>{TEXT.recommend.moreMenu}</button>
       </div>
-      <CartBar cart={state.cart} items={items} onCheckout={c.checkout} />
+      <CartBar cart={state.cart} items={items} onCheckout={c.checkout} glow={state.mode === 'easy'} />
     </div>
   );
 }

@@ -31,3 +31,21 @@ describe('문구는 copy.ts 에만', () => {
     expect(code.match(/[가-힣]+/g)).toBeNull();
   });
 });
+
+describe('빛 테두리 안전 기준 (D78, WCAG 2.3.1)', () => {
+  const css = stripComments(read('styles/global.css'));
+  const tokens = read('styles/tokens.css');
+
+  it('한 주기가 1초 이상이라 초당 3회 미만으로 깜빡인다', () => {
+    const dur = tokens.match(/--glow-period:\s*([\d.]+)(m?s)/);
+    expect(dur).not.toBeNull();
+    const ms = dur![2] === 's' ? Number(dur![1]) * 1000 : Number(dur![1]);
+    expect(ms).toBeGreaterThanOrEqual(1000);
+    expect(css).toMatch(/\.glow\s*\{[^}]*animation:[^;}]*var\(--glow-period\)/);
+  });
+
+  it('"동작 줄이기" 설정이면 빛 테두리 애니메이션을 끈다', () => {
+    const reduce = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/);
+    expect(reduce?.[1]).toMatch(/\.glow[^{]*\{[^}]*animation:\s*none/);
+  });
+});

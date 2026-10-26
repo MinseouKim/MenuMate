@@ -6,7 +6,7 @@ export function StartButtons() {
   const { commands: c } = useKioskContext();
   return (
     <>
-      <button className="btn btn-primary btn-lg btn-block" onClick={c.startEasy}>{TEXT.idle.startEasy}</button>
+      <button className="btn btn-primary btn-lg btn-block glow" onClick={c.startEasy}>{TEXT.idle.startEasy}</button>
       <button className="btn btn-lg btn-block" onClick={c.startNormal}>{TEXT.idle.startNormal}</button>
     </>
   );

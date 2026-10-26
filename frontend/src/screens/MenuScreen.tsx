@@ -105,7 +105,7 @@ export function MenuScreen() {
         {notice && <Notice message={notice} actionLabel={TEXT.common.close} onAction={c.dismissNotice} />}
         {body()}
       </div>
-      <CartBar cart={state.cart} items={menu?.items ?? []} onCheckout={c.checkout} />
+      <CartBar cart={state.cart} items={menu?.items ?? []} onCheckout={c.checkout} glow={easy} />
     </div>
   );
 }

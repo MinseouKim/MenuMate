@@ -1,4 +1,4 @@
-import { Lines, NoIcon, Notice, SpeakerIcon, TopBar, YesIcon } from '../components/common';
+import { glowIf, Lines, NoIcon, Notice, SpeakerIcon, TopBar, YesIcon } from '../components/common';
 import { TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
 
@@ -44,8 +44,8 @@ export function SurveyScreen() {
             <div className="spacer" />
             <div className="answers">
               {/* 네/아니요는 같은 무게. 색이 아니라 ○ ✕ 기호로 구분 (U2) */}
-              <button className="btn" onClick={() => c.answer('yes')}><YesIcon />{TEXT.survey.yes}</button>
-              <button className="btn" onClick={() => c.answer('no')}><NoIcon />{TEXT.survey.no}</button>
+              <button className={`btn${glowIf(state.mode === 'easy')}`} onClick={() => c.answer('yes')}><YesIcon />{TEXT.survey.yes}</button>
+              <button className={`btn${glowIf(state.mode === 'easy')}`} onClick={() => c.answer('no')}><NoIcon />{TEXT.survey.no}</button>
             </div>
           </>
         )}

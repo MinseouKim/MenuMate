@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { TopBar } from '../components/common';
+import { glowIf, TopBar } from '../components/common';
 import { config } from '../config';
 import { TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
@@ -20,7 +20,7 @@ export function PayingScreen() {
 
 /** 결제 실패: 장바구니는 그대로 */
 export function PayFailedScreen() {
-  const { payFailReason, commands: c } = useKioskContext();
+  const { state, payFailReason, commands: c } = useKioskContext();
   return (
     <div className="screen">
       <TopBar />
@@ -30,7 +30,7 @@ export function PayFailedScreen() {
         <p className="lead" role="alert">{payFailReason ?? TEXT.payFailed.fallbackReason}</p>
         <p className="lead mute">{TEXT.payFailed.cartKept}</p>
         <div className="spacer" />
-        <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>{TEXT.payFailed.retry}</button>
+        <button className={`btn btn-primary btn-block btn-lg${glowIf(state.mode === 'easy')}`} onClick={c.pay}>{TEXT.payFailed.retry}</button>
         <button className="btn btn-block btn-lg" onClick={c.backToCart}>{TEXT.payFailed.toCart}</button>
       </div>
     </div>

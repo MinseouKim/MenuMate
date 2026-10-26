@@ -44,6 +44,12 @@ export function TopBar({ onBack }: { onBack?: () => void }) {
   );
 }
 
+/**
+ * 55+ 빛 테두리 (D78): 큰 글씨 화면에서 지금 눌러야 할 버튼 1~2개에만 붙인다.
+ * 주기·밝기는 tokens.css (--glow-*), "동작 줄이기" 설정이면 global.css 에서 멈춘다
+ */
+export const glowIf = (on: boolean) => (on ? ' glow' : '');
+
 /** 여러 줄 문구 (copy.ts 의 배열). 줄 사이에 <br> */
 export function Lines({ lines }: { lines: readonly string[] }) {
   return lines.map((line, i) => (
