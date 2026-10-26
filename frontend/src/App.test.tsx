@@ -2,7 +2,19 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AgeGate, AgeGateUpdate } from './ai/types';
 import { silentSpeaker } from './ai/fallback';
+import { ORDER_TYPE_LABEL, TEXT } from './kiosk/copy';
+import { dummyMenu } from './mocks/menu.dummy';
 import { createMockBackend } from './mocks/mockBackend';
+
+// 화면 문구는 copy.ts 에서 가져온다. 디자이너가 문구를 바꿔도 흐름 테스트는 그대로 동작한다.
+// (메뉴명·질문 문구는 가짜 Backend 데이터라 그대로 쓴다)
+const lines = (l: readonly string[]) => l.join(' ');
+const GREETING = lines(TEXT.idle.greeting);
+const amountIn = (name: string) => Number(name.replace(/\D/g, ''));
+const PAY = (name: string) => name === TEXT.cart.pay(amountIn(name));
+const FIRST_REC = (name: string) => dummyMenu.items.some(i => name === TEXT.recommend.add(1, i.name, i.price));
+const DINE_IN = ORDER_TYPE_LABEL.dine_in;
+const TAKEOUT = ORDER_TYPE_LABEL.takeout;
 
 // 테스트용 판정기: 이벤트를 직접 보낼 수 있다
 const listeners = new Set<(u: AgeGateUpdate) => void>();
@@ -40,60 +52,60 @@ beforeEach(() => {
 });
 
 const shift = (code: string) => fireEvent.keyDown(window, { code, shiftKey: true });
-const click = (name: string | RegExp) => fireEvent.click(screen.getByRole('button', { name }));
+const click = (name: string | RegExp | ((n: string) => boolean)) => fireEvent.click(screen.getByRole('button', { name }));
 
 async function start() {
   render(<App />);
-  await screen.findByText('어서 오세요');
+  await screen.findByText(GREETING);
   await waitFor(() => expect(listeners.size).toBe(1));
   await waitFor(() => expect(requests.some(r => r.path === '/api/menu')).toBe(true));
 }
 
-async function payToDone(orderType: '매장에서 먹기' | '포장하기') {
-  click('주문하기');
+async function payToDone(orderType: string) {
+  click(TEXT.cartBar.checkout);
   click(orderType);
-  click(/결제하기$/);
-  await screen.findByText('주문이 끝났어요');
+  click(PAY);
+  await screen.findByText(TEXT.done.title);
 }
 
 describe('키오스크 전체 흐름', () => {
   it('55 미만(Shift+N): 메뉴판 → 담기 → 매장 → 결제 → 주문번호', async () => {
     await start();
     shift('KeyN');
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
-    expect(screen.getByRole('button', { name: '쉬운 화면으로 보기' })).toBeInTheDocument();
-    click('된장찌개 9,000원 담기');
-    click('된장찌개 9,000원 담기');
-    expect(screen.getByText('담은 메뉴 2개')).toBeInTheDocument();
-    await payToDone('매장에서 먹기');
-    expect(screen.getByLabelText('주문번호 001')).toBeInTheDocument();
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    expect(screen.getByRole('button', { name: TEXT.common.toEasy })).toBeInTheDocument();
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.tile.add('된장찌개', 9000));
+    expect(screen.getByText(TEXT.cartBar.count(2))).toBeInTheDocument();
+    await payToDone(DINE_IN);
+    expect(screen.getByLabelText(TEXT.done.numberAria('001'))).toBeInTheDocument();
   });
 
   it('55+(Shift+S): 쉬운 화면 질문 4개 → 추천 3개 → 포장 → 주문번호', async () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
-    expect(screen.getByRole('button', { name: '일반 화면으로 보기' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: TEXT.common.toNormal })).toBeInTheDocument();
     expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
-    click('아니요');
+    click(TEXT.survey.no);
     await screen.findByText('따뜻한 국물이 있는 음식이 좋으세요?');
-    click('네');
-    click('네');
-    click('아니요');
-    await screen.findByText('이런 메뉴는 어떠세요?');
-    expect(screen.getAllByText(/^추천 \d$/)).toHaveLength(3);
-    click(/^추천 1 /);
-    await payToDone('포장하기');
+    click(TEXT.survey.yes);
+    click(TEXT.survey.yes);
+    click(TEXT.survey.no);
+    await screen.findByText(TEXT.recommend.title);
+    for (const n of [1, 2, 3]) expect(screen.getByText(TEXT.recommend.rank(n))).toBeInTheDocument();
+    click(FIRST_REC);
+    await payToDone(TAKEOUT);
   });
 
   it('연령대와 나이는 어떤 API 요청에도 들어가지 않는다 (D2, D47)', async () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
-    for (let i = 0; i < 4; i++) click('네');
-    await screen.findByText('이런 메뉴는 어떠세요?');
-    click(/^추천 1 /);
-    await payToDone('매장에서 먹기');
+    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    await screen.findByText(TEXT.recommend.title);
+    click(FIRST_REC);
+    await payToDone(DINE_IN);
     for (const r of requests) expect(r.body).not.toMatch(/senior|age|easy/i);
   });
 
@@ -101,39 +113,39 @@ describe('키오스크 전체 흐름', () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
-    click('그냥 메뉴 볼래요');
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
+    click(TEXT.survey.exit);
+    await screen.findByRole('button', { name: TEXT.menu.chat });
     expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
   });
 
   it('8초 타임아웃이면 일반 메뉴판 (D16)', async () => {
     await start();
     emit({ type: 'detecting', frameGroup: 'senior', run: 2, required: 5, elapsedMs: 1000 });
-    expect(screen.getByText('반가워요')).toBeInTheDocument();
+    expect(screen.getByText(TEXT.detecting.title)).toBeInTheDocument();
     emit({ type: 'timeout' });
-    await screen.findByRole('button', { name: '쉬운 화면으로 보기' });
+    await screen.findByRole('button', { name: TEXT.common.toEasy });
   });
 
   it('대기 화면을 누르면 판정 없이 일반 메뉴판 (D46)', async () => {
     await start();
-    fireEvent.click(screen.getByText('어서 오세요'));
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
+    fireEvent.click(screen.getByText(GREETING));
+    await screen.findByRole('button', { name: TEXT.menu.chat });
   });
 
   it('결제 실패(Shift+F) 뒤 장바구니가 남아 있고 다시 결제하면 성공', async () => {
     await start();
     shift('KeyN');
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
-    click('김치찌개 9,000원 담기');
-    click('주문하기');
-    click('매장에서 먹기');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('김치찌개', 9000));
+    click(TEXT.cartBar.checkout);
+    click(DINE_IN);
     shift('KeyF');
-    click(/결제하기$/);
-    await screen.findByText('결제가 되지 않았어요');
-    click('장바구니로');
+    click(PAY);
+    await screen.findByText(TEXT.payFailed.title);
+    click(TEXT.payFailed.toCart);
     expect(screen.getByText('김치찌개')).toBeInTheDocument();
-    click(/결제하기$/);
-    await screen.findByText('주문이 끝났어요');
+    click(PAY);
+    await screen.findByText(TEXT.done.title);
     const payments = requests.filter(r => r.path.endsWith('/payment'));
     expect(payments).toHaveLength(2);
     expect(new Set(payments.map(p => p.path)).size).toBe(1); // 같은 orderId로 재시도
@@ -142,35 +154,35 @@ describe('키오스크 전체 흐름', () => {
   it('"처음으로"를 누르면 장바구니와 판정이 모두 지워진다 (D30)', async () => {
     await start();
     shift('KeyN');
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
-    click('갈비탕 13,000원 담기');
-    await payToDone('매장에서 먹기');
-    click('처음으로');
-    await screen.findByText('어서 오세요');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('갈비탕', 13000));
+    await payToDone(DINE_IN);
+    click(TEXT.done.home);
+    await screen.findByText(GREETING);
     expect(gate.reset).toHaveBeenCalled();
     shift('KeyN');
-    await screen.findByText('메뉴를 누르면 담겨요');
+    await screen.findByText(TEXT.cartBar.empty);
   });
 
   it('서버가 꺼져 있으면 대기 화면에 "잠시 후 이용해 주세요"', async () => {
     serverUp = false;
     render(<App />);
-    await screen.findByText('잠시 후 이용해 주세요');
+    await screen.findByText(lines(TEXT.idle.serverDown));
   });
 
   it('모델이 아직 로딩 중이어도 대기 화면이 바로 보이고 터치·단축키로 시작한다 (D46)', async () => {
     gateReady = new Promise(() => {}); // 345MB 모델이 끝나지 않는 상황
     render(<App />);
-    await screen.findByText('어서 오세요');
+    await screen.findByText(GREETING);
     await waitFor(() => expect(requests.some(r => r.path === '/api/menu')).toBe(true));
-    fireEvent.click(screen.getByText('어서 오세요'));
-    await screen.findByRole('button', { name: 'AI와 대화하기' });
+    fireEvent.click(screen.getByText(GREETING));
+    await screen.findByRole('button', { name: TEXT.menu.chat });
   });
 
   it('모델 로딩 중에도 시연 단축키(Shift+S)는 동작한다', async () => {
     gateReady = new Promise(() => {});
     render(<App />);
-    await screen.findByText('어서 오세요');
+    await screen.findByText(GREETING);
     await waitFor(() => expect(requests.some(r => r.path === '/api/questions')).toBe(true));
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
@@ -179,6 +191,6 @@ describe('키오스크 전체 흐름', () => {
   it('추론 오류가 오면 일반 메뉴판으로 (kiosk-flow v1.1)', async () => {
     await start();
     emit({ type: 'error', code: 'inference_failed', message: 'x' });
-    await screen.findByRole('button', { name: '쉬운 화면으로 보기' });
+    await screen.findByRole('button', { name: TEXT.common.toEasy });
   });
 });
