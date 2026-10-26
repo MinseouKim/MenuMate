@@ -113,6 +113,8 @@ button { font: inherit; color: inherit; }
   font-family: var(--font-display); font-size: var(--fs-thumb); color: var(--color-ink);
   padding: var(--pad-thumb); text-align: center; object-fit: cover;
 }
+img.thumb { display: block; height: auto; background: var(--color-bg); } /* 사진 (D77): 자리는 4:3, 불러오는 동안 회색 */
+.rec img.thumb { aspect-ratio: 1; align-self: stretch; height: auto; }
 .thumb[data-tint='1'] { background: var(--tint-1); }
 .thumb[data-tint='2'] { background: var(--tint-2); }
 .thumb[data-tint='3'] { background: var(--tint-3); }

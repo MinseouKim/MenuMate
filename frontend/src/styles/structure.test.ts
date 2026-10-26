@@ -24,7 +24,7 @@ describe('디자인 값은 tokens.css 에만', () => {
 
 describe('문구는 copy.ts 에만', () => {
   const files = ['screens', 'components'].flatMap(dir =>
-    readdirSync(join(src, dir)).filter(f => f.endsWith('.tsx')).map(f => `${dir}/${f}`));
+    readdirSync(join(src, dir)).filter(f => f.endsWith('.tsx') && !f.endsWith('.test.tsx')).map(f => `${dir}/${f}`));
 
   it.each(files)('%s 에 한국어 문장을 직접 쓰지 않는다', file => {
     const code = stripComments(read(file));

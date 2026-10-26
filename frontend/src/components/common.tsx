@@ -8,6 +8,8 @@ import type { Mode } from '../kiosk/types';
 const W = 1080;
 const H = 1920;
 const TINT_COUNT = 6; // tokens.css 의 --tint-1 ~ --tint-6
+const PHOTO_W = 800; // 메뉴 사진 자리 4:3 (menu-schema: 가로 800px 이상 권장)
+const PHOTO_H = 600;
 
 /** 세로 1080x1920 캔버스. 창 크기에 맞게 줄이고 가운데에 둔다 (D25) */
 export function KioskFrame({ mode, children }: { mode: Mode | null; children: ReactNode }) {
@@ -57,11 +59,17 @@ export function Lines({ lines }: { lines: readonly string[] }) {
   ));
 }
 
-/** 사진이 없거나 깨지면 카테고리 색 카드 + 메뉴명 (D40). 색은 카테고리 순서대로 --tint-n */
+/**
+ * 메뉴 사진 (D77). 카드 폭을 꽉 채워 크게 보여 준다. width/height 로 4:3 자리를 미리 잡아 사진이 늦게 와도 화면이 흔들리지 않는다.
+ * 사진이 없거나 못 불러오면 카테고리 색 카드 + 메뉴명 (D40). 색은 카테고리 순서대로 --tint-n
+ */
 export function MenuThumb({ item, categories }: { item: MenuItem; categories: Category[] }) {
   const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
   if (item.imageUrl && item.imageUrl !== brokenUrl) {
-    return <img className="thumb" src={item.imageUrl} alt="" onError={() => setBrokenUrl(item.imageUrl)} draggable={false} />;
+    return (
+      <img className="thumb" src={item.imageUrl} alt="" width={PHOTO_W} height={PHOTO_H} decoding="async"
+        onError={() => setBrokenUrl(item.imageUrl)} draggable={false} />
+    );
   }
   const idx = Math.max(0, categories.toSorted((a, b) => a.sortOrder - b.sortOrder).findIndex(c => c.id === item.categoryId));
   return <div className="thumb" data-tint={(idx % TINT_COUNT) + 1}>{item.name}</div>;
