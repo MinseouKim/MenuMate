@@ -64,7 +64,7 @@ describe('GET /api/questions', () => {
     expect(r.json<QuestionsResponse>().questions).toEqual([
       { id: 'q_spicy', order: 1, text: '매운 음식도 괜찮으세요?' },
       { id: 'q_soup', order: 2, text: '따뜻한 국물이 있는 음식이 좋으세요?' },
-      { id: 'q_soft', order: 3, text: '부드럽게 드실 수 있는 음식이 좋으세요?' },
+      { id: 'q_soft', order: 3, text: '부드러운 음식이 좋으세요?' },
       { id: 'q_hearty', order: 4, text: '든든하게 드시고 싶으세요?' },
     ]);
   });
@@ -101,8 +101,9 @@ describe('POST /api/recommendations', () => {
       answers: [{ questionId: 'q_soup', answer: 'yes' }, { questionId: 'q_soup', answer: 'no' }],
     });
     expect(r.statusCode).toBe(400);
-    expect(r.json().error.code).toBe('VALIDATION_FAILED');
-    expect(typeof r.json().error.message).toBe('string');
+    expect(r.json()).toEqual({
+      error: { code: 'VALIDATION_FAILED', message: '주문 내용을 확인하지 못했어요. 처음부터 다시 해 주세요.' },
+    });
   });
 
   it.each([

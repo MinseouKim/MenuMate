@@ -17,7 +17,7 @@ describe('QUESTIONS', () => {
     expect(QUESTIONS.map((q) => [q.order, q.id, q.text])).toEqual([
       [1, 'q_spicy', '매운 음식도 괜찮으세요?'],
       [2, 'q_soup', '따뜻한 국물이 있는 음식이 좋으세요?'],
-      [3, 'q_soft', '부드럽게 드실 수 있는 음식이 좋으세요?'],
+      [3, 'q_soft', '부드러운 음식이 좋으세요?'],
       [4, 'q_hearty', '든든하게 드시고 싶으세요?'],
     ]);
   });

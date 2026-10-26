@@ -30,7 +30,7 @@ afterAll(async () => {
 
 const expectNotFound = (r: { statusCode: number; json: () => any }) => {
   expect(r.statusCode).toBe(404);
-  expect(r.json()).toEqual({ error: { code: 'NOT_FOUND', message: expect.any(String) } });
+  expect(r.json()).toEqual({ error: { code: 'NOT_FOUND', message: '잠시 문제가 생겼어요. 직원을 불러 주세요.' } });
 };
 
 describe('/models/*', () => {

@@ -92,7 +92,9 @@ describe('POST /api/orders', () => {
   it('품절 메뉴는 409 MENU_UNAVAILABLE', async () => {
     const r = await order({ orderType: 'dine_in', items: [{ menuId: 'm006', quantity: 1 }] });
     expect(r.statusCode).toBe(409);
-    expect(r.json().error.code).toBe('MENU_UNAVAILABLE');
+    expect(r.json()).toEqual({
+      error: { code: 'MENU_UNAVAILABLE', message: '다 팔린 메뉴가 있어요. 담은 메뉴에서 빼고 다시 주문해 주세요.' },
+    });
     expect(await testPrisma.order.count()).toBe(0);
   });
 });
