@@ -62,6 +62,15 @@ describe('parseEngine', () => {
     expect(r.ok ? '' : r.errors.join('\n')).toMatch(pattern);
   });
 
+  it('출처 표시용 sources 배열과 아직 안 쓰는 weights 키가 있어도 읽는다 (AI 합의)', () => {
+    const e = mustParse(engineFile([engineMenu({ menuId: 'a' })], {
+      sources: [{ name: 'KR3', url: 'https://example.org/kr3', license: 'CC BY-NC-SA 4.0' }],
+      weights: { ageFit: 2, reputation: 2, preference: 1 },
+    }));
+    expect(e.weights).toEqual({ ageFit: 2, reputation: 2 });
+    expect(e.byId.get('a')).toBeDefined();
+  });
+
   it('모르는 특징 키는 무시한다 (질문 v2 대비)', () => {
     const e = mustParse(engineFile([engineMenu({ features: { soup: 1, sweet: 0.8 } })]));
     expect(e.menus[0].features).toEqual({ soup: 1 });
