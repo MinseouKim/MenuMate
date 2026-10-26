@@ -5,13 +5,12 @@
 
 :root {
   /* ---------- 서체 (D32: 프로젝트에 포함한 파일만) ---------- */
-  /* D2Coding 하나 (D62). 굵기는 400, 700 두 가지뿐이다 */
-  --font-body: 'D2Coding', monospace;
-  --font-display: 'D2Coding', monospace;
-  --fw-display: 700;
-  --fw-lead: 400;
+  --font-body: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-display: 'Black Han Sans', 'Pretendard Variable', sans-serif;
+  --fw-display: 400;
+  --fw-lead: 600;
   --fw-strong: 700;
-  --fw-heavy: 700;
+  --fw-heavy: 800;
 
   /* ---------- 색 (괄호는 대비) ---------- */
   --color-outside: #000000;       /* 1080x1920 캔버스 바깥 */
