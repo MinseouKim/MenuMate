@@ -1,0 +1,6 @@
+# 가상환경과 리뷰 원본·중간 산출물은 커밋하지 않는다 (라이선스, D74)
+.venv/
+data/
+out/
+__pycache__/
+.pytest_cache/
