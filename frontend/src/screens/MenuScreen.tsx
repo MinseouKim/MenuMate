@@ -1,50 +1,52 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CartBar } from '../components/CartBar';
 import { ChatIcon, MenuThumb, Notice, TopBar } from '../components/common';
-import { won } from '../kiosk/copy';
-import type { KioskController } from '../kiosk/useKiosk';
-
-const EASY_PAGE_SIZE = 4; // 쉬운 화면은 한 화면에 선택지 4개 이하 (RULES 4장)
+import { TEXT, won } from '../kiosk/copy';
+import { useKioskContext } from '../kiosk/KioskContext';
+import { layoutFor } from '../styles/layout';
 
 /** 메뉴판: 카테고리 + 메뉴. "AI와 대화하기"로 질문을 시작할 수 있다 (D9, D19) */
-export function MenuScreen({ k }: { k: KioskController }) {
+export function MenuScreen() {
+  const k = useKioskContext();
   const { state, catalog, notice, commands: c } = k;
   const menu = catalog.menu;
-  const easy = state.mode === 'easy';
-  const categories = useMemo(() => [...(menu?.categories ?? [])].sort((a, b) => a.sortOrder - b.sortOrder), [menu]);
+  const layout = layoutFor(state.mode);
+  const categories = useMemo(() => (menu?.categories ?? []).toSorted((a, b) => a.sortOrder - b.sortOrder), [menu]);
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [pageWanted, setPage] = useState(0);
   const active = categoryId ?? categories[0]?.id ?? null;
 
   const items = useMemo(
     () => (menu?.items ?? []).filter(i => i.categoryId === active).sort((a, b) => a.sortOrder - b.sortOrder),
     [menu, active],
   );
-  const pages = easy ? Math.max(1, Math.ceil(items.length / EASY_PAGE_SIZE)) : 1;
-  const shown = easy ? items.slice(page * EASY_PAGE_SIZE, (page + 1) * EASY_PAGE_SIZE) : items;
-  useEffect(() => setPage(0), [active, easy]);
+  const size = layout.menuPageSize;
+  const pages = size ? Math.max(1, Math.ceil(items.length / size)) : 1;
+  const page = Math.min(pageWanted, pages - 1); // 모드가 바뀌어 페이지 수가 줄어도 범위 안에 둔다
+  const shown = size ? items.slice(page * size, (page + 1) * size) : items;
+  const chooseCategory = (id: string) => { setCategoryId(id); setPage(0); };
 
   const qty = (id: string) => state.cart.find(l => l.menuId === id)?.quantity ?? 0;
 
   return (
     <div className="screen">
-      <TopBar mode={state.mode} storeName={menu?.storeName} onToggleMode={c.toggleMode} />
+      <TopBar />
       <div className="body">
-        {notice && <Notice message={notice} actionLabel="닫기" onAction={c.dismissNotice} />}
+        {notice && <Notice message={notice} actionLabel={TEXT.common.close} onAction={c.dismissNotice} />}
         {!menu ? (
           catalog.loadError
             ? <div className="center body"><p className="title error-text" role="alert">{catalog.loadError}</p>
-                <button className="btn btn-primary btn-lg" onClick={c.retryLoad}>다시 시도</button></div>
+                <button className="btn btn-primary btn-lg" onClick={c.retryLoad}>{TEXT.common.retry}</button></div>
             : <div className="center body"><div className="spinner" /></div>
         ) : (
           <>
             <button className="btn btn-primary btn-block btn-lg" onClick={c.openChat}>
-              <ChatIcon />AI와 대화하기
+              <ChatIcon />{TEXT.menu.chat}
             </button>
             <div className="tabs" role="tablist">
               {categories.map(cat => (
                 <button key={cat.id} role="tab" aria-selected={cat.id === active}
-                  className={`tab${cat.id === active ? ' on' : ''}`} onClick={() => setCategoryId(cat.id)}>
+                  className={`tab${cat.id === active ? ' on' : ''}`} onClick={() => chooseCategory(cat.id)}>
                   {cat.name}
                 </button>
               ))}
@@ -52,22 +54,22 @@ export function MenuScreen({ k }: { k: KioskController }) {
             <div className="grid">
               {shown.map(item => (
                 <button key={item.id} className={`tile${qty(item.id) ? ' in-cart' : ''}`}
-                  aria-label={`${item.name} ${won(item.price)} 담기`} onClick={() => c.addToCart(item.id)}>
+                  aria-label={TEXT.tile.add(item.name, item.price)} onClick={() => c.addToCart(item.id)}>
                   <MenuThumb item={item} categories={categories} />
                   <div className="info">
                     <span className="name">{item.name}</span>
                     <span className="price">{won(item.price)}</span>
-                    {!easy && item.description && <span className="desc">{item.description}</span>}
+                    {layout.showMenuDescription && item.description && <span className="desc">{item.description}</span>}
                   </div>
-                  {qty(item.id) > 0 && <span className="badge">{qty(item.id)}개 담음</span>}
+                  {qty(item.id) > 0 && <span className="badge">{TEXT.tile.inCart(qty(item.id))}</span>}
                 </button>
               ))}
             </div>
-            {easy && pages > 1 && (
+            {pages > 1 && (
               <div className="row">
-                <button className="btn" disabled={page === 0} onClick={() => setPage(p => p - 1)}>앞 메뉴</button>
-                <span className="mute">{page + 1} / {pages}</span>
-                <button className="btn" disabled={page >= pages - 1} onClick={() => setPage(p => p + 1)}>다음 메뉴</button>
+                <button className="btn" disabled={page === 0} onClick={() => setPage(page - 1)}>{TEXT.menu.prevPage}</button>
+                <span className="mute">{TEXT.menu.page(page + 1, pages)}</span>
+                <button className="btn" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>{TEXT.menu.nextPage}</button>
               </div>
             )}
           </>

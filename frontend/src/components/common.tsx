@@ -1,9 +1,12 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { Fragment, useLayoutEffect, useState, type ReactNode } from 'react';
 import type { Category, MenuItem } from '../api/contracts';
+import { TEXT } from '../kiosk/copy';
+import { useKioskContext } from '../kiosk/KioskContext';
 import type { Mode } from '../kiosk/types';
 
 const W = 1080;
 const H = 1920;
+const TINT_COUNT = 6; // tokens.css 의 --tint-1 ~ --tint-6
 
 /** 세로 1080x1920 캔버스. 창 크기에 맞게 줄이고 가운데에 둔다 (D25) */
 export function KioskFrame({ mode, children }: { mode: Mode | null; children: ReactNode }) {
@@ -24,34 +27,37 @@ export function KioskFrame({ mode, children }: { mode: Mode | null; children: Re
 }
 
 /** 판정 후 모든 화면 상단: 이전 버튼, 매장 이름, 모드 전환 버튼 */
-export function TopBar({ mode, storeName, onToggleMode, onBack }: {
-  mode: Mode | null; storeName?: string; onToggleMode: () => void; onBack?: () => void;
-}) {
+export function TopBar({ onBack }: { onBack?: () => void }) {
+  const { state, catalog, commands } = useKioskContext();
   return (
     <header className="topbar">
-      {onBack && <button className="btn" onClick={onBack}><ChevronLeft />이전</button>}
-      <span className="store">{storeName ?? 'MenuMate'}</span>
+      {onBack && <button className="btn" onClick={onBack}><ChevronLeft />{TEXT.common.back}</button>}
+      <span className="store">{catalog.menu?.storeName ?? TEXT.common.appName}</span>
       <span className="spacer" />
-      {mode && (
-        <button className="btn" onClick={onToggleMode}>
-          {mode === 'easy' ? '일반 화면으로 보기' : '쉬운 화면으로 보기'}
+      {state.mode && (
+        <button className="btn" onClick={commands.toggleMode}>
+          {state.mode === 'easy' ? TEXT.common.toNormal : TEXT.common.toEasy}
         </button>
       )}
     </header>
   );
 }
 
-// 사진이 없을 때 카테고리 색 카드 (D40). 오방색을 옅게 한 색을 카테고리 순서대로 쓴다 (이름을 코드에 박지 않음)
-const CARD_COLORS = ['#cddcf2', '#f5d0cd', '#f8e4a6', '#d3e8d6', '#e2e2dc', '#e4d6ee'];
+/** 여러 줄 문구 (copy.ts 의 배열). 줄 사이에 <br> */
+export function Lines({ lines }: { lines: readonly string[] }) {
+  return lines.map((line, i) => (
+    <Fragment key={i}>{i > 0 && <br />}{line}{i < lines.length - 1 && ' '}</Fragment>
+  ));
+}
 
+/** 사진이 없거나 깨지면 카테고리 색 카드 + 메뉴명 (D40). 색은 카테고리 순서대로 --tint-n */
 export function MenuThumb({ item, categories }: { item: MenuItem; categories: Category[] }) {
-  const [broken, setBroken] = useState(false);
-  useEffect(() => setBroken(false), [item.imageUrl]);
-  if (item.imageUrl && !broken) {
-    return <img className="thumb" src={item.imageUrl} alt="" onError={() => setBroken(true)} draggable={false} />;
+  const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
+  if (item.imageUrl && item.imageUrl !== brokenUrl) {
+    return <img className="thumb" src={item.imageUrl} alt="" onError={() => setBrokenUrl(item.imageUrl)} draggable={false} />;
   }
-  const idx = Math.max(0, [...categories].sort((a, b) => a.sortOrder - b.sortOrder).findIndex(c => c.id === item.categoryId));
-  return <div className="thumb" style={{ background: CARD_COLORS[idx % CARD_COLORS.length] }}>{item.name}</div>;
+  const idx = Math.max(0, categories.toSorted((a, b) => a.sortOrder - b.sortOrder).findIndex(c => c.id === item.categoryId));
+  return <div className="thumb" data-tint={(idx % TINT_COUNT) + 1}>{item.name}</div>;
 }
 
 export function Notice({ message, actionLabel, onAction }: { message: string; actionLabel: string; onAction: () => void }) {

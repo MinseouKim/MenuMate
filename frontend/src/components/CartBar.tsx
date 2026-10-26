@@ -1,5 +1,5 @@
 import type { MenuItem } from '../api/contracts';
-import { won } from '../kiosk/copy';
+import { TEXT, won } from '../kiosk/copy';
 import type { CartLine } from '../kiosk/types';
 
 export function cartTotals(cart: CartLine[], items: MenuItem[]) {
@@ -19,14 +19,14 @@ export function CartBar({ cart, items, onCheckout }: { cart: CartLine[]; items: 
   return (
     <footer className="cartbar">
       <div className="sum">
-        {count === 0 ? <span className="mute">메뉴를 누르면 담겨요</span> : (
+        {count === 0 ? <span className="mute">{TEXT.cartBar.empty}</span> : (
           <>
-            <span>담은 메뉴 {count}개</span>
+            <span>{TEXT.cartBar.count(count)}</span>
             <span className="price">{won(amount)}</span>
           </>
         )}
       </div>
-      <button className="btn btn-primary btn-lg" disabled={count === 0} onClick={onCheckout}>주문하기</button>
+      <button className="btn btn-primary btn-lg" disabled={count === 0} onClick={onCheckout}>{TEXT.cartBar.checkout}</button>
     </footer>
   );
 }

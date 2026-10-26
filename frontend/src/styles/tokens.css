@@ -1,0 +1,149 @@
+/* 디자인 토큰. 색·서체·글자 크기·크기·간격·모서리·선 굵기·움직임 값은 모두 여기에만 둔다.
+   디자이너 명세(design/spec.md)가 바뀌면 이 파일만 고치면 된다. global.css 에는 숫자 대신 이 변수를 쓴다.
+   이름은 쓰임새로 짓는다(primary, price, selected). 색이 바뀌어도 이름은 그대로 둔다.
+   현재 값: D55 디자인 방향 (한식당 벽 메뉴판·간판). */
+
+:root {
+  /* ---------- 서체 (D32: 프로젝트에 포함한 파일만) ---------- */
+  --font-body: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-display: 'Black Han Sans', 'Pretendard Variable', sans-serif;
+  --fw-display: 400;
+  --fw-lead: 600;
+  --fw-strong: 700;
+  --fw-heavy: 800;
+
+  /* ---------- 색 (괄호는 대비) ---------- */
+  --color-outside: #000000;       /* 1080x1920 캔버스 바깥 */
+  --color-bg: #f1f3f4;            /* 화면 바탕 */
+  --color-surface: #ffffff;       /* 카드·판 */
+  --color-ink: #000000;           /* 본문 (바탕 대비 19:1) */
+  --color-ink-mute: #3f4448;      /* 보조 글자 (바탕 대비 9:1) */
+  --color-line: #b9c0c5;          /* 약한 테두리, 꺼진 단계 */
+  --color-primary: #1b3a8c;       /* 주 버튼 (흰 글자 10:1) */
+  --color-primary-press: #132a66;
+  --color-on-primary: #ffffff;
+  --color-price: #a3121a;         /* 가격 (흰 바탕 7.7:1) */
+  --color-danger: #a3121a;        /* 오류 */
+  --color-selected: #f6c343;      /* 담긴 표시, 고른 탭, 눌림, 포커스 (검은 글자 13:1) */
+  --color-topbar-bg: var(--color-ink);
+  --color-topbar-ink: var(--color-surface);
+  --color-signboard-bg: var(--color-primary);
+  --color-signboard-ink: var(--color-surface);
+  /* 사진이 없을 때 메뉴 카드 색. 카테고리 순서대로 1~6 (D40) */
+  --tint-1: #cddcf2;
+  --tint-2: #f5d0cd;
+  --tint-3: #f8e4a6;
+  --tint-4: #d3e8d6;
+  --tint-5: #e2e2dc;
+  --tint-6: #e4d6ee;
+
+  /* ---------- 글자 크기: 일반 화면 ---------- */
+  --fs-caption: 22px;
+  --fs-body: 26px;
+  --fs-title: 46px;
+  --fs-hero: 68px;
+  /* 모드와 상관없는 고정 크기 (대기·주문번호 화면) */
+  --fs-wordmark: 56px;
+  --fs-greeting: 230px;
+  --fs-greeting-small: 130px;
+  --fs-idle-lead: 36px;
+  --fs-camera-notice: 24px;
+  --fs-order-number: 300px;
+  --lh-body: 1.45;
+  --lh-title: 1.2;
+  --lh-hero: 1.15;
+  --lh-question: 1.25;
+  --lh-greeting: 1.02;
+
+  /* ---------- 크기 ---------- */
+  --btn-h: 76px;
+  --btn-h-lg: 108px;
+  --cartbar-btn-min-w: 300px;
+  --signboard-h: 1180px;
+  --stepper-qty-w: 64px;
+  --steps-h: 14px;
+  --dot-size: 32px;
+  --ring-size: 220px;
+  --spinner-size: 150px;
+  --menu-columns: 3;
+  --rec-thumb-w: 34%;
+
+  /* ---------- 간격 ---------- */
+  --gap: 20px;
+  --pad: 40px;
+  --gap-xs: 2px;
+  --gap-s: 8px;
+  --gap-chip: 10px;
+  --gap-tab: 12px;
+  --gap-btn: 14px;
+  --gap-dot: 16px;
+  --pad-btn-x: 32px;
+  --pad-tab-x: 28px;
+  --pad-topbar-y: 20px;
+  --pad-cartbar-y: 24px;
+  --pad-thumb: 16px;
+  --pad-tile-info: 16px 20px 20px;
+  --pad-rec-info: 24px 28px;
+  --pad-line: 24px 28px;
+  --pad-notice: 20px 24px;
+  --pad-badge: 4px 18px;
+  --pad-chip: 4px 14px;
+  --pad-total: 8px 4px;
+  --pad-idle-body: 56px 72px;
+  --pad-signboard: 64px 72px 80px;
+  --pad-camera-notice-top: 28px;
+  --pad-camera-notice-bottom: 40px;
+  --pad-ticket: 40px 80px;
+  --inset-badge: 12px;
+
+  /* ---------- 모서리·선 ---------- */
+  --r-btn: 14px;
+  --r-tile: 10px;
+  --r-small: 8px;
+  --stroke: 3px;
+  --stroke-thin: 2px;
+  --stroke-badge: 3px;
+  --stroke-dot: 4px;
+  --stroke-ticket: 6px;
+  --stroke-ring: 16px;
+  --stroke-spinner: 14px;
+  --focus-ring: 5px;
+  --focus-offset: 3px;
+
+  /* ---------- 상태·움직임 (고령층: 최소화) ---------- */
+  --opacity-disabled: 0.35;
+  --motion-ring: 1.6s;
+  --motion-spinner: 1s;
+}
+
+/* 다른 토큰에서 계산하는 값. var() 는 선언한 요소에서 풀리므로 모드가 붙는 .kiosk[data-mode] 에서 다시 계산한다 */
+:root, [data-mode] {
+  --fs-question: var(--fs-hero);
+  --fs-lead: calc(var(--fs-body) * 1.15);
+  --fs-button-lg: calc(var(--fs-body) * 1.2);
+  --fs-store: calc(var(--fs-body) * 1.15);
+  --fs-thumb: calc(var(--fs-body) * 1.25);
+  --fs-tile-name: calc(var(--fs-body) * 1.05);
+  --fs-tile-price: calc(var(--fs-body) * 1.1);
+  --fs-rec-price: calc(var(--fs-body) * 1.3);
+  --fs-cartbar-price: calc(var(--fs-body) * 1.35);
+  --fs-stepper: calc(var(--fs-body) * 1.4);
+  --answer-h: calc(var(--btn-h-lg) * 1.7);
+  --answer-stack-h: calc(var(--btn-h-lg) * 1.4);
+  --topbar-h: calc(var(--btn-h) + 40px);
+}
+
+/* 쉬운 화면(55+): 본문 28px 이상, 버튼 72px 이상 (RULES 4장). 같은 컴포넌트, 이 값만 바뀐다 */
+[data-mode='easy'] {
+  --fs-caption: 30px;
+  --fs-body: 36px;
+  --fs-title: 58px;
+  --fs-hero: 88px;
+  --fs-question: 104px;
+  --btn-h: 108px;
+  --btn-h-lg: 152px;
+  --gap: 28px;
+  --pad: 48px;
+  --stroke: 4px;
+  --menu-columns: 2;
+}

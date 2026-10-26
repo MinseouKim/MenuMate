@@ -1,66 +1,68 @@
 import { useEffect, useState } from 'react';
 import { TopBar } from '../components/common';
 import { config } from '../config';
-import type { KioskController } from '../kiosk/useKiosk';
+import { TEXT } from '../kiosk/copy';
+import { useKioskContext } from '../kiosk/KioskContext';
 
 /** 결제 진행 중 (시뮬레이션, D13) */
-export function PayingScreen({ k }: { k: KioskController }) {
+export function PayingScreen() {
   return (
     <div className="screen">
-      <TopBar mode={k.state.mode} storeName={k.catalog.menu?.storeName} onToggleMode={k.commands.toggleMode} />
+      <TopBar />
       <div className="body center">
         <div className="spinner" />
-        <p className="hero">결제하고 있어요</p>
-        <p className="title mute">잠시만 기다려 주세요</p>
+        <p className="hero">{TEXT.paying.title}</p>
+        <p className="title mute">{TEXT.paying.detail}</p>
       </div>
     </div>
   );
 }
 
 /** 결제 실패: 장바구니는 그대로 */
-export function PayFailedScreen({ k }: { k: KioskController }) {
-  const c = k.commands;
+export function PayFailedScreen() {
+  const { payFailReason, commands: c } = useKioskContext();
   return (
     <div className="screen">
-      <TopBar mode={k.state.mode} storeName={k.catalog.menu?.storeName} onToggleMode={c.toggleMode} />
+      <TopBar />
       <div className="body center">
         <div className="spacer" />
-        <p className="hero error-text">결제가 되지 않았어요</p>
-        <p className="lead" role="alert">{k.payFailReason ?? '다시 시도해 주세요.'}</p>
-        <p className="lead mute">담은 메뉴는 그대로 있어요</p>
+        <p className="hero error-text">{TEXT.payFailed.title}</p>
+        <p className="lead" role="alert">{payFailReason ?? TEXT.payFailed.fallbackReason}</p>
+        <p className="lead mute">{TEXT.payFailed.cartKept}</p>
         <div className="spacer" />
-        <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>다시 결제하기</button>
-        <button className="btn btn-block btn-lg" onClick={c.backToCart}>장바구니로</button>
+        <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>{TEXT.payFailed.retry}</button>
+        <button className="btn btn-block btn-lg" onClick={c.backToCart}>{TEXT.payFailed.toCart}</button>
       </div>
     </div>
   );
 }
 
+const secondsLeft = (since: number) => Math.max(0, Math.ceil((since + config.doneResetMs - Date.now()) / 1000));
+
 /** 주문번호. 10초 뒤 처음 화면 (D30, D43) */
-export function DoneScreen({ k }: { k: KioskController }) {
-  const { state, commands: c } = k;
-  const [left, setLeft] = useState(Math.ceil(config.doneResetMs / 1000));
+export function DoneScreen() {
+  const { state, commands: c } = useKioskContext();
+  const since = state.lastInteractionAt;
+  const [left, setLeft] = useState(() => secondsLeft(since));
   useEffect(() => {
-    const tick = () => setLeft(Math.max(0, Math.ceil((state.lastInteractionAt + config.doneResetMs - Date.now()) / 1000)));
-    tick();
-    const id = setInterval(tick, 250);
+    const id = setInterval(() => setLeft(secondsLeft(since)), 250);
     return () => clearInterval(id);
-  }, [state.lastInteractionAt]);
+  }, [since]);
 
   return (
     <div className="screen">
-      <TopBar mode={state.mode} storeName={k.catalog.menu?.storeName} onToggleMode={c.toggleMode} />
+      <TopBar />
       <div className="body center">
         <div className="spacer" />
-        <p className="hero">주문이 끝났어요</p>
+        <p className="hero">{TEXT.done.title}</p>
         <div className="ticket">
-          <p className="lead">주문번호</p>
-          <div className="order-number" aria-label={`주문번호 ${state.orderNumber}`}>{state.orderNumber}</div>
+          <p className="lead">{TEXT.done.numberLabel}</p>
+          <div className="order-number" aria-label={TEXT.done.numberAria(state.orderNumber ?? '')}>{state.orderNumber}</div>
         </div>
-        <p className="title">번호를 부르면 받아 가세요</p>
+        <p className="title">{TEXT.done.pickup}</p>
         <div className="spacer" />
-        <p className="mute">{left}초 뒤 처음 화면으로 돌아가요</p>
-        <button className="btn btn-primary btn-block btn-lg" onClick={c.reset}>처음으로</button>
+        <p className="mute">{TEXT.done.countdown(left)}</p>
+        <button className="btn btn-primary btn-block btn-lg" onClick={c.reset}>{TEXT.done.home}</button>
       </div>
     </div>
   );
