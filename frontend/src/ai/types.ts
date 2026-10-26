@@ -1,6 +1,9 @@
 // docs/contracts/ai-output.md 의 공개 인터페이스. 구현은 @menumate/ai 가 제공한다.
 
 export type AgeGroupResult = 'senior' | 'non_senior';
+/** 연령대 3단계 (D72). group === 'senior' ⇔ ageBand === '55plus' */
+export type AgeBand = 'under35' | '35to54' | '55plus';
+export const AGE_BANDS: readonly AgeBand[] = ['under35', '35to54', '55plus'];
 
 export interface AgeGateConfig {
   faceModelUrl: string;
@@ -19,7 +22,8 @@ export type AgeGateUpdate =
   | { type: 'no_face' }
   | { type: 'detecting'; frameGroup: AgeGroupResult | 'low_confidence';
       run: number; required: number; elapsedMs: number }
-  | { type: 'decided'; group: AgeGroupResult; confidence: number; source: 'model' | 'forced' }
+  // ageBand: ai-output v2 (D72). 지금 AI 모듈은 force(ageBand) 의 값을 group 자리에 그대로 넣는다
+  | { type: 'decided'; group: AgeGroupResult | AgeBand; ageBand?: AgeBand; confidence: number; source: 'model' | 'forced' }
   | { type: 'timeout' }
   | { type: 'error'; code: 'inference_failed'; message: string };
 
@@ -27,7 +31,7 @@ export interface AgeGate {
   start(video: HTMLVideoElement): void;
   stop(): void;
   reset(): void;
-  force(group: AgeGroupResult): void;
+  force(target: AgeGroupResult | AgeBand): void; // ai-output v2: force(ageBand) 도 받는다
   onUpdate(cb: (u: AgeGateUpdate) => void): () => void;
   readonly backend: 'webgpu' | 'wasm';
 }

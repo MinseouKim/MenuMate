@@ -24,7 +24,14 @@ const menuItems = (): MenuItem[] => dummyMenu.items.filter(i => i.isAvailable).m
   imageUrl: i.image ? `/static/${i.image}` : null, tags: i.tags, priority: i.priority, sortOrder: i.sortOrder,
 }));
 
-function recommend(answers: { questionId: string; answer: string }[]) {
+// 연령대 적합 가산점 (개발용 가짜 값). 진짜 값은 리뷰 학습 엔진이 만든다 (api v2, D74). 연령대별 결과가 달라 보이게만 둔다
+const AGE_BONUS: Record<'under35' | '35to54' | '55plus', Score> = {
+  under35: { spicy: 3, hearty: 1 },
+  '35to54': { hearty: 2, soup: 1 },
+  '55plus': { soft: 3, mild: 2 },
+};
+
+function recommend(answers: { questionId: string; answer: string }[], ageBonus: Score = {}) {
   const prefs: Score = {};
   for (const a of answers) {
     const q = QUESTIONS.find(x => x.id === a.questionId);
@@ -33,7 +40,7 @@ function recommend(answers: { questionId: string; answer: string }[]) {
   }
   return menuItems()
     .map(menu => {
-      const score = menu.tags.reduce((s, t) => s + (prefs[t] ?? 0), 0) + menu.priority * 1.5;
+      const score = menu.tags.reduce((s, t) => s + (prefs[t] ?? 0) + (ageBonus[t] ?? 0), 0) + menu.priority * 1.5;
       const reasons: Reason[] = menu.tags.filter(t => (prefs[t] ?? 0) > 0).sort((a, b) => (prefs[b] ?? 0) - (prefs[a] ?? 0));
       if (menu.priority > 0) reasons.push('store_pick');
       return { menu, score, reasons };
@@ -69,7 +76,12 @@ export function createMockBackend({ payDelayMs = 1500 }: { payDelayMs?: number }
       if (method === 'POST' && path === '/api/recommendations') {
         const answers = b.answers;
         if (!Array.isArray(answers) || new Set(answers.map(a => a?.questionId)).size !== answers.length) return invalid();
-        return ok({ items: recommend(answers) });
+        // api v2: 연령대 없이 계산한 items + 세 연령대 결과를 한 번에. 서버는 손님 연령대를 모른다 (D73)
+        return ok({
+          items: recommend(answers),
+          byAgeBand: Object.fromEntries(Object.entries(AGE_BONUS).map(([band, bonus]) => [band, recommend(answers, bonus)])),
+          engineVersion: 'mock',
+        });
       }
       if (method === 'POST' && path === '/api/orders') {
         if (!['dine_in', 'takeout'].includes(b.orderType) || !Array.isArray(b.items)

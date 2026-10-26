@@ -1,14 +1,15 @@
 // 화면 상태 리듀서. docs/contracts/kiosk-flow.md 2장의 전이표(v1.2)를 그대로 옮겼다.
 // 순수 함수다: API 호출, TTS, 카메라, 타이머는 useKiosk 훅이 맡는다.
 // 전이표에 없는 동작은 상태를 바꾸지 않고 같은 객체를 돌려준다.
-import type { KioskAction, KioskState, Screen } from './types';
+import { AGE_BANDS, type AgeBand, type AgeGateUpdate } from '../ai/types';
+import type { CustomerAgeBand, KioskAction, KioskState, Screen } from './types';
 
 export const MAX_QUANTITY = 9;
 
 export const initialState = (now: number): KioskState => ({
   screen: 'idle',
   mode: null,
-  ageGroup: null,
+  ageBand: null,
   surveyIndex: 0,
   answers: [],
   recommendations: [],
@@ -39,13 +40,15 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
           return s.screen === 'detecting' ? s : { ...s, screen: 'detecting' };
         case 'no_face':
           return s.screen === 'idle' ? s : { ...s, screen: 'idle' };
-        case 'decided':
-          return u.group === 'senior'
-            ? { ...s, screen: 'survey', mode: 'easy', ageGroup: 'senior', surveyIndex: 0, answers: [], lastInteractionAt: a.now }
-            : { ...s, screen: 'menu', mode: 'normal', ageGroup: 'non_senior', lastInteractionAt: a.now };
+        case 'decided': {
+          const ageBand = bandOf(u);
+          return ageBand === '55plus'
+            ? { ...s, screen: 'survey', mode: 'easy', ageBand, surveyIndex: 0, answers: [], lastInteractionAt: a.now }
+            : { ...s, screen: 'menu', mode: 'normal', ageBand, lastInteractionAt: a.now };
+        }
         case 'timeout':
         case 'error': // 판정 전 추론 오류는 타임아웃과 같게 (kiosk-flow v1.1)
-          return { ...s, screen: 'menu', mode: 'normal', ageGroup: 'undecided', lastInteractionAt: a.now };
+          return { ...s, screen: 'menu', mode: 'normal', ageBand: 'unknown', lastInteractionAt: a.now };
         default:
           return s;
       }
@@ -53,11 +56,11 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
 
     case 'START_EASY':
       if (s.screen !== 'idle' && s.screen !== 'detecting') return s;
-      return { ...s, screen: 'survey', mode: 'easy', ageGroup: 'undecided', surveyIndex: 0, answers: [], lastInteractionAt: a.now };
+      return { ...s, screen: 'survey', mode: 'easy', ageBand: 'unknown', surveyIndex: 0, answers: [], lastInteractionAt: a.now };
 
     case 'START_NORMAL':
       if (s.screen !== 'idle' && s.screen !== 'detecting') return s;
-      return { ...s, screen: 'menu', mode: 'normal', lastInteractionAt: a.now };
+      return { ...s, screen: 'menu', mode: 'normal', ageBand: 'unknown', lastInteractionAt: a.now };
 
     case 'INTERACT':
       return { ...s, lastInteractionAt: a.now };
@@ -87,7 +90,7 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
 
     case 'RECS_LOADED':
       if (s.screen !== 'survey') return s;
-      return { ...s, screen: 'recommend', recommendations: a.items };
+      return { ...s, screen: 'recommend', recommendations: pickRecommendations(s.ageBand, a.items, a.byAgeBand) };
 
     case 'RECS_FAILED':
       if (s.screen !== 'survey') return s;
@@ -168,6 +171,22 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
     default:
       return s;
   }
+}
+
+/**
+ * AI 판정의 연령대 (kiosk-flow v1.3). AI v2 는 ageBand 를 준다. 지금 AI 모듈은 force(ageBand) 의 값을 group 자리에 넣으므로 그것도 받는다.
+ * 연령대가 없는 판정(예전 모듈의 non_senior)은 unknown: 화면 모드만 정하고 추천은 연령대 없는 items 를 쓴다
+ */
+function bandOf(u: Extract<AgeGateUpdate, { type: 'decided' }>): CustomerAgeBand {
+  if (u.ageBand) return u.ageBand;
+  if (u.group === 'senior') return '55plus';
+  return (AGE_BANDS as readonly string[]).includes(u.group) ? (u.group as AgeBand) : 'unknown';
+}
+
+/** 추천은 byAgeBand[ageBand] ?? items (kiosk-flow v1.3, D73). 연령대는 서버로 보내지 않고 받은 결과 중에서 고른다 */
+export function pickRecommendations<T>(ageBand: CustomerAgeBand | null, items: T[], byAgeBand?: Partial<Record<AgeBand, T[]>>): T[] {
+  const forBand = ageBand && ageBand !== 'unknown' ? byAgeBand?.[ageBand] : undefined;
+  return forBand && forBand.length > 0 ? forBand : items;
 }
 
 /** 무입력 60초, 주문번호 화면 10초 뒤 초기화할지 (D30). 대기·인식 화면은 초기화할 것이 없다 */

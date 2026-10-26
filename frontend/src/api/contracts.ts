@@ -21,6 +21,13 @@ export interface Order {
   orderNumber: string | null; paidAt: string | null;
 }
 
+/** POST /api/recommendations 응답 (api v2). byAgeBand 가 없으면 v1 서버 */
+export interface RecommendationsResponse {
+  items: Recommendation[];
+  byAgeBand?: Partial<Record<'under35' | '35to54' | '55plus', Recommendation[]>>;
+  engineVersion?: string;
+}
+
 export interface MenuResponse { storeName: string; categories: Category[]; items: MenuItem[] }
 export interface AnswerInput { questionId: string; answer: Answer }
 export interface ApiErrorBody { error: { code: string; message: string } }

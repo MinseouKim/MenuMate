@@ -405,3 +405,47 @@ describe('55+ 빛 테두리 (D78)', () => {
     expect(glowing()).toEqual([TEXT.cartBar.checkout]);
   });
 });
+
+describe('연령대별 추천 (kiosk-flow v1.3, D72·D73)', () => {
+  // 가짜 Backend 가 같은 답으로 돌려주는 연령대별 첫 추천을 미리 계산해 둔다
+  const firstRec = async (band?: 'under35' | '35to54' | '55plus') => {
+    const res = await createMockBackend({ payDelayMs: 0 }).handle('POST', '/api/recommendations', {
+      answers: ['q_spicy', 'q_soup', 'q_soft', 'q_hearty'].map(questionId => ({ questionId, answer: 'yes' })),
+    });
+    const body = res.body as { items: { menu: { name: string } }[]; byAgeBand: Record<string, { menu: { name: string } }[]> };
+    return (band ? body.byAgeBand[band] : body.items)[0].menu.name;
+  };
+  const recommendAfter = async (key: string) => {
+    await start();
+    shift(key);
+    if (key === 'KeyS') await screen.findByText('매운 음식도 괜찮으세요?');
+    else { await screen.findByRole('button', { name: TEXT.menu.chat }); click(TEXT.menu.chat); }
+    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    await screen.findByText(TEXT.recommend.title);
+    return screen.getAllByRole('button', { name: FIRST_REC })[0].getAttribute('aria-label');
+  };
+
+  it('Shift+Y(35세 미만)는 기본 화면, 추천은 under35 결과', async () => {
+    const label = await recommendAfter('KeyY');
+    expect(document.querySelector('[data-mode="normal"]')).not.toBeNull();
+    expect(label).toContain(await firstRec('under35'));
+  });
+
+  it('Shift+N(35~54세)은 35to54 결과', async () => {
+    expect(await recommendAfter('KeyN')).toContain(await firstRec('35to54'));
+  });
+
+  it('55세 이상은 55plus 결과', async () => {
+    expect(await recommendAfter('KeyS')).toContain(await firstRec('55plus'));
+  });
+
+  it('가짜 Backend 의 연령대별 첫 추천은 서로 다르다 (테스트가 의미 있게)', async () => {
+    const names = new Set([await firstRec('under35'), await firstRec('35to54'), await firstRec('55plus'), await firstRec()]);
+    expect(names.size).toBeGreaterThan(1);
+  });
+
+  it('연령대는 어떤 API 요청에도 들어가지 않는다 (D73)', async () => {
+    await recommendAfter('KeyY');
+    for (const r of requests) expect(r.body).not.toMatch(/under35|35to54|55plus|ageBand|senior/);
+  });
+});

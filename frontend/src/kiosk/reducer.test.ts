@@ -28,28 +28,28 @@ describe('연령 판정', () => {
 
   it('55+ 확정이면 쉬운 화면 질문', () => {
     const s = run([detecting, senior]);
-    expect(s).toMatchObject({ screen: 'survey', mode: 'easy', ageGroup: 'senior', surveyIndex: 0 });
+    expect(s).toMatchObject({ screen: 'survey', mode: 'easy', ageBand: '55plus', surveyIndex: 0 });
   });
 
   it('55 미만 확정이면 일반 메뉴판', () => {
-    expect(run([detecting, junior])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'non_senior' });
+    expect(run([detecting, junior])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'unknown' });
   });
 
-  it('8초 타임아웃이면 일반 메뉴판, ageGroup=undecided (D16)', () => {
+  it('8초 타임아웃이면 일반 메뉴판, ageBand=unknown (D16)', () => {
     const s = run([detecting, { type: 'AI_UPDATE', now: T, update: { type: 'timeout' } }]);
-    expect(s).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
+    expect(s).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'unknown' });
   });
 
   it('판정 전 추론 오류(inference_failed)는 타임아웃과 같이 일반 메뉴판 (kiosk-flow v1.1)', () => {
     const error: KioskAction = { type: 'AI_UPDATE', now: T, update: { type: 'error', code: 'inference_failed', message: 'x' } };
-    expect(run([detecting, error])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
-    expect(run([error])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: 'undecided' });
+    expect(run([detecting, error])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'unknown' });
+    expect(run([error])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'unknown' });
     const decided = run([detecting, senior]);
     expect(kioskReducer(decided, error)).toBe(decided);
   });
 
   it('대기 화면에서 타임아웃이 와도 일반 메뉴판 (kiosk-flow v1.1)', () => {
-    expect(run([{ type: 'AI_UPDATE', now: T, update: { type: 'timeout' } }])).toMatchObject({ screen: 'menu', ageGroup: 'undecided' });
+    expect(run([{ type: 'AI_UPDATE', now: T, update: { type: 'timeout' } }])).toMatchObject({ screen: 'menu', ageBand: 'unknown' });
   });
 
   it('대기 화면에서 강제 판정(단축키)도 바로 반영된다', () => {
@@ -62,13 +62,13 @@ describe('연령 판정', () => {
   });
 
   it('"바로 주문"은 판정 없이 일반 메뉴판 (D46, v1.2)', () => {
-    expect(run([{ type: 'START_NORMAL', now: T }])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: null });
+    expect(run([{ type: 'START_NORMAL', now: T }])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'unknown' });
     expect(run([detecting, { type: 'START_NORMAL', now: T }]).screen).toBe('menu');
   });
 
-  it('"큰 글씨로 주문"은 쉬운 화면 질문, ageGroup=undecided (v1.2, D68)', () => {
+  it('"큰 글씨로 주문"은 쉬운 화면 질문, ageBand=unknown (v1.3)', () => {
     expect(run([{ type: 'START_EASY', now: T }]))
-      .toMatchObject({ screen: 'survey', mode: 'easy', ageGroup: 'undecided', surveyIndex: 0, answers: [] });
+      .toMatchObject({ screen: 'survey', mode: 'easy', ageBand: 'unknown', surveyIndex: 0, answers: [] });
     expect(run([detecting, { type: 'START_EASY', now: T }]).screen).toBe('survey');
   });
 
@@ -238,14 +238,14 @@ describe('모드 전환과 초기화', () => {
 describe('개인정보 (D2, D47)', () => {
   it('상태 키는 계약 1장과 같고 나이 숫자를 담는 필드가 없다', () => {
     expect(Object.keys(initialState(0)).sort()).toEqual([
-      'ageGroup', 'answers', 'cart', 'lastInteractionAt', 'mode', 'orderId', 'orderNumber',
+      'ageBand', 'answers', 'cart', 'lastInteractionAt', 'mode', 'orderId', 'orderNumber',
       'orderType', 'recommendations', 'screen', 'surveyIndex',
     ]);
   });
 
   it('판정 뒤 상태에는 연령대 문자열만 남는다', () => {
     const s = run([detecting, senior]);
-    expect(s.ageGroup).toBe('senior');
+    expect(s.ageBand).toBe('55plus');
     expect(JSON.stringify(s)).not.toMatch(/"age"\s*:/);
     expect(JSON.stringify(s)).not.toMatch(/confidence/);
   });
@@ -262,5 +262,43 @@ describe('순서에 맞지 않는 동작은 무시한다', () => {
   ];
   it.each(ignored.map(a => [a.type, a] as const))('대기 화면에서 %s', (_, a) => {
     expect(kioskReducer(idle, a)).toBe(idle);
+  });
+});
+
+describe('연령대 3단계와 연령대별 추천 (kiosk-flow v1.3, D72·D73)', () => {
+  const decided = (extra: Record<string, unknown>): KioskAction =>
+    ({ type: 'AI_UPDATE', now: T, update: { type: 'decided', confidence: 0.9, source: 'model', ...extra } as never });
+
+  it('AI v2 의 ageBand 를 그대로 쓴다. 55plus 만 쉬운 화면', () => {
+    expect(run([decided({ group: 'non_senior', ageBand: 'under35' })])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: 'under35' });
+    expect(run([decided({ group: 'non_senior', ageBand: '35to54' })])).toMatchObject({ screen: 'menu', mode: 'normal', ageBand: '35to54' });
+    expect(run([decided({ group: 'senior', ageBand: '55plus' })])).toMatchObject({ screen: 'survey', mode: 'easy', ageBand: '55plus' });
+  });
+
+  it('지금 AI 모듈처럼 force(ageBand) 가 group 자리에 연령대를 넣어도 받는다', () => {
+    expect(run([decided({ group: 'under35' })])).toMatchObject({ mode: 'normal', ageBand: 'under35' });
+    expect(run([decided({ group: '55plus' })])).toMatchObject({ mode: 'easy', ageBand: '55plus' });
+  });
+
+  const recs = (ids: string[]): Recommendation[] => ids.map(id => ({ menu: menuItem(id), score: 1, reasons: [] }));
+  const byAgeBand = { under35: recs(['y1', 'y2', 'y3']), '35to54': recs(['m1', 'm2', 'm3']), '55plus': recs(['s1', 's2', 's3']) };
+  const items = recs(['u1', 'u2', 'u3']);
+  // 메뉴판에서 시작하면 "AI와 대화하기"로 질문에 들어간다 (질문 화면에서 OPEN_CHAT 은 무시됨)
+  const loaded = (from: KioskAction[]) =>
+    run([...from, { type: 'OPEN_CHAT', now: T }, ...fourAnswers, { type: 'RECS_LOADED', items, byAgeBand }]);
+
+  it('추천은 byAgeBand[ageBand] ?? items', () => {
+    expect(loaded([decided({ group: 'non_senior', ageBand: 'under35' })]).recommendations.map(r => r.menu.id)).toEqual(['y1', 'y2', 'y3']);
+    expect(loaded([decided({ group: 'non_senior', ageBand: '35to54' })]).recommendations.map(r => r.menu.id)).toEqual(['m1', 'm2', 'm3']);
+    expect(loaded([decided({ group: 'senior', ageBand: '55plus' })]).recommendations.map(r => r.menu.id)).toEqual(['s1', 's2', 's3']);
+  });
+
+  it('연령대를 모르면(버튼 시작·타임아웃) items, byAgeBand 가 없거나 비어도 items', () => {
+    expect(loaded([{ type: 'START_EASY', now: T }]).recommendations.map(r => r.menu.id)).toEqual(['u1', 'u2', 'u3']);
+    const noBands = run([decided({ group: 'senior', ageBand: '55plus' }), ...fourAnswers, { type: 'RECS_LOADED', items }]);
+    expect(noBands.recommendations.map(r => r.menu.id)).toEqual(['u1', 'u2', 'u3']);
+    const emptyBand = run([decided({ group: 'senior', ageBand: '55plus' }), ...fourAnswers,
+      { type: 'RECS_LOADED', items, byAgeBand: { ...byAgeBand, '55plus': [] } }]);
+    expect(emptyBand.recommendations.map(r => r.menu.id)).toEqual(['u1', 'u2', 'u3']);
   });
 });

@@ -179,8 +179,10 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const onKey = (e: KeyboardEvent) => {
       if (!e.shiftKey || e.repeat) return;
       switch (e.code) {
-        case 'KeyS': aiRef.current.ageGate.force('senior'); break;
-        case 'KeyN': aiRef.current.ageGate.force('non_senior'); break;
+        // 연령대 강제 판정 (ai-output v2): S 55세 이상, N 35~54세, Y 35세 미만
+        case 'KeyS': aiRef.current.ageGate.force('55plus'); break;
+        case 'KeyN': aiRef.current.ageGate.force('35to54'); break;
+        case 'KeyY': aiRef.current.ageGate.force('under35'); break;
         case 'KeyF': forceFailNextRef.current = true; break;
         case 'KeyR': reset(); break;
         default: return;
@@ -253,8 +255,8 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         const session = sessionRef.current;
         const answers = [...s.answers.slice(0, s.surveyIndex), { questionId: q.id, answer }];
         try {
-          const items = await api.recommendations(answers);
-          if (session === sessionRef.current) dispatch({ type: 'RECS_LOADED', items });
+          const { items, byAgeBand } = await api.recommendations(answers);
+          if (session === sessionRef.current) dispatch({ type: 'RECS_LOADED', items, byAgeBand });
         } catch (e) {
           if (session !== sessionRef.current) return;
           setNotice(errorMessage(e));

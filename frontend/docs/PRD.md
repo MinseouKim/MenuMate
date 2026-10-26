@@ -95,4 +95,9 @@
 음성 인식(STT, D28 2차), 메뉴 옵션(D26), 실제 카드 결제·PG(D13), 관리자 페이지(D6), 다국어, 회원·적립.
 
 ## 10. 시연 운영 (D24, D30)
-`VITE_DEV_SHORTCUTS=true`일 때 화면 표시 없이: Shift+S 55+ 강제, Shift+N 55 미만 강제, Shift+F 다음 결제 1회 실패, Shift+R 즉시 초기화.
+`VITE_DEV_SHORTCUTS=true`일 때 화면 표시 없이: Shift+S 55세 이상, Shift+N 35~54세, Shift+Y 35세 미만 강제 판정(kiosk-flow v1.3), Shift+F 다음 결제 1회 실패, Shift+R 즉시 초기화.
+
+## 11. 연령대별 추천 (kiosk-flow v1.3, D72·D73)
+- 상태의 연령대는 `ageBand`(`under35` / `35to54` / `55plus` / `unknown`). 55세 이상만 큰 글씨 화면.
+- 서버는 세 연령대 추천과 연령대 없는 추천(`items`)을 한 번에 보낸다. 화면은 `byAgeBand[ageBand] ?? items`를 보여 준다. 연령대는 서버로 보내지 않는다.
+- 버튼으로 시작하거나 판정이 안 되면 `unknown` → `items`.
