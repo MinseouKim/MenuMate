@@ -161,7 +161,7 @@
 | D59 | 판정 기준값 확정 | stableFrames 5, minConfidence 0.7, noFaceGraceMs 0 유지. 실측(MacBook Pro M4 Pro 내장 카메라, Chrome webgpu): 정면 확정 0.67초(최대 1.84초), confidence 0.73 이상, 검출 끊김 0회, 고령 인물 사진 3/3 senior | ✅ | `ai/docs/webcam-measurements.md`. 실제 55+ 인물·경계 나이·조명·안경·마스크는 미검증. 전시 전 Brio 500(모니터 위)으로 재확인 필요 |
 | D60 | 디자이너 합류 | 디자이너 1명 추가. 시각·UX는 디자이너가 최종 결정, 기술 구현은 Frontend, 어려운 결정·계약·일정은 PM | ✅ | 2026-10-26 사용자 결정. 규칙: `design/RULES.md` |
 | D61 | 스킬 추가 | 디자이너: frontend-design, design-taste-frontend(app screen 규칙, 인터넷 이미지·Google Fonts 기능 미사용), web-design-guidelines, writing-guidelines. Frontend: vercel-react-best-practices, vercel-composition-patterns 추가 | ✅ | vercel 배포·비용·모바일 스킬은 제외 (D32) |
-| D62 | 서체 | **D2Coding 하나로 통일** (D54 대체). 프로젝트에 파일로 포함 | ✅ | 사용자 결정. 굵기는 Regular·Bold 두 가지 |
+| D62 | 서체 | **D2Coding 하나로 통일** (D54 대체). 폰트 파일은 **네이버 공식 저장소(https://github.com/naver/d2codingfont)의 릴리스 파일**만 사용해 프로젝트에 포함. npm 패키지·CDN 등 다른 출처 금지. 라이선스(OFL) 전문과 버전을 함께 커밋 | ✅ | 사용자 결정. 굵기는 Regular·Bold 두 가지 |
 | D63 | 작업 구조 | 디자이너가 화면을 먼저 디자인하고 Frontend가 그대로 개발. 디자이너는 `design/`만 수정, 구현 후 디자인 검수 | ✅ | 사용자 결정 |
 | D64 | 디자인 방향 | D55(한식당 메뉴판 모티프)는 출발점일 뿐. 디자이너가 Frontend와 회의 후 필요하면 전체 변경 가능 | ✅ | 사용자 결정 |
 | D65 | 최종 점검 연기 | 10/27 최종 점검을 미루고 디자인 개선을 반영한 뒤 점검. 새 날짜는 사용자 확정 대기 | ✅ | 사용자 결정 |
