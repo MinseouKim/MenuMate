@@ -4,6 +4,7 @@ import type {
   CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
 } from './contracts.js';
 import type { Config } from './config.js';
+import { loadEngine, type Engine } from './engine.js';
 import { AppError, errorBody } from './errors.js';
 import { loadCatalog } from './menu.js';
 import { createOrder, createOrderSchema } from './orders.js';
@@ -20,6 +21,8 @@ export interface AppDeps {
   gateway?: PaymentGateway;
   /** 주문번호 날짜와 paidAt에 쓰는 시계 (테스트에서 바꿈) */
   now?: () => Date;
+  /** 엔진 결과. 생략하면 config.engineFile에서 읽고, 없거나 틀리면 null (v1 점수) */
+  engine?: Engine | null;
   logger?: boolean;
 }
 
@@ -56,6 +59,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     ajv: { customOptions: { coerceTypes: false } },
   });
 
+  const engine = deps.engine !== undefined ? deps.engine : loadEngine(config.engineFile, app.log);
+
   app.setErrorHandler((err: FastifyError, req, reply) => {
     if (err instanceof AppError) return reply.status(err.status).send(errorBody(err.code));
     if (err.validation || (err.statusCode !== undefined && err.statusCode >= 400 && err.statusCode < 500)) {
@@ -87,9 +92,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       const ids = req.body.answers.map((a) => a.questionId);
       if (new Set(ids).size !== ids.length) throw new AppError('VALIDATION_FAILED', '같은 questionId가 두 번 있음');
       const catalog = await loadCatalog(prisma);
-      const items = recommend(catalog.items, req.body.answers);
-      const byAgeBand = Object.fromEntries(AGE_BANDS.map((band) => [band, items])) as RecommendationResponse['byAgeBand'];
-      return { items, byAgeBand, engineVersion: 'none' };
+      const { answers } = req.body;
+      const byAgeBand = Object.fromEntries(
+        AGE_BANDS.map((band) => [band, recommend(catalog.items, answers, { engine, band })]),
+      ) as RecommendationResponse['byAgeBand'];
+      return { items: recommend(catalog.items, answers, { engine }), byAgeBand, engineVersion: engine?.version ?? 'none' };
     },
   );
 

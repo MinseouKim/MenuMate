@@ -46,7 +46,7 @@ describe('recommend', () => {
       menu('q', ['hearty'], { priority: 0 }),         // 0
     ];
     // 점수 2.0이 되도록: p는 soup 없이 priority만. 비교용으로 soup 동점 3개
-    const r = recommend(menus, [{ questionId: 'q_soup', answer: 'yes' }], 5);
+    const r = recommend(menus, [{ questionId: 'q_soup', answer: 'yes' }], { limit: 5 });
     expect(ids(r)).toEqual(['c', 'a', 'b', 'p', 'q']);
   });
 

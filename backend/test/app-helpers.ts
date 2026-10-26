@@ -10,6 +10,7 @@ export function testConfig(env: NodeJS.ProcessEnv = {}): Config {
       MODEL_DIR: './data/__no_models__',
       FRONTEND_DIST: './data/__no_dist__',
       MENU_IMAGE_DIR: './data/__no_images__',
+      ENGINE_FILE: './data/__no_engine__.json',
       PAYMENT_SIM_DELAY_MS: '0',
       ...env,
     },

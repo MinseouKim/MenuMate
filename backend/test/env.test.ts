@@ -33,6 +33,7 @@ describe('loadConfig', () => {
     expect(c.paymentMode).toBe('simulate');
     expect(c.paymentSimResult).toBe('success');
     expect(c.paymentSimDelayMs).toBe(1500);
+    expect(c.engineFile).toBe(path.join(base, 'engine', 'menu-features.json'));
   });
 
   it('env 값을 읽는다', () => {

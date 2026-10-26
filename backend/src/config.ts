@@ -12,6 +12,8 @@ export interface Config {
   paymentMode: 'simulate';
   paymentSimResult: 'success' | 'fail';
   paymentSimDelayMs: number;
+  /** 리뷰 학습 엔진 결과 파일 (v2). 없으면 v1 점수 */
+  engineFile: string;
 }
 
 function int(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
@@ -45,5 +47,6 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
     paymentMode: oneOf(env, 'PAYMENT_MODE', ['simulate'] as const, 'simulate'),
     paymentSimResult: oneOf(env, 'PAYMENT_SIM_RESULT', ['success', 'fail'] as const, 'success'),
     paymentSimDelayMs: int(env, 'PAYMENT_SIM_DELAY_MS', 1500),
+    engineFile: dir('ENGINE_FILE', './engine/menu-features.json'),
   };
 }

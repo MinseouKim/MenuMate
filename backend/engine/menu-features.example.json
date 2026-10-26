@@ -1,0 +1,100 @@
+{
+  "engineVersion": "example-not-trained",
+  "generatedAt": "2026-10-27T00:00:00+09:00",
+  "weights": {
+    "ageFit": 2,
+    "reputation": 2
+  },
+  "menus": [
+    {
+      "menuName": "된장찌개",
+      "features": {
+        "spicy": 0.1,
+        "mild": 0.9,
+        "soup": 0.95,
+        "soft": 0.7,
+        "hearty": 0.4
+      },
+      "ageFit": {
+        "under35": 0.35,
+        "35to54": 0.6,
+        "55plus": 0.9
+      },
+      "reputation": 0.8,
+      "reviewCount": 320,
+      "adFilteredCount": 14
+    },
+    {
+      "menuName": "김치찌개",
+      "features": {
+        "spicy": 0.85,
+        "mild": 0.1,
+        "soup": 0.95,
+        "soft": 0.3,
+        "hearty": 0.6
+      },
+      "ageFit": {
+        "under35": 0.7,
+        "35to54": 0.65,
+        "55plus": 0.55
+      },
+      "reputation": 0.75,
+      "reviewCount": 510,
+      "adFilteredCount": 30
+    },
+    {
+      "menuName": "제육덮밥",
+      "features": {
+        "spicy": 0.8,
+        "mild": 0.1,
+        "soup": 0.05,
+        "soft": 0.2,
+        "hearty": 0.9
+      },
+      "ageFit": {
+        "under35": 0.85,
+        "35to54": 0.6,
+        "55plus": 0.3
+      },
+      "reputation": 0.7,
+      "reviewCount": 280,
+      "adFilteredCount": 9
+    },
+    {
+      "menuName": "전복죽",
+      "features": {
+        "spicy": 0.0,
+        "mild": 0.95,
+        "soup": 0.3,
+        "soft": 1.0,
+        "hearty": 0.2
+      },
+      "ageFit": {
+        "under35": 0.2,
+        "35to54": 0.45,
+        "55plus": 0.95
+      },
+      "reputation": 0.85,
+      "reviewCount": 120,
+      "adFilteredCount": 4
+    },
+    {
+      "menuName": "LA갈비",
+      "features": {
+        "spicy": 0.05,
+        "mild": 0.5,
+        "soup": 0.0,
+        "soft": 0.4,
+        "hearty": 0.95
+      },
+      "ageFit": {
+        "under35": 0.6,
+        "35to54": 0.75,
+        "55plus": 0.6
+      },
+      "reputation": 0.6,
+      "reviewCount": 90,
+      "adFilteredCount": 11
+    }
+  ]
+}
