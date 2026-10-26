@@ -73,7 +73,7 @@ button { font: inherit; color: inherit; }
   background: var(--color-topbar-bg); color: var(--color-topbar-ink);
   min-height: var(--topbar-h);
 }
-.topbar .store { font-family: var(--font-display); font-size: var(--fs-store); }
+.topbar .store { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-store); }
 .topbar .btn { background: transparent; color: var(--color-topbar-ink); border-color: var(--color-topbar-ink); }
 .topbar .btn:active { background: var(--color-selected); color: var(--color-ink); }
 
@@ -103,7 +103,7 @@ button { font: inherit; color: inherit; }
 .thumb {
   aspect-ratio: 4 / 3; width: 100%;
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-size: var(--fs-thumb); color: var(--color-ink);
+  font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-thumb); color: var(--color-ink);
   padding: var(--pad-thumb); text-align: center; object-fit: cover;
 }
 .thumb[data-tint='1'] { background: var(--tint-1); }
@@ -159,7 +159,7 @@ button { font: inherit; color: inherit; }
 .line .name { flex: 1; font-weight: var(--fw-heavy); }
 .stepper { display: flex; align-items: center; gap: var(--gap-btn); }
 .stepper .btn { width: var(--btn-h); padding: 0; font-size: var(--fs-stepper); }
-.stepper .qty { min-width: var(--stepper-qty-w); text-align: center; font-family: var(--font-display); font-size: var(--fs-stepper); }
+.stepper .qty { min-width: var(--stepper-qty-w); text-align: center; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-stepper); }
 .total { display: flex; justify-content: space-between; align-items: baseline; padding: var(--pad-total); border-top: var(--stroke) solid var(--color-ink); }
 .total .price { font-size: var(--fs-title); }
 
@@ -175,8 +175,8 @@ button { font: inherit; color: inherit; }
   flex: 0 0 var(--signboard-h); background: var(--color-signboard-bg); color: var(--color-signboard-ink);
   padding: var(--pad-signboard); display: flex; flex-direction: column; justify-content: space-between;
 }
-.wordmark { font-family: var(--font-display); font-size: var(--fs-wordmark); line-height: 1; }
-.greeting { font-family: var(--font-display); font-size: var(--fs-greeting); line-height: var(--lh-greeting); margin: 0; }
+.wordmark { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-wordmark); line-height: 1; }
+.greeting { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-greeting); line-height: var(--lh-greeting); margin: 0; }
 .greeting.small { font-size: var(--fs-greeting-small); }
 .camera-notice { padding: var(--pad-camera-notice-top) var(--pad) var(--pad-camera-notice-bottom); font-size: var(--fs-camera-notice); color: var(--color-ink-mute); background: var(--color-bg); text-align: center; }
 .dots { display: flex; gap: var(--gap-dot); }
@@ -189,7 +189,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- 주문번호 ---------- */
 .ticket { background: var(--color-surface); border: var(--stroke-ticket) solid var(--color-ink); border-radius: var(--r-tile); padding: var(--pad-ticket); display: flex; flex-direction: column; align-items: center; }
-.order-number { font-family: var(--font-display); font-size: var(--fs-order-number); line-height: 1; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.order-number { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-order-number); line-height: 1; color: var(--color-ink); font-variant-numeric: tabular-nums; }
 
 @media (prefers-reduced-motion: reduce) {
   .ring, .spinner { animation: none; }
