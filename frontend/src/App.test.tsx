@@ -12,7 +12,7 @@ const lines = (l: readonly string[]) => l.join(' ');
 const GREETING = lines(TEXT.idle.greeting);
 const amountIn = (name: string) => Number(name.replace(/\D/g, ''));
 const PAY = (name: string) => name === TEXT.cart.pay(amountIn(name));
-const FIRST_REC = (name: string) => dummyMenu.items.some(i => name === TEXT.recommend.add(1, i.name, i.price));
+const REC_ADD = (name: string) => dummyMenu.items.some(i => name === TEXT.add.aria(i.name) || name === TEXT.add.ariaDone(i.name));
 const DINE_IN = ORDER_TYPE_LABEL.dine_in;
 const TAKEOUT = ORDER_TYPE_LABEL.takeout;
 
@@ -62,21 +62,28 @@ async function start() {
 }
 
 async function payToDone(orderType: string) {
-  click(TEXT.cartBar.checkout);
+  click(TEXT.orderbar.checkout);
   click(orderType);
   click(PAY);
   await screen.findByText(TEXT.done.title);
 }
 
+const clickFirstRec = () => fireEvent.click(screen.getAllByRole('button', { name: REC_ADD })[0]);
+const toMenu = async () => { shift('KeyN'); await screen.findByRole('button', { name: TEXT.menu.ai }); };
+const answerAll = async (answers: ('yes' | 'no')[]) => {
+  for (const a of answers) click(a === 'yes' ? TEXT.survey.yes : TEXT.survey.no);
+  await screen.findByText(lines(TEXT.recommend.title));
+};
+
 describe('키오스크 전체 흐름', () => {
-  it('55 미만(Shift+N): 메뉴판 → 담기 → 매장 → 결제 → 주문번호', async () => {
+  it('55 미만(Shift+N): 메뉴판 타일 → 담기 → 매장 → 결제 → 주문번호', async () => {
     await start();
-    shift('KeyN');
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    await toMenu();
     expect(screen.getByRole('button', { name: TEXT.common.toEasy })).toBeInTheDocument();
-    click(TEXT.tile.add('된장찌개', 9000));
-    click(TEXT.tile.add('된장찌개', 9000));
-    expect(screen.getByText(TEXT.cartBar.count(2))).toBeInTheDocument();
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.tile.aria('된장찌개', 9000));
+    expect(screen.getByText(TEXT.orderbar.count(2))).toBeInTheDocument();
+    expect(screen.getByText(TEXT.tile.added(2))).toBeInTheDocument();
     await payToDone(DINE_IN);
     expect(screen.getByLabelText(TEXT.done.numberAria('001'))).toBeInTheDocument();
   });
@@ -85,26 +92,63 @@ describe('키오스크 전체 흐름', () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
+    expect(screen.getByText(lines(TEXT.survey.intro))).toBeInTheDocument(); // 1번 질문 인사 = 음성 인사
+    expect(screen.getByText(TEXT.survey.progress(1, 4))).toBeInTheDocument();
     expect(screen.getByRole('button', { name: TEXT.common.toNormal })).toBeInTheDocument();
     expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
     click(TEXT.survey.no);
     await screen.findByText('따뜻한 국물이 있는 음식이 좋으세요?');
-    click(TEXT.survey.yes);
-    click(TEXT.survey.yes);
-    click(TEXT.survey.no);
-    await screen.findByText(TEXT.recommend.title);
-    for (const n of [1, 2, 3]) expect(screen.getByText(TEXT.recommend.rank(n))).toBeInTheDocument();
-    click(FIRST_REC);
+    expect(screen.queryByText(lines(TEXT.survey.intro))).toBeNull();
+    await answerAll(['yes', 'yes', 'no']);
+    expect(screen.getAllByRole('button', { name: REC_ADD })).toHaveLength(3);
+    clickFirstRec();
+    expect(screen.getByText(TEXT.recommend.guideAfter)).toBeInTheDocument();
     await payToDone(TAKEOUT);
+  });
+
+  it('쉬운 화면은 이미 담은 메뉴를 다시 눌러도 수량이 늘지 않는다 (디자인 명세 2-5)', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    click(TEXT.survey.exit);
+    await screen.findByRole('button', { name: TEXT.menu.ai });
+    click(TEXT.add.aria('된장찌개'));
+    expect(screen.getByText(TEXT.orderbar.count(1))).toBeInTheDocument();
+    click(TEXT.add.ariaDone('된장찌개'));
+    expect(screen.getByText(TEXT.orderbar.count(1))).toBeInTheDocument();
+  });
+
+  it('쉬운 메뉴판은 한 쪽에 메뉴 4개, 앞/다음 메뉴로 넘긴다', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    click(TEXT.survey.exit);
+    await screen.findByRole('button', { name: TEXT.menu.ai });
+    expect(screen.getAllByRole('button', { name: REC_ADD })).toHaveLength(4);
+    expect(screen.getByText(TEXT.menu.page(1, 2))).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: TEXT.menu.prev })).toBeDisabled();
+    click(TEXT.menu.next);
+    expect(screen.getByRole('button', { name: TEXT.add.aria('육개장') })).toBeInTheDocument();
+  });
+
+  it('기본 화면 추천은 누를 때마다 1개씩 더 담긴다', async () => {
+    await start();
+    await toMenu();
+    click(TEXT.menu.ai);
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    await answerAll(['yes', 'yes', 'yes', 'yes']);
+    clickFirstRec();
+    clickFirstRec();
+    expect(screen.getByText(TEXT.orderbar.count(2))).toBeInTheDocument();
+    expect(screen.getByText(TEXT.add.doneQty(2))).toBeInTheDocument();
   });
 
   it('연령대와 나이는 어떤 API 요청에도 들어가지 않는다 (D2, D47)', async () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
-    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
-    await screen.findByText(TEXT.recommend.title);
-    click(FIRST_REC);
+    await answerAll(['yes', 'yes', 'yes', 'yes']);
+    clickFirstRec();
     await payToDone(DINE_IN);
     for (const r of requests) expect(r.body).not.toMatch(/senior|age|easy/i);
   });
@@ -114,22 +158,27 @@ describe('키오스크 전체 흐름', () => {
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
     click(TEXT.survey.exit);
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    await screen.findByRole('button', { name: TEXT.menu.ai });
     expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
   });
 
   it('8초 타임아웃이면 일반 메뉴판 (D16)', async () => {
     await start();
     emit({ type: 'detecting', frameGroup: 'senior', run: 2, required: 5, elapsedMs: 1000 });
-    expect(screen.getByText(TEXT.detecting.title)).toBeInTheDocument();
+    expect(screen.getByText(lines(TEXT.detecting.guide))).toBeInTheDocument();
     emit({ type: 'timeout' });
     await screen.findByRole('button', { name: TEXT.common.toEasy });
+  });
+
+  it('대기·인식 중 화면은 판정 전이라 항상 큰 글씨 크기로 그린다', async () => {
+    await start();
+    expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
   });
 
   it('대기 화면 "바로 주문"은 판정 없이 일반 메뉴판 (D46, v1.2)', async () => {
     await start();
     click(TEXT.idle.startNormal);
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    await screen.findByRole('button', { name: TEXT.menu.ai });
     expect(document.querySelector('[data-mode="normal"]')).not.toBeNull();
   });
 
@@ -145,58 +194,86 @@ describe('키오스크 전체 흐름', () => {
     await start();
     fireEvent.click(screen.getByText(GREETING));
     expect(screen.getByText(GREETING)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: TEXT.menu.chat })).toBeNull();
+    expect(screen.queryByRole('button', { name: TEXT.menu.ai })).toBeNull();
   });
 
   it('인식 중 화면에서도 두 버튼으로 시작할 수 있다', async () => {
     await start();
     emit({ type: 'detecting', frameGroup: 'senior', run: 1, required: 5, elapsedMs: 100 });
     click(TEXT.idle.startNormal);
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    await screen.findByRole('button', { name: TEXT.menu.ai });
+  });
+
+  it('수량 1에서 [빼기]는 확인을 거친다: "그대로 두기"면 남고, "빼기"면 빠진다', async () => {
+    await start();
+    await toMenu();
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.orderbar.checkout);
+    click(DINE_IN);
+    click(TEXT.cart.removeAria('된장찌개'));
+    expect(screen.getByText(TEXT.cart.confirm)).toBeInTheDocument();
+    click(TEXT.cart.confirmNo);
+    expect(screen.queryByText(TEXT.cart.confirm)).toBeNull();
+    expect(screen.getByRole('button', { name: PAY })).toBeInTheDocument();
+    click(TEXT.cart.removeAria('된장찌개'));
+    click(TEXT.cart.confirmYes);
+    await screen.findByText(TEXT.cart.empty);
   });
 
   it('장바구니를 다 비워도 장바구니에 머물고 "메뉴 담으러 가기"로 메뉴판 (v1.2)', async () => {
     await start();
-    shift('KeyN');
-    await screen.findByRole('button', { name: TEXT.menu.chat });
-    click(TEXT.tile.add('된장찌개', 9000));
-    click(TEXT.cartBar.checkout);
+    await toMenu();
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.orderbar.checkout);
     click(DINE_IN);
-    click(TEXT.cart.minus('된장찌개'));
+    click(TEXT.cart.removeAria('된장찌개'));
+    click(TEXT.cart.confirmYes);
     await screen.findByText(TEXT.cart.empty);
     expect(screen.queryByRole('button', { name: PAY })).toBeNull();
-    click(TEXT.cart.goMenu);
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.cart.emptyGo);
+    await screen.findByRole('button', { name: TEXT.menu.ai });
+  });
+
+  it('수량이 2 이상이면 [−]로 하나씩 뺀다', async () => {
+    await start();
+    await toMenu();
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.orderbar.checkout);
+    click(DINE_IN);
+    expect(screen.getByText(TEXT.cart.qty(2))).toBeInTheDocument();
+    click(TEXT.cart.minus('된장찌개'));
+    expect(screen.getByText(TEXT.cart.qty(1))).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: TEXT.cart.removeAria('된장찌개') })).toBeInTheDocument();
   });
 
   it('결제 중·주문번호 화면에는 모드 전환 버튼이 없고, 결제 실패 화면에는 있다 (v1.2)', async () => {
     await start();
-    shift('KeyN');
-    await screen.findByRole('button', { name: TEXT.menu.chat });
-    click(TEXT.tile.add('된장찌개', 9000));
-    click(TEXT.cartBar.checkout);
+    await toMenu();
+    click(TEXT.tile.aria('된장찌개', 9000));
+    click(TEXT.orderbar.checkout);
     click(DINE_IN);
     shift('KeyF');
     click(PAY);
     expect(screen.getByText(TEXT.paying.title)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: TEXT.common.toEasy })).toBeNull();
-    await screen.findByText(TEXT.payFailed.title);
+    await screen.findByText(lines(TEXT.payFailed.title));
     expect(screen.getByRole('button', { name: TEXT.common.toEasy })).toBeInTheDocument();
     click(TEXT.payFailed.retry);
     await screen.findByText(TEXT.done.title);
     expect(screen.queryByRole('button', { name: TEXT.common.toEasy })).toBeNull();
   });
 
-  it('결제 실패(Shift+F) 뒤 장바구니가 남아 있고 다시 결제하면 성공', async () => {
+  it('결제 실패(Shift+F) 뒤 담은 메뉴 요약이 보이고, 고치러 갔다가 다시 결제하면 성공', async () => {
     await start();
-    shift('KeyN');
-    await screen.findByRole('button', { name: TEXT.menu.chat });
-    click(TEXT.tile.add('김치찌개', 9000));
-    click(TEXT.cartBar.checkout);
+    await toMenu();
+    click(TEXT.tile.aria('김치찌개', 9000));
+    click(TEXT.orderbar.checkout);
     click(DINE_IN);
     shift('KeyF');
     click(PAY);
-    await screen.findByText(TEXT.payFailed.title);
+    await screen.findByText(lines(TEXT.payFailed.title));
+    expect(screen.getByText(TEXT.payFailed.summaryLine('김치찌개', 1))).toBeInTheDocument();
     click(TEXT.payFailed.toCart);
     expect(screen.getByText('김치찌개')).toBeInTheDocument();
     click(PAY);
@@ -208,30 +285,31 @@ describe('키오스크 전체 흐름', () => {
 
   it('"처음으로"를 누르면 장바구니와 판정이 모두 지워진다 (D30)', async () => {
     await start();
-    shift('KeyN');
-    await screen.findByRole('button', { name: TEXT.menu.chat });
-    click(TEXT.tile.add('갈비탕', 13000));
+    await toMenu();
+    click(TEXT.tile.aria('갈비탕', 13000));
     await payToDone(DINE_IN);
+    expect(screen.getByText(TEXT.done.countdown(15))).toBeInTheDocument();
     click(TEXT.done.home);
     await screen.findByText(GREETING);
     expect(gate.reset).toHaveBeenCalled();
     shift('KeyN');
-    await screen.findByText(TEXT.cartBar.empty);
+    await screen.findByText(TEXT.orderbar.empty);
   });
 
-  it('서버가 꺼져 있으면 대기 화면에 "잠시 후 이용해 주세요"', async () => {
+  it('서버가 꺼져 있으면 대기 화면에 "잠시 후 이용해 주세요", 시작 버튼 없음', async () => {
     serverUp = false;
     render(<App />);
-    await screen.findByText(lines(TEXT.idle.serverDown));
+    await screen.findByText(lines(TEXT.idle.downTitle));
+    expect(screen.queryByRole('button', { name: TEXT.idle.startNormal })).toBeNull();
   });
 
-  it('모델이 아직 로딩 중이어도 대기 화면이 바로 보이고 터치·단축키로 시작한다 (D46)', async () => {
+  it('모델이 아직 로딩 중이어도 대기 화면이 바로 보이고 버튼·단축키로 시작한다 (D46)', async () => {
     gateReady = new Promise(() => {}); // 345MB 모델이 끝나지 않는 상황
     render(<App />);
     await screen.findByText(GREETING);
     await waitFor(() => expect(requests.some(r => r.path === '/api/menu')).toBe(true));
     click(TEXT.idle.startNormal);
-    await screen.findByRole('button', { name: TEXT.menu.chat });
+    await screen.findByRole('button', { name: TEXT.menu.ai });
   });
 
   it('모델 로딩 중에도 시연 단축키(Shift+S)는 동작한다', async () => {

@@ -8,7 +8,7 @@ import { forcedOnlyAgeGate, silentSpeaker } from '../ai/fallback';
 import { loadAi } from '../ai/loadAi';
 import type { AgeGate, AgeGateUpdate, Speaker } from '../ai/types';
 import { config } from '../config';
-import { SPEECH } from './copy';
+import { SPEECH, TEXT } from './copy';
 import { initialState, kioskReducer, shouldAutoReset } from './reducer';
 import type { KioskState } from './types';
 
@@ -38,10 +38,25 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const sessionRef = useRef(0);           // 초기화할 때마다 올린다. 이전 세션의 늦은 응답은 버린다
   const forceFailNextRef = useRef(false); // Shift+F
 
-  const speak = useCallback((text: string) => {
-    aiRef.current.speaker.speak(text).catch(() => {});
+  // 음성: 새 문장을 읽으면 읽던 것은 끊긴다 (Speaker 계약). speaking 은 질문 화면의 "읽어 드리는 중…" 표시용
+  const [speaking, setSpeaking] = useState(false);
+  const speakTokenRef = useRef(0);
+  const speak = useCallback((text: string, opts?: { track?: boolean }) => {
+    const token = ++speakTokenRef.current;
+    setSpeaking(Boolean(opts?.track) && aiRef.current.speaker.available);
+    aiRef.current.speaker.speak(text).catch(() => {}).finally(() => {
+      if (token === speakTokenRef.current) setSpeaking(false);
+    });
   }, []);
-  const stopSpeaking = useCallback(() => aiRef.current.speaker.cancel(), []);
+  const stopSpeaking = useCallback(() => {
+    speakTokenRef.current += 1;
+    setSpeaking(false);
+    aiRef.current.speaker.cancel();
+  }, []);
+  /** 쉬운 화면에서만 읽는 안내 (design/copy.md 4장) */
+  const speakEasy = useCallback((text: string) => {
+    if (stateRef.current.mode === 'easy') speak(text);
+  }, [speak]);
 
   // ---------- 메뉴·질문 ----------
   const loadCatalog = useCallback(async () => {
@@ -184,33 +199,36 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const s = stateRef.current;
     const q = questions?.[s.surveyIndex];
     if (!q) return;
-    speak(s.surveyIndex === 0 && s.answers.length === 0 ? `${SPEECH.greeting} ${q.text}` : q.text);
+    speak(s.surveyIndex === 0 ? `${SPEECH.surveyIntro} ${q.text}` : q.text, { track: true });
   }, [questions, speak]);
 
   useEffect(() => {
     if (currentQuestion) readQuestion();
   }, [currentQuestion, readQuestion]);
 
+  // 화면에 들어올 때 읽는 안내. 어느 모드에서 읽는지는 design/copy.md 4장 표를 따른다
   useEffect(() => {
-    const easy = state.mode === 'easy';
     switch (state.screen) {
       case 'recommend': speak(SPEECH.recommend); break;
-      case 'order_type': if (easy) speak(SPEECH.orderType); break;
-      case 'cart': if (easy) speak(SPEECH.cart); break;
-      case 'paying': if (easy) speak(SPEECH.paying); break;
+      case 'menu': speakEasy(notice ? SPEECH.recFailed : SPEECH.menu); break;
+      case 'order_type': speakEasy(SPEECH.orderType); break;
+      case 'cart': speakEasy(state.cart.length === 0 ? SPEECH.cartEmpty : SPEECH.cart); break;
+      case 'paying': speakEasy(SPEECH.paying); break;
       case 'done': if (state.orderNumber) speak(SPEECH.done(state.orderNumber)); break;
-      case 'survey': break;
+      case 'survey': break; // 질문은 아래 effect 가 읽는다
       default: stopSpeaking();
     }
   }, [state.screen]);
 
   useEffect(() => {
-    if (state.screen === 'pay_failed' && payFailReason && state.mode === 'easy') speak(payFailReason);
+    if (state.screen === 'pay_failed') speakEasy(SPEECH.payFailed(payFailReason ?? TEXT.payFailed.fallbackReason));
   }, [state.screen, payFailReason]);
 
   // ---------- 명령 ----------
   const commands = useMemo(() => {
     const now = () => Date.now();
+    const menuName = (menuId: string) =>
+      (catalog.menu?.items ?? stateRef.current.recommendations.map(r => r.menu)).find(i => i.id === menuId)?.name ?? null;
     return {
       reset,
       readQuestion,
@@ -244,7 +262,30 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         }
       },
 
-      addToCart: (menuId: string) => dispatch({ type: 'ADD_TO_CART', menuId, now: now() }),
+      // 쉬운 화면은 이미 담은 메뉴를 다시 눌러도 수량을 늘리지 않고 음성으로만 알린다 (디자인 명세 2-5).
+      // 수량은 주문 확인에서만 바꾼다. 리듀서 계약은 그대로 (ADD 를 보내지 않을 뿐)
+      addToCart: (menuId: string) => {
+        const s = stateRef.current;
+        const easy = s.mode === 'easy';
+        if (easy && s.cart.some(l => l.menuId === menuId)) {
+          speak(SPEECH.addAgain);
+          return;
+        }
+        dispatch({ type: 'ADD_TO_CART', menuId, now: now() });
+        const name = menuName(menuId);
+        if (easy && name) speak(SPEECH.added(name));
+      },
+      askRemove: (menuId: string) => {
+        const name = menuName(menuId);
+        if (name) speakEasy(SPEECH.removeConfirm(name));
+      },
+      removeLine: (menuId: string) => {
+        const line = stateRef.current.cart.find(l => l.menuId === menuId);
+        if (!line) return;
+        dispatch({ type: 'CHANGE_QTY', menuId, delta: -line.quantity, now: now() });
+        const name = menuName(menuId);
+        if (name) speakEasy(SPEECH.removed(name));
+      },
       goMenu: () => dispatch({ type: 'GO_MENU', now: now() }),
       checkout: () => dispatch({ type: 'CHECKOUT', now: now() }),
       chooseOrderType: (orderType: OrderType) => dispatch({ type: 'CHOOSE_ORDER_TYPE', orderType, now: now() }),
@@ -282,10 +323,10 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         }
       },
     };
-  }, [reset, readQuestion, loadCatalog, questions, stopSpeaking]);
+  }, [reset, readQuestion, loadCatalog, questions, stopSpeaking, speak, speakEasy, catalog.menu]);
 
   return {
-    state, catalog, serverDown, notice, payFailReason, detectProgress, speakerAvailable, currentQuestion, commands,
+    state, catalog, serverDown, notice, payFailReason, detectProgress, speakerAvailable, speaking, currentQuestion, commands,
   };
 }
 

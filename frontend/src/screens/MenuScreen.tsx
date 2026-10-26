@@ -1,14 +1,18 @@
 import { useMemo, useState } from 'react';
-import { CartBar } from '../components/CartBar';
-import { ChatIcon, MenuThumb, Notice, TopBar } from '../components/common';
-import { TEXT, won } from '../kiosk/copy';
+import { Icon } from '../components/icons';
+import { ItemRow, Tile } from '../components/MenuItems';
+import { Lines, Notice, TopBar } from '../components/common';
+import { OrderBar } from '../components/OrderBar';
+import { TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
 import { layoutFor } from '../styles/layout';
 
-/** 메뉴판: 카테고리 + 메뉴. "AI와 대화하기"로 질문을 시작할 수 있다 (D9, D19) */
+/**
+ * 메뉴판 (디자인 명세 2-6, 2-7, 4장). 쉬운/일반이 배치가 다른 두 곳 중 하나다:
+ * 쉬운 = 카테고리 3x2 격자 + 메뉴 줄 4개 + 앞/다음, 일반 = 카테고리 한 줄 + 3열 타일(스크롤)
+ */
 export function MenuScreen() {
-  const k = useKioskContext();
-  const { state, catalog, notice, commands: c } = k;
+  const { state, catalog, notice, commands: c } = useKioskContext();
   const menu = catalog.menu;
   const layout = layoutFor(state.mode);
   const categories = useMemo(() => (menu?.categories ?? []).toSorted((a, b) => a.sortOrder - b.sortOrder), [menu]);
@@ -22,60 +26,69 @@ export function MenuScreen() {
   );
   const size = layout.menuPageSize;
   const pages = size ? Math.max(1, Math.ceil(items.length / size)) : 1;
-  const page = Math.min(pageWanted, pages - 1); // 모드가 바뀌어 페이지 수가 줄어도 범위 안에 둔다
+  const page = Math.min(pageWanted, pages - 1); // 모드가 바뀌어 쪽 수가 줄어도 범위 안에 둔다
   const shown = size ? items.slice(page * size, (page + 1) * size) : items;
   const chooseCategory = (id: string) => { setCategoryId(id); setPage(0); };
-
   const qty = (id: string) => state.cart.find(l => l.menuId === id)?.quantity ?? 0;
+
+  if (!menu) {
+    return (
+      <div className="screen">
+        <TopBar />
+        <div className="body">
+          {catalog.loadError && (
+            <div className="sheet menu-error">
+              <h1 className="t-h1 t-stamp"><Lines lines={TEXT.menu.loadErrorTitle} /></h1>
+              <p className="t-body" role="alert">{catalog.loadError}</p>
+              <p className="t-body">{TEXT.menu.loadErrorBody}</p>
+              <button className="btn btn-primary btn-lg btn-block" onClick={c.retryLoad}>{TEXT.menu.retry}</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen">
       <TopBar />
-      <div className="body">
-        {notice && <Notice message={notice} actionLabel={TEXT.common.close} onAction={c.dismissNotice} />}
-        {!menu ? (
-          catalog.loadError
-            ? <div className="center body"><p className="title error-text" role="alert">{catalog.loadError}</p>
-                <button className="btn btn-primary btn-lg" onClick={c.retryLoad}>{TEXT.common.retry}</button></div>
-            : <div className="center body"><div className="spinner" /></div>
-        ) : (
-          <>
-            <button className="btn btn-primary btn-block btn-lg" onClick={c.openChat}>
-              <ChatIcon />{TEXT.menu.chat}
+      <div className={layout.menuPageSize ? 'body' : 'body scroll'}>
+        {notice
+          ? <Notice lines={TEXT.menu.recFailed} actionLabel={TEXT.menu.close} onAction={c.dismissNotice} />
+          : <button className="btn btn-block" onClick={c.openChat}><Icon.chat />{TEXT.menu.ai}</button>}
+        <div className="cats" role="tablist">
+          {categories.map(cat => (
+            <button key={cat.id} role="tab" aria-selected={cat.id === active}
+              className={cat.id === active ? 'btn is-on' : 'btn'} onClick={() => chooseCategory(cat.id)}>
+              <span className="tick"><Icon.check /></span>{cat.name}
             </button>
-            <div className="tabs" role="tablist">
-              {categories.map(cat => (
-                <button key={cat.id} role="tab" aria-selected={cat.id === active}
-                  className={`tab${cat.id === active ? ' on' : ''}`} onClick={() => chooseCategory(cat.id)}>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-            <div className="grid">
+          ))}
+        </div>
+        {layout.menuRows ? (
+          <>
+            <div className="items compact">
               {shown.map(item => (
-                <button key={item.id} className={`tile${qty(item.id) ? ' in-cart' : ''}`}
-                  aria-label={TEXT.tile.add(item.name, item.price)} onClick={() => c.addToCart(item.id)}>
-                  <MenuThumb item={item} categories={categories} />
-                  <div className="info">
-                    <span className="name">{item.name}</span>
-                    <span className="price">{won(item.price)}</span>
-                    {layout.showMenuDescription && item.description && <span className="desc">{item.description}</span>}
-                  </div>
-                  {qty(item.id) > 0 && <span className="badge">{TEXT.tile.inCart(qty(item.id))}</span>}
-                </button>
+                <ItemRow key={item.id} item={item} categories={categories} qty={qty(item.id)} onAdd={() => c.addToCart(item.id)} />
               ))}
             </div>
             {pages > 1 && (
-              <div className="row">
-                <button className="btn" disabled={page === 0} onClick={() => setPage(page - 1)}>{TEXT.menu.prevPage}</button>
-                <span className="mute">{TEXT.menu.page(page + 1, pages)}</span>
-                <button className="btn" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>{TEXT.menu.nextPage}</button>
+              <div className="row pager">
+                <button className="btn" disabled={page === 0} onClick={() => setPage(page - 1)}>{TEXT.menu.prev}</button>
+                <span className="t-body t-bold">{TEXT.menu.page(page + 1, pages)}</span>
+                <button className="btn" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>{TEXT.menu.next}</button>
               </div>
             )}
           </>
+        ) : (
+          <div className="tiles">
+            {shown.map(item => (
+              <Tile key={item.id} item={item} categories={categories} qty={qty(item.id)}
+                showDescription={layout.showMenuDescription} onAdd={() => c.addToCart(item.id)} />
+            ))}
+          </div>
         )}
       </div>
-      <CartBar cart={state.cart} items={menu?.items ?? []} onCheckout={c.checkout} />
+      <OrderBar cart={state.cart} items={menu.items} onCheckout={c.checkout} />
     </div>
   );
 }
