@@ -133,7 +133,7 @@ describe('에러 형식', () => {
     const broken = await makeApp({ prisma: failingPrisma });
     const r = await broken.inject('/api/menu');
     expect(r.statusCode).toBe(500);
-    expect(r.json()).toEqual({ error: { code: 'INTERNAL', message: expect.any(String) } });
+    expect(r.json()).toEqual({ error: { code: 'INTERNAL', message: '잠시 문제가 생겼어요. 다시 시도해 주세요.' } });
     expect(r.body).not.toContain('secret');
     await broken.close();
   });

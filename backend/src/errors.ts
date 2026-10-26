@@ -8,7 +8,7 @@ export const ERROR_DEFS: Record<ErrorCode, { status: number; message: string }> 
   ORDER_NOT_FOUND: { status: 404, message: '주문을 찾을 수 없어요. 처음부터 다시 해 주세요.' },
   ORDER_ALREADY_PAID: { status: 409, message: '이미 결제가 끝난 주문이에요.' },
   NOT_FOUND: { status: 404, message: '잠시 문제가 생겼어요. 직원을 불러 주세요.' },
-  INTERNAL: { status: 500, message: '잠시 문제가 생겼어요. 잠시 후 다시 시도해 주세요.' },
+  INTERNAL: { status: 500, message: '잠시 문제가 생겼어요. 다시 시도해 주세요.' },
 };
 
 export class AppError extends Error {
