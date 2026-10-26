@@ -48,7 +48,7 @@
 | `VITE_AI_DECIDE_TIMEOUT_MS` | `8000` | 판정 타임아웃 (D16) |
 | `VITE_AI_NO_FACE_GRACE_MS` | `0` | 얼굴 검출이 잠깐 끊겨도 연속 기록을 유지하는 시간. 0이면 바로 no_face. 웹캠 실측 후 조정 |
 | `VITE_IDLE_RESET_MS` | `60000` | 무입력 초기화 (D30) |
-| `VITE_DONE_RESET_MS` | `10000` | 주문번호 화면 초기화 (D30) |
+| `VITE_DONE_RESET_MS` | `15000` | 주문번호 화면 초기화 (D30, D68에서 15초로) |
 | `VITE_TTS_RATE` | `0.85` | 음성 안내 속도 |
 | `VITE_MOCK_AI` | `true` | 가짜 AgeGate/Speaker 사용. 통합 후 `false`. **production 빌드에서 true면 빌드 실패** |
 | `VITE_MOCK_API` | `true` | 가짜 Backend 사용. 통합 후 `false`. **production 빌드에서 true면 빌드 실패** |
