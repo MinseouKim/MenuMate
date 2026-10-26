@@ -1,10 +1,12 @@
-import type { AnswerInput, MenuItem, Reason, Recommendation, Tag } from './contracts.js';
+import type { AgeBand, AnswerInput, MenuItem, Reason, Recommendation, Tag } from './contracts.js';
 import { QUESTIONS } from './questions.js';
 
 export interface MenuItemWithAvailability extends MenuItem { isAvailable: boolean }
 
 /** 태그 순서 (menu-schema.md 표 순서). reasons에서 기여가 같을 때 이 순서를 쓴다 */
 export const TAGS: readonly Tag[] = ['spicy', 'mild', 'soup', 'soft', 'hearty'];
+
+export const AGE_BANDS: readonly AgeBand[] = ['under35', '35to54', '55plus'];
 
 const PRIORITY_WEIGHT = 1.5;
 

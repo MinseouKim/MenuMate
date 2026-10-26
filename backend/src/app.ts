@@ -10,7 +10,7 @@ import { createOrder, createOrderSchema } from './orders.js';
 import { SimulatedPaymentGateway, type PaymentGateway } from './payment/gateway.js';
 import { payOrder, paymentSchema } from './payment/pay.js';
 import { QUESTIONS, toQuestion } from './questions.js';
-import { recommend } from './recommend.js';
+import { AGE_BANDS, recommend } from './recommend.js';
 import { registerStatic } from './static.js';
 
 export interface AppDeps {
@@ -87,7 +87,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       const ids = req.body.answers.map((a) => a.questionId);
       if (new Set(ids).size !== ids.length) throw new AppError('VALIDATION_FAILED', '같은 questionId가 두 번 있음');
       const catalog = await loadCatalog(prisma);
-      return { items: recommend(catalog.items, req.body.answers) };
+      const items = recommend(catalog.items, req.body.answers);
+      const byAgeBand = Object.fromEntries(AGE_BANDS.map((band) => [band, items])) as RecommendationResponse['byAgeBand'];
+      return { items, byAgeBand, engineVersion: 'none' };
     },
   );
 

@@ -96,6 +96,26 @@ describe('POST /api/recommendations', () => {
     expect(r.json<RecommendationResponse>().items.map((i) => i.menu.id)).toEqual(['m002', 'm001', 'm003']);
   });
 
+  it('v2: 세 연령대 추천(byAgeBand)과 engineVersion을 함께 돌려준다', async () => {
+    const r = await post('/api/recommendations', { answers: [{ questionId: 'q_soup', answer: 'yes' }] });
+    expect(r.statusCode).toBe(200);
+    const body = r.json<RecommendationResponse>();
+    expect(Object.keys(body.byAgeBand).sort()).toEqual(['35to54', '55plus', 'under35']);
+    for (const band of ['under35', '35to54', '55plus'] as const) {
+      expect(body.byAgeBand[band]).toHaveLength(3);
+    }
+    expect(typeof body.engineVersion).toBe('string');
+  });
+
+  it('v2: 엔진 파일이 없으면 세 연령대 모두 items와 같고 engineVersion은 "none"', async () => {
+    const r = await post('/api/recommendations', { answers: [{ questionId: 'q_spicy', answer: 'no' }] });
+    const body = r.json<RecommendationResponse>();
+    expect(body.byAgeBand.under35).toEqual(body.items);
+    expect(body.byAgeBand['35to54']).toEqual(body.items);
+    expect(body.byAgeBand['55plus']).toEqual(body.items);
+    expect(body.engineVersion).toBe('none');
+  });
+
   it('같은 questionId가 두 번 오면 400 VALIDATION_FAILED', async () => {
     const r = await post('/api/recommendations', {
       answers: [{ questionId: 'q_soup', answer: 'yes' }, { questionId: 'q_soup', answer: 'no' }],
