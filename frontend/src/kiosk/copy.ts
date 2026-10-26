@@ -9,6 +9,9 @@ export const REASON_LABEL: Record<Reason, string> = {
   soup: '따뜻한 국물',
   soft: '부드러운 식감',
   hearty: '든든한 한 끼',
+  light: '담백한 맛',
+  age_fit: '또래 분들이 자주 드세요',
+  review_good: '손님 평이 좋아요',
   store_pick: '사장님 추천',
 };
 

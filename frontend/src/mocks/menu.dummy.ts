@@ -96,7 +96,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "tags": [
         "soup",
         "mild",
-        "hearty"
+        "hearty",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -126,7 +127,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "description": "제철 나물 비빔밥",
       "image": null,
       "tags": [
-        "mild"
+        "mild",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -171,7 +173,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "image": null,
       "tags": [
         "soft",
-        "mild"
+        "mild",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -187,7 +190,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "tags": [
         "soup",
         "mild",
-        "soft"
+        "soft",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -216,7 +220,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "image": null,
       "tags": [
         "soup",
-        "mild"
+        "mild",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -230,7 +235,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "description": "시원한 동치미 육수",
       "image": null,
       "tags": [
-        "mild"
+        "mild",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,
@@ -303,7 +309,8 @@ export const dummyMenu: { storeName: string; version: string; categories: { id: 
       "image": null,
       "tags": [
         "soft",
-        "mild"
+        "mild",
+        "light"
       ],
       "priority": 0,
       "isAvailable": true,

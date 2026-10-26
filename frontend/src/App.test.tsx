@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AgeGate, AgeGateUpdate } from './ai/types';
 import { silentSpeaker } from './ai/fallback';
-import { ORDER_TYPE_LABEL, TEXT } from './kiosk/copy';
+import { ORDER_TYPE_LABEL, REASON_LABEL, TEXT } from './kiosk/copy';
 import { dummyMenu } from './mocks/menu.dummy';
 import { createMockBackend } from './mocks/mockBackend';
 
@@ -81,17 +81,21 @@ describe('키오스크 전체 흐름', () => {
     expect(screen.getByLabelText(TEXT.done.numberAria('001'))).toBeInTheDocument();
   });
 
-  it('55+(Shift+S): 쉬운 화면 질문 4개 → 추천 3개 → 포장 → 주문번호', async () => {
+  it('55+(Shift+S): 쉬운 화면 질문 5개 → 추천 3개 → 포장 → 주문번호 (질문 v2)', async () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
     expect(screen.getByRole('button', { name: TEXT.common.toNormal })).toBeInTheDocument();
     expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
+    expect(screen.getByText(TEXT.survey.progress(1, 5))).toBeInTheDocument();
     click(TEXT.survey.no);
-    await screen.findByText('따뜻한 국물이 있는 음식이 좋으세요?');
+    await screen.findByText('따뜻한 국물 요리가 좋으세요?');
     click(TEXT.survey.yes);
     click(TEXT.survey.yes);
     click(TEXT.survey.no);
+    await screen.findByText('담백한 맛이 좋으세요?');
+    expect(screen.getByText(TEXT.survey.progress(5, 5))).toBeInTheDocument();
+    click(TEXT.survey.yes);
     await screen.findByText(TEXT.recommend.title);
     for (const n of [1, 2, 3]) expect(screen.getByText(TEXT.recommend.rank(n))).toBeInTheDocument();
     click(FIRST_REC);
@@ -102,7 +106,7 @@ describe('키오스크 전체 흐름', () => {
     await start();
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
-    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    for (let i = 0; i < 5; i++) click(TEXT.survey.yes);
     await screen.findByText(TEXT.recommend.title);
     click(FIRST_REC);
     await payToDone(DINE_IN);
@@ -346,7 +350,7 @@ describe('사전 사용성 점검 (frontend/docs/usability-review.md)', () => {
     await screen.findByText('매운 음식도 괜찮으세요?');
     expect(screen.getByText(lines(TEXT.survey.intro))).toBeInTheDocument();
     click(TEXT.survey.yes);
-    await screen.findByText('따뜻한 국물이 있는 음식이 좋으세요?');
+    await screen.findByText('따뜻한 국물 요리가 좋으세요?');
     expect(screen.queryByText(lines(TEXT.survey.intro))).toBeNull();
   });
 });
@@ -365,7 +369,7 @@ describe('55+ 빛 테두리 (D78)', () => {
     shift('KeyS');
     await screen.findByText('매운 음식도 괜찮으세요?');
     expect(glowing()).toEqual([TEXT.survey.yes, TEXT.survey.no]);
-    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    for (let i = 0; i < 5; i++) click(TEXT.survey.yes);
     await screen.findByText(TEXT.recommend.title);
     expect(glowing()).toEqual([]); // 담기 전에는 주문하기가 비활성이라 빛나지 않는다
     click(FIRST_REC);
@@ -410,7 +414,7 @@ describe('연령대별 추천 (kiosk-flow v1.3, D72·D73)', () => {
   // 가짜 Backend 가 같은 답으로 돌려주는 연령대별 첫 추천을 미리 계산해 둔다
   const firstRec = async (band?: 'under35' | '35to54' | '55plus') => {
     const res = await createMockBackend({ payDelayMs: 0 }).handle('POST', '/api/recommendations', {
-      answers: ['q_spicy', 'q_soup', 'q_soft', 'q_hearty'].map(questionId => ({ questionId, answer: 'yes' })),
+      answers: ['q_spicy', 'q_soup', 'q_soft', 'q_hearty', 'q_light'].map(questionId => ({ questionId, answer: 'yes' })),
     });
     const body = res.body as { items: { menu: { name: string } }[]; byAgeBand: Record<string, { menu: { name: string } }[]> };
     return (band ? body.byAgeBand[band] : body.items)[0].menu.name;
@@ -420,7 +424,7 @@ describe('연령대별 추천 (kiosk-flow v1.3, D72·D73)', () => {
     shift(key);
     if (key === 'KeyS') await screen.findByText('매운 음식도 괜찮으세요?');
     else { await screen.findByRole('button', { name: TEXT.menu.chat }); click(TEXT.menu.chat); }
-    for (let i = 0; i < 4; i++) click(TEXT.survey.yes);
+    for (let i = 0; i < 5; i++) click(TEXT.survey.yes);
     await screen.findByText(TEXT.recommend.title);
     return screen.getAllByRole('button', { name: FIRST_REC })[0].getAttribute('aria-label');
   };
@@ -447,5 +451,26 @@ describe('연령대별 추천 (kiosk-flow v1.3, D72·D73)', () => {
   it('연령대는 어떤 API 요청에도 들어가지 않는다 (D73)', async () => {
     await recommendAfter('KeyY');
     for (const r of requests) expect(r.body).not.toMatch(/under35|35to54|55plus|ageBand|senior/);
+  });
+});
+
+describe('질문 v2 추천 이유 (D82)', () => {
+  it('새 이유 문구가 보이고, 카드마다 이유는 3개까지', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    for (let i = 0; i < 5; i++) click(TEXT.survey.yes);
+    await screen.findByText(TEXT.recommend.title);
+    const chips = [...document.querySelectorAll('.chip')].map(c => c.textContent);
+    expect(chips).toEqual(expect.arrayContaining([REASON_LABEL.age_fit]));
+    for (const card of document.querySelectorAll('.tile.rec')) {
+      expect(card.querySelectorAll('.chip').length).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it('이유 문구 표 (questions-v2 4장)', () => {
+    expect(REASON_LABEL.light).toBe('담백한 맛');
+    expect(REASON_LABEL.age_fit).toBe('또래 분들이 자주 드세요');
+    expect(REASON_LABEL.review_good).toBe('손님 평이 좋아요');
   });
 });

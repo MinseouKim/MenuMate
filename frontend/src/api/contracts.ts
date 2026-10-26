@@ -3,8 +3,9 @@
 
 export type OrderType = 'dine_in' | 'takeout';
 export type Answer = 'yes' | 'no' | 'skip';
-export type Tag = 'spicy' | 'mild' | 'soup' | 'soft' | 'hearty';
-export type Reason = Tag | 'store_pick';
+export type Tag = 'spicy' | 'mild' | 'soup' | 'soft' | 'hearty' | 'light'; // light: 질문 v2 (D82)
+// age_fit, review_good: 리뷰 학습 엔진 기반 이유 (질문 v2, D82)
+export type Reason = Tag | 'store_pick' | 'age_fit' | 'review_good';
 
 export interface Category { id: string; name: string; sortOrder: number }
 export interface MenuItem {

@@ -2,6 +2,8 @@ import type { Category, MenuItem, Reason } from '../api/contracts';
 import { REASON_LABEL, TEXT, won } from '../kiosk/copy';
 import { CheckIcon, MenuThumb, PlusIcon } from './common';
 
+const MAX_REASONS = 3;
+
 /**
  * 메뉴 카드 (추천·메뉴판 공통). 카드 전체가 담기 버튼이고, 아래 "담기" 띠가 누르는 곳을 보여 준다 (사용성 점검 U1).
  * 담은 뒤: 큰 글씨 화면은 "✓ 담았어요"(다시 눌러도 늘지 않음, useKiosk), 기본 화면은 "N개 담음 +".
@@ -33,7 +35,8 @@ export function MenuCard({ item, categories, qty, easy, variant, ariaLabel, rank
           <span className="price">{won(item.price)}</span>
           {showDescription && item.description && <span className="desc">{item.description}</span>}
           {reasons && reasons.length > 0 && (
-            <div className="chips">{reasons.map(x => <span key={x} className="chip">{REASON_LABEL[x]}</span>)}</div>
+            // 이유는 앞에서 3개까지 (질문 v2 4장: 특징 → 또래 → 평판 → 사장님 추천 순서로 온다)
+            <div className="chips">{reasons.slice(0, MAX_REASONS).map(x => <span key={x} className="chip">{REASON_LABEL[x]}</span>)}</div>
           )}
         </div>
       </div>
