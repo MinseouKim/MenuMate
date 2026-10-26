@@ -9,17 +9,16 @@ const read = (p: string) => readFileSync(join(src, p), 'utf8');
 // 블록 주석과 줄 주석(줄 끝 주석 포함)을 지운다. 코드 안 문자열에 // 가 들어가는 경우는 없다
 const stripComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
-describe('색은 tokens.css 에만', () => {
+describe('디자인 값은 tokens.css 에만', () => {
   const css = stripComments(read('styles/global.css'));
 
   it('global.css 에 색 값(#hex, rgb)이 없다', () => {
     expect(css.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g)).toBeNull();
   });
 
-  it('global.css 는 tokens.css 의 색 변수만 쓴다 (정의하지 않은 변수 없음)', () => {
-    const defined = new Set(read('styles/tokens.css').match(/--[\w-]+(?=\s*:)/g));
-    const used = new Set(css.match(/var\((--[\w-]+)/g)?.map(v => v.slice(4)));
-    expect([...used].filter(v => !defined.has(v))).toEqual([]);
+  it('global.css 의 px 값은 캔버스 크기와 숨김용 1px 뿐이다', () => {
+    const px = [...new Set(css.match(/\b\d+(\.\d+)?px\b/g) ?? [])].sort();
+    expect(px).toEqual(['1080px', '1920px', '1px']);
   });
 });
 

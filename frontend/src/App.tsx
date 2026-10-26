@@ -3,7 +3,8 @@ import { KioskFrame } from './components/common';
 import { KioskProvider, useKioskContext } from './kiosk/KioskContext';
 import type { Screen } from './kiosk/types';
 import { CartScreen } from './screens/CartScreen';
-import { DetectingScreen, IdleScreen } from './screens/IdleScreen';
+import { DetectingScreen } from './screens/DetectingScreen';
+import { IdleScreen } from './screens/IdleScreen';
 import { MenuScreen } from './screens/MenuScreen';
 import { OrderTypeScreen } from './screens/OrderTypeScreen';
 import { DoneScreen, PayFailedScreen, PayingScreen } from './screens/PayScreens';
@@ -29,11 +30,9 @@ function CurrentScreen() {
   return <ScreenView />;
 }
 
-/** 대기·인식 중은 판정 전이라 항상 큰 글씨 크기로 그린다 (디자인 명세 1-3) */
 function Frame({ children }: { children: React.ReactNode }) {
   const { state } = useKioskContext();
-  const beforeDecision = state.screen === 'idle' || state.screen === 'detecting';
-  return <KioskFrame mode={beforeDecision ? 'easy' : state.mode ?? 'normal'}>{children}</KioskFrame>;
+  return <KioskFrame mode={state.mode}>{children}</KioskFrame>;
 }
 
 export function App() {
