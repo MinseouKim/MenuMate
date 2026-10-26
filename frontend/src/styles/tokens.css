@@ -47,7 +47,7 @@
   --fs-greeting: 230px;
   --fs-greeting-small: 130px;
   --fs-idle-lead: 36px;
-  --fs-camera-notice: 24px;
+  --fs-camera-notice: 28px; /* 사용성 점검 U9: 고령층이 읽을 수 있게 */
   --fs-order-number: 300px;
   --lh-body: 1.45;
   --lh-title: 1.2;
@@ -111,7 +111,11 @@
   --focus-offset: 3px;
 
   /* ---------- 상태·움직임 (고령층: 최소화) ---------- */
-  --opacity-disabled: 0.35;
+  --color-disabled-bg: var(--color-bg);   /* 비활성: 회색 바탕 + 점선 (불투명도 쓰지 않음, U3) */
+  --color-disabled-ink: var(--color-ink-mute);
+  --add-strip-h: 64px;     /* 메뉴 카드 아래 "담기" 띠 (U1) */
+  --cat-btn-h: 140px;      /* 큰 글씨 메뉴판 1단계 종류 버튼 (U5) */
+  --answer-icon: 1.3em;    /* 네/아니요 ○ ✕ 기호 (U2) */
   --motion-ring: 1.6s;
   --motion-spinner: 1s;
 }

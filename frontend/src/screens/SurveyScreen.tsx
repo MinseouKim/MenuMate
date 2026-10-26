@@ -1,4 +1,4 @@
-import { Lines, Notice, SpeakerIcon, TopBar } from '../components/common';
+import { Lines, NoIcon, Notice, SpeakerIcon, TopBar, YesIcon } from '../components/common';
 import { TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
 
@@ -31,14 +31,21 @@ export function SurveyScreen() {
               {Array.from({ length: total }, (_, i) => <i key={i} className={i <= state.surveyIndex ? 'on' : ''} />)}
             </div>
             <p className="lead mute">{TEXT.survey.progress(state.surveyIndex + 1, total)}</p>
+            {/* 1번 질문: 음성으로 읽는 인사를 화면에도 (사용성 점검 U7) */}
+            {state.surveyIndex === 0 && <p className="lead"><Lines lines={TEXT.survey.intro} /></p>}
             <p className="question">{q.text}</p>
             {k.speakerAvailable && (
-              <div><button className="btn btn-quiet" onClick={c.readQuestion}><SpeakerIcon />{TEXT.survey.replay}</button></div>
+              <div>
+                <button className={k.speaking ? 'btn btn-quiet is-speaking' : 'btn btn-quiet'} onClick={c.readQuestion}>
+                  <SpeakerIcon />{k.speaking ? TEXT.survey.speaking : TEXT.survey.replay}
+                </button>
+              </div>
             )}
             <div className="spacer" />
             <div className="answers">
-              <button className="btn btn-primary" onClick={() => c.answer('yes')}>{TEXT.survey.yes}</button>
-              <button className="btn" onClick={() => c.answer('no')}>{TEXT.survey.no}</button>
+              {/* 네/아니요는 같은 무게. 색이 아니라 ○ ✕ 기호로 구분 (U2) */}
+              <button className="btn" onClick={() => c.answer('yes')}><YesIcon />{TEXT.survey.yes}</button>
+              <button className="btn" onClick={() => c.answer('no')}><NoIcon />{TEXT.survey.no}</button>
             </div>
           </>
         )}

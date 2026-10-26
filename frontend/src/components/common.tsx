@@ -89,3 +89,39 @@ export const ChatIcon = () => (
     <path d="M4 5h16v11H9l-5 4z" />
   </svg>
 );
+
+export const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 12.5 9.5 18 20 6" />
+  </svg>
+);
+
+export const PlusIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+/** 질문 답 기호 (U2: 색이 아니라 기호로 구분) */
+export const YesIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6"><circle cx="12" cy="12" r="8.5" /></svg>
+);
+
+export const NoIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+    <path d="M5.5 5.5l13 13M18.5 5.5l-13 13" />
+  </svg>
+);
+
+/** 매장/포장 그림 (U2) */
+export const BowlIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 11h19a9.5 9.5 0 0 1-19 0z" /><path d="M8 21h8M9 2.5c-1 1.5 1 2.5 0 4.5M15 2.5c-1 1.5 1 2.5 0 4.5" />
+  </svg>
+);
+
+export const BagIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.5 8h15l-1 13h-13z" /><path d="M8.5 11V6a3.5 3.5 0 0 1 7 0v5" />
+  </svg>
+);

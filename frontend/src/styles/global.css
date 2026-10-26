@@ -19,6 +19,7 @@ button { font: inherit; color: inherit; }
 /* ---------- 1080x1920 캔버스 (D25) ---------- */
 .viewport { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .kiosk {
+  touch-action: manipulation; /* 두 번 탭 확대·터치 지연 방지 (U11) */
   width: 1080px; height: 1920px; flex: none;
   background: var(--color-bg);
   display: flex; flex-direction: column;
@@ -56,11 +57,17 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .btn:active { background: var(--color-selected); }
-.btn:disabled { opacity: var(--opacity-disabled); cursor: default; }
-.btn:disabled:active { background: var(--color-surface); }
+/* 비활성: 회색 바탕 + 점선 테두리 + 흐린 글자. 눌러도 될 것처럼 보이지 않게 (U3) */
+.btn:disabled, .btn-primary:disabled {
+  background: var(--color-disabled-bg); color: var(--color-disabled-ink);
+  border-style: dashed; border-color: var(--color-disabled-ink); cursor: default;
+}
+.btn:disabled:active { background: var(--color-disabled-bg); }
 .btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
 .btn-primary:active { background: var(--color-primary-press); border-color: var(--color-primary-press); }
-.btn-primary:disabled:active { background: var(--color-primary); }
+.btn-primary:disabled:active { background: var(--color-disabled-bg); border-color: var(--color-disabled-ink); }
+.btn-wide { padding: 0 var(--pad-tab-x); }
+.btn.is-speaking { background: var(--color-selected); border-color: var(--color-ink); }
 .btn-quiet { border-color: var(--color-line); background: transparent; }
 .btn-lg { min-height: var(--btn-h-lg); font-size: var(--fs-button-lg); }
 .btn-block { width: 100%; }
@@ -113,7 +120,17 @@ button { font: inherit; color: inherit; }
 .thumb[data-tint='5'] { background: var(--tint-5); }
 .thumb[data-tint='6'] { background: var(--tint-6); }
 .tile .info { padding: var(--pad-tile-info); display: flex; flex-direction: column; gap: var(--gap-xs); }
-.tile .name { font-weight: var(--fw-heavy); font-size: var(--fs-tile-name); }
+.tile .name { font-weight: var(--fw-heavy); font-size: var(--fs-tile-name); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* U12 */
+.tile .info { min-width: 0; }
+.tile-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+/* 카드 아래 "담기" 띠: 누르는 곳이 보이게. 담으면 노란 바탕 (U1) */
+.add-strip {
+  display: flex; align-items: center; justify-content: center; gap: var(--gap-s);
+  min-height: var(--add-strip-h); border-top: var(--stroke-thin) solid var(--color-line);
+  font-weight: var(--fw-heavy); font-size: var(--fs-body); color: var(--color-ink);
+}
+.add-strip svg { width: 1em; height: 1em; flex: none; }
+.tile.in-cart .add-strip { background: var(--color-selected); border-top-color: var(--color-ink); }
 .tile .price { font-size: var(--fs-tile-price); }
 .tile .desc { font-size: var(--fs-caption); color: var(--color-ink-mute); }
 .badge {
@@ -138,12 +155,14 @@ button { font: inherit; color: inherit; }
 .steps i.on { background: var(--color-primary); }
 .question { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-question); line-height: var(--lh-question); margin: 0; }
 .answers { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); width: 100%; }
-.answers .btn { min-height: var(--answer-h); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-hero); }
+.answers .btn { min-height: var(--answer-h); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-hero); flex-direction: column; }
+.answers .btn svg { width: var(--answer-icon); height: var(--answer-icon); }
+.answers.stack .btn { flex-direction: row; }
 .answers.stack { grid-template-columns: 1fr; }
 .answers.stack .btn { min-height: var(--answer-stack-h); font-size: var(--fs-title); }
 
 /* ---------- 추천 ---------- */
-.rec { flex-direction: row; align-items: stretch; }
+.rec .tile-main { flex-direction: row; align-items: stretch; }
 .rec .thumb { width: var(--rec-thumb-w); aspect-ratio: auto; flex: none; }
 .rec .info { flex: 1; padding: var(--pad-rec-info); gap: var(--gap-s); justify-content: center; }
 .rec .name { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-title); line-height: var(--lh-hero); }
@@ -178,7 +197,7 @@ button { font: inherit; color: inherit; }
 .wordmark { font-family: var(--font-display); font-size: var(--fs-wordmark); line-height: 1; }
 .greeting { font-family: var(--font-display); font-size: var(--fs-greeting); line-height: var(--lh-greeting); margin: 0; }
 .greeting.small { font-size: var(--fs-greeting-small); }
-.camera-notice { padding: var(--pad-camera-notice-top) var(--pad) var(--pad-camera-notice-bottom); font-size: var(--fs-camera-notice); color: var(--color-ink-mute); background: var(--color-bg); text-align: center; }
+.camera-notice { padding: var(--pad-camera-notice-top) var(--pad) var(--pad-camera-notice-bottom); font-size: var(--fs-camera-notice); color: var(--color-ink); background: var(--color-bg); text-align: center; }
 .dots { display: flex; gap: var(--gap-dot); }
 .dots i { width: var(--dot-size); height: var(--dot-size); border-radius: 50%; border: var(--stroke-dot) solid var(--color-ink); }
 .dots i.on { background: var(--color-primary); border-color: var(--color-primary); }
@@ -194,3 +213,12 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .ring, .spinner { animation: none; }
 }
+
+/* ---------- 큰 글씨 메뉴판 두 단계 (U5) ---------- */
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+.cat-grid .btn { min-height: var(--cat-btn-h); font-size: var(--fs-button-lg); }
+.cat-head .title { flex: 1; }
+.cat-head > .btn { flex: none; }
+
+/* ---------- 장바구니 빼기 확인 (U4) ---------- */
+.line.is-confirm { background: var(--color-selected); }

@@ -162,7 +162,8 @@ describe('키오스크 전체 흐름', () => {
     click(TEXT.tile.add('된장찌개', 9000));
     click(TEXT.cartBar.checkout);
     click(DINE_IN);
-    click(TEXT.cart.minus('된장찌개'));
+    click(TEXT.cart.removeAria('된장찌개'));
+    click(TEXT.cart.confirmYes);
     await screen.findByText(TEXT.cart.empty);
     expect(screen.queryByRole('button', { name: PAY })).toBeNull();
     click(TEXT.cart.goMenu);
@@ -247,5 +248,105 @@ describe('키오스크 전체 흐름', () => {
     await start();
     emit({ type: 'error', code: 'inference_failed', message: 'x' });
     await screen.findByRole('button', { name: TEXT.common.toEasy });
+  });
+});
+
+describe('사전 사용성 점검 (frontend/docs/usability-review.md)', () => {
+  const toEasyMenu = async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    click(TEXT.survey.exit);
+    await screen.findByText(TEXT.menu.chooseTitle);
+  };
+
+  it('U1 큰 글씨 화면은 담은 메뉴를 다시 눌러도 수량이 늘지 않고 "담았어요"가 보인다', async () => {
+    await toEasyMenu();
+    click('찌개·탕');
+    click(TEXT.tile.add('된장찌개', 9000));
+    expect(screen.getByText(TEXT.tile.added)).toBeInTheDocument();
+    click(TEXT.tile.add('된장찌개', 9000));
+    expect(screen.getByText(TEXT.cartBar.count(1))).toBeInTheDocument();
+  });
+
+  it('U1 기본 화면은 누를 때마다 1개씩 늘고 "N개 담음"이 보인다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    expect(screen.getAllByText(TEXT.tile.addLabel).length).toBeGreaterThan(0); // 누르는 곳이 보이는 "담기" 띠
+    click(TEXT.tile.add('김치찌개', 9000));
+    click(TEXT.tile.add('김치찌개', 9000));
+    expect(screen.getByText(TEXT.tile.addedQty(2))).toBeInTheDocument();
+  });
+
+  it('U2 네/아니요, 매장/포장은 같은 무게의 버튼이다 (정답처럼 보이는 쪽빛 없음)', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    for (const name of [TEXT.survey.yes, TEXT.survey.no]) {
+      expect(screen.getByRole('button', { name }).className).not.toMatch(/btn-primary/);
+    }
+    click(TEXT.survey.exit);
+    await screen.findByText(TEXT.menu.chooseTitle);
+    click('찌개·탕');
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.cartBar.checkout);
+    for (const name of [DINE_IN, TAKEOUT]) {
+      expect(screen.getByRole('button', { name }).className).not.toMatch(/btn-primary/);
+    }
+  });
+
+  it('U3 담은 메뉴가 없으면 주문하기는 비활성이고 이유가 글로 보인다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    expect(screen.getByRole('button', { name: TEXT.cartBar.checkout })).toBeDisabled();
+    expect(screen.getByText(TEXT.cartBar.empty)).toBeInTheDocument();
+  });
+
+  it('U4 수량 1에서는 [빼기] → 확인. "그대로 두기"면 남는다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.cartBar.checkout);
+    click(DINE_IN);
+    click(TEXT.cart.minus('된장찌개')); // 2 → 1 은 확인 없이
+    expect(screen.queryByText(TEXT.cart.confirm)).toBeNull();
+    click(TEXT.cart.removeAria('된장찌개'));
+    expect(screen.getByText(TEXT.cart.confirm)).toBeInTheDocument();
+    click(TEXT.cart.confirmNo);
+    expect(screen.queryByText(TEXT.cart.confirm)).toBeNull();
+    expect(screen.getByRole('button', { name: PAY })).toBeInTheDocument();
+  });
+
+  it('U5 큰 글씨 메뉴판은 두 단계: 종류 고르기 → 그 종류의 메뉴 4개씩', async () => {
+    await toEasyMenu();
+    expect(screen.queryByRole('button', { name: TEXT.tile.add('된장찌개', 9000) })).toBeNull();
+    click('찌개·탕');
+    expect(screen.getAllByRole('button', { name: n => n.endsWith(' 담기') })).toHaveLength(4);
+    click(TEXT.menu.otherCategory);
+    await screen.findByText(TEXT.menu.chooseTitle);
+  });
+
+  it('U6 쪽빛 주 버튼은 메뉴판에서 주문하기 하나, 주문번호 화면에는 없다', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    expect(screen.getByRole('button', { name: TEXT.menu.chat }).className).not.toMatch(/btn-primary/);
+    click(TEXT.tile.add('된장찌개', 9000));
+    await payToDone(DINE_IN);
+    expect(screen.getByRole('button', { name: TEXT.done.home }).className).not.toMatch(/btn-primary/);
+  });
+
+  it('U7 1번 질문에는 음성과 같은 인사가 화면에도 있고, 2번부터는 없다', async () => {
+    await start();
+    shift('KeyS');
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    expect(screen.getByText(lines(TEXT.survey.intro))).toBeInTheDocument();
+    click(TEXT.survey.yes);
+    await screen.findByText('따뜻한 국물이 있는 음식이 좋으세요?');
+    expect(screen.queryByText(lines(TEXT.survey.intro))).toBeNull();
   });
 });

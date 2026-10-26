@@ -1,4 +1,4 @@
-import { Lines, TopBar } from '../components/common';
+import { BagIcon, BowlIcon, Lines, TopBar } from '../components/common';
 import { ORDER_TYPE_LABEL, TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
 
@@ -11,8 +11,9 @@ export function OrderTypeScreen() {
       <div className="body center">
         <p className="hero"><Lines lines={TEXT.orderType.title} /></p>
         <div className="answers stack">
-          <button className="btn btn-primary" onClick={() => c.chooseOrderType('dine_in')}>{ORDER_TYPE_LABEL.dine_in}</button>
-          <button className="btn" onClick={() => c.chooseOrderType('takeout')}>{ORDER_TYPE_LABEL.takeout}</button>
+          {/* 두 버튼 같은 무게, 그림으로 구분 (사용성 점검 U2) */}
+          <button className="btn" onClick={() => c.chooseOrderType('dine_in')}><BowlIcon />{ORDER_TYPE_LABEL.dine_in}</button>
+          <button className="btn" onClick={() => c.chooseOrderType('takeout')}><BagIcon />{ORDER_TYPE_LABEL.takeout}</button>
         </div>
       </div>
     </div>

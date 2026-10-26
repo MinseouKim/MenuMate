@@ -26,6 +26,12 @@ export const SPEECH = {
   cart: '주문 내용을 확인하시고 결제하기를 눌러 주세요.',
   paying: '결제하고 있어요. 잠시만 기다려 주세요.',
   done: (orderNumber: string) => `주문이 끝났어요. 주문번호는 ${Number(orderNumber)}번입니다. 감사합니다.`,
+  // 아래는 큰 글씨 화면에서만 읽는다 (사용성 점검 U5, U8)
+  menuEasy: '어떤 메뉴를 보실지 종류를 골라 주세요.',
+  added: (name: string) => `${name}, 담았어요.`,
+  addAgain: '이미 담았어요. 개수는 주문 확인에서 바꿀 수 있어요.',
+  removeConfirm: (name: string) => `${name}, 이 메뉴를 뺄까요?`,
+  removed: (name: string) => `${name}, 뺐어요.`,
 };
 
 export const TEXT = {
@@ -52,7 +58,9 @@ export const TEXT = {
   },
   survey: {
     progress: (n: number, total: number) => `질문 ${n} / ${total}`,
+    intro: ['몇 가지 여쭤보고 메뉴를 추천해 드릴게요.', '네 또는 아니요를 눌러 주세요.'],
     replay: '다시 듣기',
+    speaking: '읽어 드리는 중…',
     yes: '네',
     no: '아니요',
     exit: '그냥 메뉴 볼래요',
@@ -70,13 +78,17 @@ export const TEXT = {
     prevPage: '앞 메뉴',
     nextPage: '다음 메뉴',
     page: (n: number, total: number) => `${n} / ${total}`,
+    chooseTitle: '어떤 메뉴를 보시겠어요?',
+    otherCategory: '다른 종류 보기',
   },
   tile: {
     add: (name: string, price: number) => `${name} ${won(price)} 담기`,
-    inCart: (qty: number) => `${qty}개 담음`,
+    addLabel: '담기',
+    added: '담았어요',
+    addedQty: (qty: number) => `${qty}개 담음`,
   },
   cartBar: {
-    empty: '메뉴를 누르면 담겨요',
+    empty: '아직 담은 메뉴가 없어요',
     count: (n: number) => `담은 메뉴 ${n}개`,
     checkout: '주문하기',
   },
@@ -86,6 +98,11 @@ export const TEXT = {
   cart: {
     title: '주문 내용을 확인해 주세요',
     minus: (name: string) => `${name} 하나 빼기`,
+    remove: '빼기',
+    removeAria: (name: string) => `${name} 빼기`,
+    confirm: '이 메뉴를 뺄까요?',
+    confirmYes: '빼기',
+    confirmNo: '그대로 두기',
     plus: (name: string) => `${name} 하나 더하기`,
     total: '합계',
     pay: (amount: number) => `${won(amount)} 결제하기`,

@@ -61,8 +61,9 @@ export function DoneScreen() {
         </div>
         <p className="title">{TEXT.done.pickup}</p>
         <div className="spacer" />
-        <p className="mute">{TEXT.done.countdown(left)}</p>
-        <button className="btn btn-primary btn-block btn-lg" onClick={c.reset}>{TEXT.done.home}</button>
+        <p>{TEXT.done.countdown(left)}</p>
+        {/* 손님이 꼭 할 일이 아니라 흰 버튼 (사용성 점검 U6, U10) */}
+        <button className="btn btn-block btn-lg" onClick={c.reset}>{TEXT.done.home}</button>
       </div>
     </div>
   );
