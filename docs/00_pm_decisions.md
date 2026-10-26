@@ -36,7 +36,8 @@
 | 역할 | 산출물 | 주관하는 계약 |
 |------|--------|---------------|
 | PM | 이 문서, 계약 변경 승인, 일정·범위 판단 | - |
-| Frontend | PRD, 와이어프레임(Figma), 키오스크 웹 앱 | 화면 상태 흐름 (`kiosk-flow`) |
+| Designer (D60) | UI 감사, 디자인 방향, 디자인 명세·화면 시안, 문구·음성 안내 문장, 고령층 사용성 테스트. 시각·UX 최종 결정 | - (kiosk-flow 변경은 PM 승인) |
+| Frontend | PRD, 와이어프레임(Figma), 키오스크 웹 앱. 디자이너 시안대로 구현 | 화면 상태 흐름 (`kiosk-flow`) |
 | Backend | DB ERD, API, 메뉴 시드, 결제 시뮬레이션 | 메뉴 JSON 스키마, API 명세 |
 | AI | AI 모델·파이프라인 입출력 명세, 브라우저 추론 모듈, TTS | AI 출력 형식, 질문 목록 |
 | 3명 공동 | 환경 변수 관리 가이드, 시스템 아키텍처 구상도 | - |
@@ -152,12 +153,19 @@
 | D51 | kiosk-flow v1.1 | idle에서도 판정 수신, AI `error`는 판정 전이면 timeout과 같음, "이전" 버튼 목적지 확정, easy 모드 "선택지 4개"는 고르는 대상에만 적용(탭 제외, 최대 6개) | ✅ | Frontend 보고 (2026-10-24) |
 | D52 | ai-output v1.1 | no_face 1회 전송, error 첫 1회 전송, 확정 후 추론 중지, confidence 정의 | ✅ | AI 보고 (2026-10-24). no_face 유예(`noFaceGraceMs`)는 실측 후 결정 |
 | D53 | 가짜 구현 스위치 | `VITE_MOCK_AI`, `VITE_MOCK_API` 추가. production 빌드에서 true면 빌드 실패 | ✅ | 전시에 가짜가 섞이는 사고 방지 |
-| D54 | 서체 | Black Han Sans(제목), Pretendard(본문). 둘 다 OFL, 프로젝트에 포함 | ✅ | |
+| D54 | 서체 | Black Han Sans(제목), Pretendard(본문). 둘 다 OFL, 프로젝트에 포함 | 🔁 D62 | |
 | D55 | 디자인 방향 | 한식당 벽 메뉴판·간판 모티프. 흰 판 + 먹색, 쪽빛 버튼 #1B3A8C, 가격 고추색 #A3121A, 선택 치자색 #F6C343, 사진 없음은 옅은 오방색 카드 | ✅ | Frontend 제안, frontend-design 스킬 |
 | D56 | 얼굴 끊김 유예 | `noFaceGraceMs` 설정 추가(`VITE_AI_NO_FACE_GRACE_MS`, 기본 0 = 기존 동작). 값은 웹캠 실측 후 결정 | ✅ | AI 제안 |
 | D57 | 카테고리 수 제한 | 카테고리 최대 6개는 화면이 아니라 메뉴 데이터 규칙으로 둠. 시드 검증에서 6개 초과면 실패 | ✅ | 화면에서 자르면 일부 메뉴를 고를 수 없게 됨 |
 | D58 | 1차 통합 | 2026-10-25 세 브랜치를 main에 병합. vitest를 세 패키지 모두 5로 통일, 루트 package-lock.json 커밋. 실제 서버·DB·모델로 55+ 흐름(Shift+S)이 주문번호까지 동작 확인 | ✅ | 10/26 계획보다 하루 앞당김 |
 | D59 | 판정 기준값 확정 | stableFrames 5, minConfidence 0.7, noFaceGraceMs 0 유지. 실측(MacBook Pro M4 Pro 내장 카메라, Chrome webgpu): 정면 확정 0.67초(최대 1.84초), confidence 0.73 이상, 검출 끊김 0회, 고령 인물 사진 3/3 senior | ✅ | `ai/docs/webcam-measurements.md`. 실제 55+ 인물·경계 나이·조명·안경·마스크는 미검증. 전시 전 Brio 500(모니터 위)으로 재확인 필요 |
+| D60 | 디자이너 합류 | 디자이너 1명 추가. 시각·UX는 디자이너가 최종 결정, 기술 구현은 Frontend, 어려운 결정·계약·일정은 PM | ✅ | 2026-10-26 사용자 결정. 규칙: `design/RULES.md` |
+| D61 | 스킬 추가 | 디자이너: frontend-design, design-taste-frontend(app screen 규칙, 인터넷 이미지·Google Fonts 기능 미사용), web-design-guidelines, writing-guidelines. Frontend: vercel-react-best-practices, vercel-composition-patterns 추가 | ✅ | vercel 배포·비용·모바일 스킬은 제외 (D32) |
+| D62 | 서체 | **D2Coding 하나로 통일** (D54 대체). 프로젝트에 파일로 포함 | ✅ | 사용자 결정. 굵기는 Regular·Bold 두 가지 |
+| D63 | 작업 구조 | 디자이너가 화면을 먼저 디자인하고 Frontend가 그대로 개발. 디자이너는 `design/`만 수정, 구현 후 디자인 검수 | ✅ | 사용자 결정 |
+| D64 | 디자인 방향 | D55(한식당 메뉴판 모티프)는 출발점일 뿐. 디자이너가 Frontend와 회의 후 필요하면 전체 변경 가능 | ✅ | 사용자 결정 |
+| D65 | 최종 점검 연기 | 10/27 최종 점검을 미루고 디자인 개선을 반영한 뒤 점검. 새 날짜는 사용자 확정 대기 | ✅ | 사용자 결정 |
+| D66 | 고령층 사용성 테스트 | 11/1~11/3 사이 55세 이상 2명이 실제 주문. 디자이너가 진행 순서와 관찰 기록지 준비 | ✅ | 사용자: 가능 |
 | D50 | DB 경로 기준 | `DATABASE_URL` 상대 경로는 `backend/` 폴더 기준. Prisma 기본(`prisma/` 기준)과 달라 Backend가 래퍼로 맞춤 | ✅ | DB 파일이 git 제외 폴더 밖에 생기는 문제 방지 |
 
 ## 7. 미결 사항
