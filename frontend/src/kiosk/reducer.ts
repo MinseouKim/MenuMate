@@ -1,4 +1,4 @@
-// 화면 상태 리듀서. docs/contracts/kiosk-flow.md 2장의 전이표를 그대로 옮겼다.
+// 화면 상태 리듀서. docs/contracts/kiosk-flow.md 2장의 전이표(v1.2)를 그대로 옮겼다.
 // 순수 함수다: API 호출, TTS, 카메라, 타이머는 useKiosk 훅이 맡는다.
 // 전이표에 없는 동작은 상태를 바꾸지 않고 같은 객체를 돌려준다.
 import type { KioskAction, KioskState, Screen } from './types';
@@ -20,6 +20,10 @@ export const initialState = (now: number): KioskState => ({
 });
 
 const SHOPPING: Screen[] = ['recommend', 'menu'];
+
+/** 모드 전환 버튼이 있는 화면: 판정 후 화면 중 결제 중·주문번호 화면은 뺀다 (v1.2) */
+export const canToggleMode = (s: Pick<KioskState, 'screen' | 'mode'>) =>
+  s.mode !== null && s.screen !== 'paying' && s.screen !== 'done';
 
 /** order_type, cart 에서 "이전"으로 돌아갈 곳. 추천을 받은 손님은 추천 화면으로 */
 const shoppingScreen = (s: KioskState): Screen => (s.recommendations.length > 0 ? 'recommend' : 'menu');
@@ -47,7 +51,11 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
       }
     }
 
-    case 'TOUCH_START':
+    case 'START_EASY':
+      if (s.screen !== 'idle' && s.screen !== 'detecting') return s;
+      return { ...s, screen: 'survey', mode: 'easy', ageGroup: 'undecided', surveyIndex: 0, answers: [], lastInteractionAt: a.now };
+
+    case 'START_NORMAL':
       if (s.screen !== 'idle' && s.screen !== 'detecting') return s;
       return { ...s, screen: 'menu', mode: 'normal', lastInteractionAt: a.now };
 
@@ -55,7 +63,7 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
       return { ...s, lastInteractionAt: a.now };
 
     case 'TOGGLE_MODE':
-      if (s.mode === null) return s;
+      if (!canToggleMode(s)) return s;
       return { ...s, mode: s.mode === 'easy' ? 'normal' : 'easy', lastInteractionAt: a.now };
 
     case 'OPEN_CHAT':
@@ -94,8 +102,8 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
       return { ...s, cart, orderId: null, lastInteractionAt: a.now };
     }
 
-    case 'GO_MENU':
-      if (s.screen !== 'recommend') return s;
+    case 'GO_MENU': // 추천의 "다른 메뉴 보기", 빈 장바구니의 "메뉴 담으러 가기"
+      if (s.screen !== 'recommend' && !(s.screen === 'cart' && s.cart.length === 0)) return s;
       return { ...s, screen: 'menu', lastInteractionAt: a.now };
 
     case 'CHECKOUT':
@@ -111,8 +119,8 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
       const cart = s.cart
         .map(l => (l.menuId === a.menuId ? { ...l, quantity: Math.min(MAX_QUANTITY, l.quantity + a.delta) } : l))
         .filter(l => l.quantity > 0);
-      // 장바구니를 바꾸면 기존 주문은 버리고 다음 결제 때 새로 만든다
-      return { ...s, cart, orderId: null, screen: cart.length === 0 ? 'menu' : 'cart', lastInteractionAt: a.now };
+      // 장바구니를 바꾸면 기존 주문은 버리고 다음 결제 때 새로 만든다. 비어도 cart 에 머문다 (v1.2)
+      return { ...s, cart, orderId: null, lastInteractionAt: a.now };
     }
 
     case 'PAY_START':
@@ -138,7 +146,7 @@ export function kioskReducer(s: KioskState, a: KioskAction): KioskState {
     case 'BACK':
       switch (s.screen) {
         case 'survey':
-          if (s.surveyIndex === 0) return { ...s, screen: 'menu', lastInteractionAt: a.now };
+          if (s.surveyIndex === 0) return s; // 1번 질문에는 "이전"이 없다 (v1.2)
           return { ...s, surveyIndex: s.surveyIndex - 1, answers: s.answers.slice(0, s.surveyIndex - 1), lastInteractionAt: a.now };
         case 'recommend': {
           const surveyIndex = Math.max(0, s.answers.length - 1);

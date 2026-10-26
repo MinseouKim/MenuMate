@@ -28,7 +28,8 @@ export interface KioskState {
 /** now: 사람이 한 동작이면 lastInteractionAt을 갱신하는 시각 (ms) */
 export type KioskAction =
   | { type: 'AI_UPDATE'; update: AgeGateUpdate; now: number }
-  | { type: 'TOUCH_START'; now: number }
+  | { type: 'START_EASY'; now: number }    // 대기 화면 "큰 글씨로 주문" (v1.2)
+  | { type: 'START_NORMAL'; now: number }  // 대기 화면 "바로 주문" (v1.2)
   | { type: 'INTERACT'; now: number }
   | { type: 'TOGGLE_MODE'; now: number }
   | { type: 'OPEN_CHAT'; now: number }

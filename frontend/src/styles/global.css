@@ -168,7 +168,7 @@ button { font: inherit; color: inherit; }
 .notice span { flex: 1; }
 
 /* ---------- 대기·인식 ---------- */
-.idle { cursor: pointer; background: var(--color-surface); }
+.idle { background: var(--color-surface); }
 .idle .body { padding: var(--pad-idle-body); }
 .idle .lead { font-size: var(--fs-idle-lead); }
 .signboard {

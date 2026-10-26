@@ -1,13 +1,14 @@
 import { Lines } from '../components/common';
 import { CAMERA_NOTICE, TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
+import { StartButtons } from './StartButtons';
 
-/** 대기: 카메라 앞에 서면 인식 시작, 화면을 누르면 카메라 없이 일반 메뉴판 (D20, D46) */
+/** 대기: 카메라 앞에 서면 인식 시작. 카메라 없이 시작하는 버튼 두 개 (D20, D46, v1.2) */
 export function IdleScreen() {
   const k = useKioskContext();
   const down = k.serverDown;
   return (
-    <div className="screen idle" onClick={down ? undefined : k.commands.touchStart}>
+    <div className="screen idle">
       <div className="signboard">
         <div className="wordmark">{TEXT.common.appName}</div>
         <p className={down ? 'greeting small' : 'greeting'}><Lines lines={down ? TEXT.idle.serverDown : TEXT.idle.greeting} /></p>
@@ -19,7 +20,7 @@ export function IdleScreen() {
           <>
             <p className="lead">{TEXT.idle.guide}</p>
             <div className="spacer" />
-            <button className="btn btn-primary btn-lg btn-block">{TEXT.idle.start}</button>
+            <StartButtons />
           </>
         )}
       </div>

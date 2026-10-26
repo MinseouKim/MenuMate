@@ -126,10 +126,65 @@ describe('키오스크 전체 흐름', () => {
     await screen.findByRole('button', { name: TEXT.common.toEasy });
   });
 
-  it('대기 화면을 누르면 판정 없이 일반 메뉴판 (D46)', async () => {
+  it('대기 화면 "바로 주문"은 판정 없이 일반 메뉴판 (D46, v1.2)', async () => {
+    await start();
+    click(TEXT.idle.startNormal);
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    expect(document.querySelector('[data-mode="normal"]')).not.toBeNull();
+  });
+
+  it('대기 화면 "큰 글씨로 주문"은 쉬운 화면 질문으로 (v1.2, D68)', async () => {
+    await start();
+    click(TEXT.idle.startEasy);
+    await screen.findByText('매운 음식도 괜찮으세요?');
+    expect(document.querySelector('[data-mode="easy"]')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: TEXT.common.back })).toBeNull(); // 1번 질문에는 "이전" 없음
+  });
+
+  it('대기 화면에서 두 버튼 밖을 누르면 아무 일도 없다 (v1.2)', async () => {
     await start();
     fireEvent.click(screen.getByText(GREETING));
+    expect(screen.getByText(GREETING)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: TEXT.menu.chat })).toBeNull();
+  });
+
+  it('인식 중 화면에서도 두 버튼으로 시작할 수 있다', async () => {
+    await start();
+    emit({ type: 'detecting', frameGroup: 'senior', run: 1, required: 5, elapsedMs: 100 });
+    click(TEXT.idle.startNormal);
     await screen.findByRole('button', { name: TEXT.menu.chat });
+  });
+
+  it('장바구니를 다 비워도 장바구니에 머물고 "메뉴 담으러 가기"로 메뉴판 (v1.2)', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.cartBar.checkout);
+    click(DINE_IN);
+    click(TEXT.cart.minus('된장찌개'));
+    await screen.findByText(TEXT.cart.empty);
+    expect(screen.queryByRole('button', { name: PAY })).toBeNull();
+    click(TEXT.cart.goMenu);
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+  });
+
+  it('결제 중·주문번호 화면에는 모드 전환 버튼이 없고, 결제 실패 화면에는 있다 (v1.2)', async () => {
+    await start();
+    shift('KeyN');
+    await screen.findByRole('button', { name: TEXT.menu.chat });
+    click(TEXT.tile.add('된장찌개', 9000));
+    click(TEXT.cartBar.checkout);
+    click(DINE_IN);
+    shift('KeyF');
+    click(PAY);
+    expect(screen.getByText(TEXT.paying.title)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: TEXT.common.toEasy })).toBeNull();
+    await screen.findByText(TEXT.payFailed.title);
+    expect(screen.getByRole('button', { name: TEXT.common.toEasy })).toBeInTheDocument();
+    click(TEXT.payFailed.retry);
+    await screen.findByText(TEXT.done.title);
+    expect(screen.queryByRole('button', { name: TEXT.common.toEasy })).toBeNull();
   });
 
   it('결제 실패(Shift+F) 뒤 장바구니가 남아 있고 다시 결제하면 성공', async () => {
@@ -175,7 +230,7 @@ describe('키오스크 전체 흐름', () => {
     render(<App />);
     await screen.findByText(GREETING);
     await waitFor(() => expect(requests.some(r => r.path === '/api/menu')).toBe(true));
-    fireEvent.click(screen.getByText(GREETING));
+    click(TEXT.idle.startNormal);
     await screen.findByRole('button', { name: TEXT.menu.chat });
   });
 

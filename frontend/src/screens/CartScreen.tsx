@@ -15,6 +15,13 @@ export function CartScreen() {
       <TopBar onBack={c.back} />
       <div className="body">
         <p className="title">{TEXT.cart.title}</p>
+        {state.cart.length === 0 && (
+          // 다 비워도 장바구니에 머문다 (v1.2)
+          <div className="body center">
+            <p className="title">{TEXT.cart.empty}</p>
+            <button className="btn btn-primary btn-lg btn-block" onClick={c.goMenu}>{TEXT.cart.goMenu}</button>
+          </div>
+        )}
         {state.orderType && <p className="lead mute">{ORDER_TYPE_LABEL[state.orderType]}</p>}
         <div className="lines">
           {state.cart.map(line => {
@@ -33,10 +40,12 @@ export function CartScreen() {
             );
           })}
         </div>
+        {state.cart.length > 0 && (<>
         <div className="spacer" />
         <div className="total"><span className="title">{TEXT.cart.total}</span><span className="price">{won(amount)}</span></div>
         <button className="btn btn-primary btn-block btn-lg" onClick={c.pay}>{TEXT.cart.pay(amount)}</button>
         <button className="btn btn-quiet btn-block" onClick={c.back}>{TEXT.cart.more}</button>
+        </>)}
       </div>
     </div>
   );

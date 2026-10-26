@@ -11,7 +11,8 @@ export function SurveyScreen() {
 
   return (
     <div className="screen">
-      <TopBar onBack={waiting ? undefined : c.back} />
+      {/* 1번 질문에는 "이전"이 없다. "그냥 메뉴 볼래요"만 (v1.2) */}
+      <TopBar onBack={waiting || state.surveyIndex === 0 ? undefined : c.back} />
       <div className="body">
         {catalog.questions === null ? (
           <div className="body center">

@@ -17,7 +17,7 @@ export const config = {
   aiDecideTimeoutMs: num(env.VITE_AI_DECIDE_TIMEOUT_MS, 8000),
   aiNoFaceGraceMs: num(env.VITE_AI_NO_FACE_GRACE_MS, 0),
   idleResetMs: num(env.VITE_IDLE_RESET_MS, 60000),
-  doneResetMs: num(env.VITE_DONE_RESET_MS, 10000),
+  doneResetMs: num(env.VITE_DONE_RESET_MS, 15000),
   ttsRate: num(env.VITE_TTS_RATE, 0.85),
   devShortcuts: (env.VITE_DEV_SHORTCUTS ?? 'true') === 'true',
 } as const;

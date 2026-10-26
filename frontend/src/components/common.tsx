@@ -2,6 +2,7 @@ import { Fragment, useLayoutEffect, useState, type ReactNode } from 'react';
 import type { Category, MenuItem } from '../api/contracts';
 import { TEXT } from '../kiosk/copy';
 import { useKioskContext } from '../kiosk/KioskContext';
+import { canToggleMode } from '../kiosk/reducer';
 import type { Mode } from '../kiosk/types';
 
 const W = 1080;
@@ -26,7 +27,7 @@ export function KioskFrame({ mode, children }: { mode: Mode | null; children: Re
   );
 }
 
-/** 판정 후 모든 화면 상단: 이전 버튼, 매장 이름, 모드 전환 버튼 */
+/** 판정 후 화면 상단: 이전 버튼, 매장 이름, 모드 전환 버튼 (결제 중·주문번호 화면은 모드 전환 없음, v1.2) */
 export function TopBar({ onBack }: { onBack?: () => void }) {
   const { state, catalog, commands } = useKioskContext();
   return (
@@ -34,7 +35,7 @@ export function TopBar({ onBack }: { onBack?: () => void }) {
       {onBack && <button className="btn" onClick={onBack}><ChevronLeft />{TEXT.common.back}</button>}
       <span className="store">{catalog.menu?.storeName ?? TEXT.common.appName}</span>
       <span className="spacer" />
-      {state.mode && (
+      {canToggleMode(state) && (
         <button className="btn" onClick={commands.toggleMode}>
           {state.mode === 'easy' ? TEXT.common.toNormal : TEXT.common.toEasy}
         </button>

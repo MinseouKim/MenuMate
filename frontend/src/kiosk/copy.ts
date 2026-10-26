@@ -31,8 +31,8 @@ export const SPEECH = {
 export const TEXT = {
   common: {
     back: '이전',
-    toEasy: '쉬운 화면으로 보기',
-    toNormal: '일반 화면으로 보기',
+    toEasy: '큰 글씨로 보기',
+    toNormal: '기본 화면으로',
     retry: '다시 시도',
     close: '닫기',
     appName: 'MenuMate',
@@ -42,12 +42,13 @@ export const TEXT = {
     serverDown: ['잠시 후', '이용해 주세요'],
     serverDownDetail: '주문 준비를 하고 있어요',
     guide: '화면 앞에 서 계시면 보기 편한 화면으로 바꿔 드려요',
-    start: '눌러서 주문 시작',
+    startEasy: '큰 글씨로 주문',
+    startNormal: '바로 주문',
   },
   detecting: {
     title: '반가워요',
     detail: '보기 편한 화면을 준비하고 있어요',
-    skip: '기다리지 않으려면 화면을 눌러 주세요',
+    skip: '기다리지 않으려면 아래 버튼을 눌러 주세요',
   },
   survey: {
     progress: (n: number, total: number) => `질문 ${n} / ${total}`,
@@ -89,6 +90,8 @@ export const TEXT = {
     total: '합계',
     pay: (amount: number) => `${won(amount)} 결제하기`,
     more: '메뉴 더 담기',
+    empty: '담은 메뉴가 없어요',
+    goMenu: '메뉴 담으러 가기',
   },
   paying: {
     title: '결제하고 있어요',

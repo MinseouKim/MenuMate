@@ -61,9 +61,21 @@ describe('연령 판정', () => {
     expect(kioskReducer(s, senior)).toBe(s);
   });
 
-  it('터치하면 판정 없이 일반 메뉴판 (D46)', () => {
-    expect(run([{ type: 'TOUCH_START', now: T }])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: null });
-    expect(run([detecting, { type: 'TOUCH_START', now: T }]).screen).toBe('menu');
+  it('"바로 주문"은 판정 없이 일반 메뉴판 (D46, v1.2)', () => {
+    expect(run([{ type: 'START_NORMAL', now: T }])).toMatchObject({ screen: 'menu', mode: 'normal', ageGroup: null });
+    expect(run([detecting, { type: 'START_NORMAL', now: T }]).screen).toBe('menu');
+  });
+
+  it('"큰 글씨로 주문"은 쉬운 화면 질문, ageGroup=undecided (v1.2, D68)', () => {
+    expect(run([{ type: 'START_EASY', now: T }]))
+      .toMatchObject({ screen: 'survey', mode: 'easy', ageGroup: 'undecided', surveyIndex: 0, answers: [] });
+    expect(run([detecting, { type: 'START_EASY', now: T }]).screen).toBe('survey');
+  });
+
+  it('판정 뒤에는 시작 버튼 동작을 무시한다', () => {
+    const s = run([junior]);
+    expect(kioskReducer(s, { type: 'START_EASY', now: T })).toBe(s);
+    expect(kioskReducer(s, { type: 'START_NORMAL', now: T })).toBe(s);
   });
 });
 
@@ -94,11 +106,12 @@ describe('질문', () => {
     expect(s).toMatchObject({ screen: 'survey', mode: 'normal', surveyIndex: 0, answers: [] });
   });
 
-  it('질문 "이전"은 앞 질문으로, 첫 질문에서는 menu', () => {
+  it('질문 "이전"은 앞 질문으로, 첫 질문에는 "이전"이 없다 (v1.2)', () => {
     const s = run([senior, answer('q1'), answer('q2'), { type: 'BACK', now: T }]);
     expect(s.surveyIndex).toBe(1);
     expect(s.answers.map(a => a.questionId)).toEqual(['q1']);
-    expect(run([senior, { type: 'BACK', now: T }]).screen).toBe('menu');
+    const first = run([senior]);
+    expect(kioskReducer(first, { type: 'BACK', now: T })).toBe(first);
   });
 
   it('추천 화면 "이전"은 마지막 질문으로', () => {
@@ -128,12 +141,20 @@ describe('주문', () => {
     expect(again.screen).toBe('cart');
   });
 
-  it('수량 0이면 줄 삭제, 장바구니가 비면 menu', () => {
+  it('수량 0이면 줄 삭제, 장바구니가 비어도 cart에 머물고 "메뉴 담으러 가기"로 menu (v1.2)', () => {
     const s = run([junior, add('m1'), add('m2'), { type: 'CHECKOUT', now: T },
       { type: 'CHOOSE_ORDER_TYPE', orderType: 'dine_in', now: T },
       { type: 'CHANGE_QTY', menuId: 'm1', delta: -1, now: T }]);
     expect(s.cart).toEqual([{ menuId: 'm2', quantity: 1 }]);
-    expect(kioskReducer(s, { type: 'CHANGE_QTY', menuId: 'm2', delta: -1, now: T }).screen).toBe('menu');
+    const empty = kioskReducer(s, { type: 'CHANGE_QTY', menuId: 'm2', delta: -1, now: T });
+    expect(empty).toMatchObject({ screen: 'cart', cart: [] });
+    expect(kioskReducer(empty, { type: 'GO_MENU', now: T }).screen).toBe('menu');
+    expect(kioskReducer(empty, { type: 'PAY_START', now: T })).toBe(empty);
+  });
+
+  it('담은 메뉴가 있으면 장바구니에서 "메뉴 담으러 가기"는 무시 ("이전"을 쓴다)', () => {
+    const s = run([junior, add('m1'), { type: 'CHECKOUT', now: T }, { type: 'CHOOSE_ORDER_TYPE', orderType: 'dine_in', now: T }]);
+    expect(kioskReducer(s, { type: 'GO_MENU', now: T })).toBe(s);
   });
 
   it('추천을 본 손님의 장바구니 "이전"은 recommend로', () => {
@@ -178,13 +199,23 @@ describe('모드 전환과 초기화', () => {
     expect(run([senior, { type: 'TOGGLE_MODE', now: T }])).toMatchObject({ screen: 'survey', mode: 'normal' });
   });
 
+  it('결제 중·주문번호 화면에서는 모드 전환을 무시한다 (v1.2)', () => {
+    const paying = run([junior, add('m1'), { type: 'CHECKOUT', now: T },
+      { type: 'CHOOSE_ORDER_TYPE', orderType: 'dine_in', now: T }, { type: 'PAY_START', now: T }]);
+    expect(kioskReducer(paying, { type: 'TOGGLE_MODE', now: T })).toBe(paying);
+    const done = kioskReducer(paying, { type: 'PAY_SUCCEEDED', orderNumber: '001', now: T });
+    expect(kioskReducer(done, { type: 'TOGGLE_MODE', now: T })).toBe(done);
+    const failed = kioskReducer(paying, { type: 'PAY_FAILED' });
+    expect(kioskReducer(failed, { type: 'TOGGLE_MODE', now: T }).mode).toBe('easy');
+  });
+
   it('RESET은 연령·취향·장바구니를 모두 지운다 (D30)', () => {
     const s = run([senior, answer('q1'), add('m1'), { type: 'RESET', now: 9 }]);
     expect(s).toEqual(initialState(9));
   });
 
   it('60초 무입력이면 초기화, 대기·인식 화면은 제외', () => {
-    const cfg = { idleResetMs: 60000, doneResetMs: 10000 };
+    const cfg = { idleResetMs: 60000, doneResetMs: 15000 };
     const s = run([junior]);
     expect(shouldAutoReset(s, T + 59999, cfg)).toBe(false);
     expect(shouldAutoReset(s, T + 60000, cfg)).toBe(true);
@@ -192,11 +223,11 @@ describe('모드 전환과 초기화', () => {
     expect(shouldAutoReset(run([detecting]), 1e9, cfg)).toBe(false);
   });
 
-  it('주문번호 화면은 10초 뒤 초기화', () => {
-    const cfg = { idleResetMs: 60000, doneResetMs: 10000 };
+  it('주문번호 화면은 15초 뒤 초기화 (v1.2)', () => {
+    const cfg = { idleResetMs: 60000, doneResetMs: 15000 };
     const done: KioskState = { ...initialState(0), screen: 'done', mode: 'normal', lastInteractionAt: T };
-    expect(shouldAutoReset(done, T + 9999, cfg)).toBe(false);
-    expect(shouldAutoReset(done, T + 10000, cfg)).toBe(true);
+    expect(shouldAutoReset(done, T + 14999, cfg)).toBe(false);
+    expect(shouldAutoReset(done, T + 15000, cfg)).toBe(true);
   });
 
   it('사람의 동작은 lastInteractionAt을 갱신한다', () => {
