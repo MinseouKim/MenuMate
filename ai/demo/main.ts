@@ -19,9 +19,10 @@ const config = {
   decideTimeoutMs: num('decideTimeoutMs', DEFAULT_RULES.decideTimeoutMs),
   fps: num('fps', DEFAULT_FPS),
   noFaceGraceMs: num('noFaceGraceMs', DEFAULT_RULES.noFaceGraceMs),
+  bandEdges: [num('bandLow', DEFAULT_RULES.bandEdges[0]), num('bandHigh', DEFAULT_RULES.bandEdges[1])] as [number, number],
 };
 $('config').textContent =
-  `${config.ageModelUrl.split('/').pop()} · ${config.stableFrames}프레임 · 신뢰도 ${config.minConfidence} · ` +
+  `${config.ageModelUrl.split('/').pop()} · 연령대 ${config.bandEdges.join('/')} · ${config.stableFrames}프레임 · 신뢰도 ${config.minConfidence} · ` +
   `${config.decideTimeoutMs / 1000}초 · ${config.fps}fps · 유예 ${config.noFaceGraceMs}ms · ${globalThis.crossOriginIsolated ? '멀티스레드' : '1스레드'}`;
 
 const video = $<HTMLVideoElement>('video');
@@ -64,7 +65,7 @@ function show(u: AgeGateUpdate) {
       setBars(u.run / u.required, u.elapsedMs / config.decideTimeoutMs);
       break;
     case 'decided':
-      status.textContent = `확정: ${u.group} (${u.source}, 신뢰도 ${u.confidence})`;
+      status.textContent = `확정: ${u.group} · ${u.ageBand} (${u.source}, 신뢰도 ${u.confidence})`;
       status.className = u.group;
       setBars(1, 0);
       break;
@@ -127,12 +128,14 @@ $('reset').onclick = () => {
   gate?.reset();
   log('reset()');
 };
-$('forceS').onclick = () => gate?.force('senior');
-$('forceN').onclick = () => gate?.force('non_senior');
+$('forceS').onclick = () => gate?.force('55plus');
+$('forceN').onclick = () => gate?.force('35to54');
+$('forceY').onclick = () => gate?.force('under35');
 addEventListener('keydown', (e) => {
   if (!e.shiftKey || !gate) return;
-  if (e.code === 'KeyS') gate.force('senior');
-  if (e.code === 'KeyN') gate.force('non_senior');
+  if (e.code === 'KeyS') gate.force('55plus');
+  if (e.code === 'KeyN') gate.force('35to54');
+  if (e.code === 'KeyY') gate.force('under35');
   if (e.code === 'KeyR') gate.reset();
 });
 

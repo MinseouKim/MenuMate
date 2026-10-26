@@ -22,7 +22,7 @@ describe('ageGateReducer', () => {
     const { updates, state } = run([0, 1, 2, 3, 4].map((i) => frame(i * 166, face(62))));
     expect(updates.slice(0, 4).map((u) => u?.type)).toEqual(['detecting', 'detecting', 'detecting', 'detecting']);
     expect(updates[3]).toMatchObject({ frameGroup: 'senior', run: 4, required: 5 });
-    expect(updates[4]).toEqual({ type: 'decided', group: 'senior', confidence: 0.9, source: 'model' });
+    expect(updates[4]).toEqual({ type: 'decided', group: 'senior', ageBand: '55plus', confidence: 0.9, source: 'model' });
     expect(state.phase).toBe('decided');
   });
 
@@ -181,5 +181,48 @@ describe('noFaceGraceMs (얼굴 검출 깜빡임 유예)', () => {
 describe('pickLargestFace', () => {
   it('얼굴이 없으면 null', () => {
     expect(pickLargestFace([])).toBeNull();
+  });
+});
+
+describe('ageBand (ai-output v2, D72)', () => {
+  const decide = (ages: number[], rules: AgeGateRules = DEFAULT_RULES) =>
+    run(ages.map((a, i) => frame(i * 166, face(a))), rules).last;
+
+  it('55세 이상 확정이면 ageBand는 55plus', () => {
+    expect(decide([62, 62, 62, 62, 62])).toMatchObject({ type: 'decided', group: 'senior', ageBand: '55plus' });
+  });
+
+  it('55세 미만은 확정에 쓴 프레임 나이의 중앙값으로 35세 기준을 나눈다', () => {
+    expect(decide([25, 25, 25, 25, 25])).toMatchObject({ group: 'non_senior', ageBand: 'under35' });
+    expect(decide([40, 40, 40, 40, 40])).toMatchObject({ group: 'non_senior', ageBand: '35to54' });
+    expect(decide([30, 33, 40, 41, 42])).toMatchObject({ ageBand: '35to54' });
+    expect(decide([20, 22, 34, 50, 52])).toMatchObject({ ageBand: 'under35' });
+    expect(decide([35, 35, 35, 35, 35])).toMatchObject({ ageBand: '35to54' });
+  });
+
+  it('group === senior ⇔ ageBand === 55plus 가 항상 성립한다', () => {
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+    for (let k = 0; k < 300; k++) {
+      const base = 15 + rnd() * 60;
+      const frames = Array.from({ length: 12 }, (_, i) => frame(i * 166, face(base + (rnd() - 0.5) * 20)));
+      const { updates } = run(frames);
+      for (const u of updates) {
+        if (u?.type === 'decided') expect(u.group === 'senior').toBe(u.ageBand === '55plus');
+      }
+    }
+  });
+
+  it('bandEdges 설정을 따른다 (seniorAge 기본값은 bandEdges[1])', () => {
+    const rules = { ...DEFAULT_RULES, seniorAge: 60, bandEdges: [30, 60] as [number, number] };
+    expect(decide([32, 32, 32, 32, 32], rules)).toMatchObject({ ageBand: '35to54' });
+    expect(decide([58, 58, 58, 58, 58], rules)).toMatchObject({ group: 'non_senior', ageBand: '35to54' });
+    expect(decide([28, 28, 28, 28, 28], rules)).toMatchObject({ ageBand: 'under35' });
+  });
+
+  it('decided 이벤트에도 나이 숫자는 없다', () => {
+    const u = decide([41, 43, 47, 44, 46]);
+    expect(Object.keys(u!).sort()).toEqual(['ageBand', 'confidence', 'group', 'source', 'type']);
+    expect(JSON.stringify(u)).not.toMatch(/4[1-7]\b/);
   });
 });

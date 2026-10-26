@@ -36,8 +36,9 @@
       <div>
         <button id="startCam">카메라 켜기</button>
         <button id="reset">reset()</button>
-        <button id="forceS">force('senior') ⇧S</button>
-        <button id="forceN">force('non_senior') ⇧N</button>
+        <button id="forceS">force('55plus') ⇧S</button>
+        <button id="forceN">force('35to54') ⇧N</button>
+        <button id="forceY">force('under35') ⇧Y</button>
       </div>
     </section>
   </div>
@@ -52,7 +53,7 @@
         <dt>설정</dt><dd id="config">-</dd>
         <dt>추론 간격</dt><dd id="interval">-</dd>
       </dl>
-      <small>URL로 설정 변경: ?stableFrames=5&amp;minConfidence=0.7&amp;decideTimeoutMs=8000&amp;fps=6&amp;noFaceGraceMs=0</small>
+      <small>URL로 설정 변경: ?stableFrames=5&amp;minConfidence=0.7&amp;decideTimeoutMs=8000&amp;fps=6&amp;noFaceGraceMs=0&amp;bandLow=35&amp;bandHigh=55</small>
     </section>
     <section style="margin-top:16px">
       <h2>이벤트 <button id="copyLog">로그 전체 복사</button></h2>

@@ -2,6 +2,7 @@
 // 프로토타입 Kiosk의 FRAME 처리 규칙에 8초 타임아웃(D16)을 더했다.
 
 import type {
+  AgeBand,
   AgeGateRules,
   AgeGateState,
   AgeGateUpdate,
@@ -11,7 +12,20 @@ import type {
 } from './types';
 
 export function initialAgeGateState(): AgeGateState {
-  return { phase: 'idle', runGroup: null, run: 0, runConfidenceSum: 0, firstSeenAt: null, lastSeenAt: null };
+  return { phase: 'idle', runGroup: null, run: 0, runConfidenceSum: 0, runAges: [], firstSeenAt: null, lastSeenAt: null };
+}
+
+function median(xs: number[]): number {
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
+}
+
+/** 확정된 연령대 → ageBand. senior이면 항상 55plus, 아니면 연속 프레임 나이의 중앙값을 bandEdges[0]과 비교 */
+export function toAgeBand(group: AgeGroup, runAges: number[], rules: AgeGateRules): AgeBand {
+  if (group === 'senior') return '55plus';
+  const lower = rules.bandEdges?.[0] ?? 35;
+  return runAges.length && median(runAges) < lower ? 'under35' : '35to54';
 }
 
 /** 여러 얼굴 중 박스 면적이 가장 큰 1개 (D18). 없으면 null. */
@@ -51,7 +65,7 @@ export function ageGateReducer(
   const usable = Number.isFinite(face.age) && face.confidence >= rules.minConfidence;
   if (!usable) {
     // 신뢰도가 낮은 프레임은 버리고 연속 기록을 끊는다.
-    const next: AgeGateState = { phase: 'detecting', runGroup: null, run: 0, runConfidenceSum: 0, firstSeenAt, lastSeenAt: input.t };
+    const next: AgeGateState = { phase: 'detecting', runGroup: null, run: 0, runConfidenceSum: 0, runAges: [], firstSeenAt, lastSeenAt: input.t };
     if (timedOut) return { state: { ...next, phase: 'timeout' }, update: { type: 'timeout' } };
     return {
       state: next,
@@ -63,14 +77,15 @@ export function ageGateReducer(
   const continues = state.runGroup === group;
   const run = continues ? state.run + 1 : 1;
   const runConfidenceSum = (continues ? state.runConfidenceSum : 0) + face.confidence;
-  const next: AgeGateState = { phase: 'detecting', runGroup: group, run, runConfidenceSum, firstSeenAt, lastSeenAt: input.t };
+  const runAges = [...(continues ? state.runAges : []), face.age];
+  const next: AgeGateState = { phase: 'detecting', runGroup: group, run, runConfidenceSum, runAges, firstSeenAt, lastSeenAt: input.t };
 
   // 같은 프레임에서 확정과 타임아웃이 겹치면 확정이 이긴다.
   if (run >= required) {
     const confidence = Math.round((runConfidenceSum / run) * 1000) / 1000;
     return {
       state: { ...next, phase: 'decided' },
-      update: { type: 'decided', group, confidence, source: 'model' },
+      update: { type: 'decided', group, ageBand: toAgeBand(group, runAges, rules), confidence, source: 'model' },
     };
   }
   if (timedOut) return { state: { ...next, phase: 'timeout' }, update: { type: 'timeout' } };
