@@ -177,4 +177,81 @@ describe("recommendationService.recommend", () => {
     expect(result[0].evidence_sources).toContain("테스트 픽스처");
     expect(result[0].last_verified_at).toBe("2026-10-01");
   });
+
+  it("예산을 초과하는 메뉴는 점수와 상관없이 하드 필터로 완전히 제외한다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "짬뽕", price: 20000, keyword_tags: ["짬뽕"] }),
+      makeMain({ id: 2, name: "짜장면", price: 9000 }),
+    ];
+    const conditions = {
+      ...emptyConditions(),
+      budget_per_person: 10000,
+      food_keywords: ["짬뽕"],
+    };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    // 키워드가 일치해도 예산(10,000원)을 넘는 메뉴(id:1, 20,000원)는 결과에 전혀 나오지 않아야 한다.
+    expect(result.map((r) => r.main.id)).not.toContain(1);
+    expect(result.map((r) => r.main.id)).toContain(2);
+  });
+
+  it("예산 조건이 없으면 가격과 상관없이 모든 메뉴가 후보에 남는다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "비싼 메뉴", price: 50000 }),
+      makeMain({ id: 2, name: "싼 메뉴", price: 5000 }),
+    ];
+
+    const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
+
+    expect(result.map((r) => r.main.id).sort()).toEqual([1, 2]);
+  });
+
+  it("키워드 매칭이 같을 때, 리뷰 근거가 있는 메뉴가 없는 메뉴보다 항상 우선한다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "리뷰 없는 메뉴", evidences: [] }),
+      makeMain({ id: 2, name: "리뷰 있는 메뉴" }), // makeMain 기본값에 evidences 1건 포함
+    ];
+
+    const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
+
+    expect(result[0].main.id).toBe(2);
+    expect(result[0].score).toBeGreaterThan(result[1].score);
+  });
+
+  it("리뷰 근거 유무(3순위)는 식감 같은 하위 티어 점수로 절대 뒤집히지 않는다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "리뷰 없지만 식감 맞음", evidences: [], texture_tags: ["바삭함"] }),
+      makeMain({ id: 2, name: "리뷰 있지만 식감 안 맞음", texture_tags: [] }),
+    ];
+    const conditions = { ...emptyConditions(), preferred_textures: ["바삭함"] };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    // id:1이 하위 티어(식감)에서 더 높은 점수를 받아도, 리뷰 근거가 없으므로 id:2보다 뒤로 간다.
+    expect(result[0].main.id).toBe(2);
+  });
+
+  it("점주 지정(is_featured) 메뉴는 키워드/리뷰 근거가 없어도 일반 메뉴보다 항상 우선한다", () => {
+    const menu = [
+      makeMain({
+        id: 1,
+        name: "점주 추천 메뉴",
+        is_featured: true,
+        evidences: [],
+        keyword_tags: [],
+      }),
+      makeMain({
+        id: 2,
+        name: "짬뽕",
+        keyword_tags: ["짬뽕"], // 일반 메뉴인데 키워드+리뷰 근거까지 다 있어도
+      }),
+    ];
+    const conditions = { ...emptyConditions(), food_keywords: ["짬뽕"] };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    expect(result[0].main.id).toBe(1);
+    expect(result[0].is_owner_pick).toBe(true);
+  });
 });
