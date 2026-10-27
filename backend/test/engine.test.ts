@@ -21,7 +21,7 @@ function engineFile(menus: unknown[], extra: object = {}) {
 function engineMenu(over: object = {}) {
   return {
     menuName: 'a-이름',
-    features: { spicy: 0, mild: 0, soup: 0, soft: 0, hearty: 0 },
+    features: { spicy: 0, mild: 0, soup: 0, soft: 0, hearty: 0, light: 0 },
     ageFit: { under35: 0.5, '35to54': 0.5, '55plus': 0.5 },
     reputation: 0.5, reviewCount: 10, adFilteredCount: 1,
     ...over,
@@ -71,9 +71,23 @@ describe('parseEngine', () => {
     expect(e.byId.get('a')).toBeDefined();
   });
 
-  it('모르는 특징 키는 무시한다 (질문 v2 대비)', () => {
-    const e = mustParse(engineFile([engineMenu({ features: { soup: 1, sweet: 0.8 } })]));
-    expect(e.menus[0].features).toEqual({ soup: 1 });
+  it('모르는 특징 키는 무시하고 light는 읽는다 (질문 v2)', () => {
+    const e = mustParse(engineFile([engineMenu({ features: { soup: 1, light: 0.7, sweet: 0.8 } })]));
+    expect(e.menus[0].features).toEqual({ soup: 1, light: 0.7 });
+  });
+
+  it('ageFitBasis는 "stats" | "rule", 없으면 "rule"로 본다', () => {
+    expect(mustParse(engineFile([engineMenu({ ageFitBasis: 'stats' })])).menus[0].ageFitBasis).toBe('stats');
+    expect(mustParse(engineFile([engineMenu()])).menus[0].ageFitBasis).toBe('rule');
+    const bad = parseEngine(engineFile([engineMenu({ ageFitBasis: 'guess' })]));
+    expect(bad.ok ? '' : bad.errors.join('\n')).toMatch(/menus\[0\].*ageFitBasis/);
+  });
+
+  it('AI 엔진 파일(engine/menu-features.json)이 있으면 형식에 맞다', () => {
+    const real = path.join(backendDir, 'engine', 'menu-features.json');
+    if (!fs.existsSync(real)) return;
+    const r = parseEngine(JSON.parse(fs.readFileSync(real, 'utf8')));
+    expect(r.ok ? [] : r.errors).toEqual([]);
   });
 });
 
@@ -126,7 +140,7 @@ describe('recommend + 엔진', () => {
 
   it('리뷰 평판: weights.reputation × (reputation − 0.5)', () => {
     const e = mustParse(engineFile([engineMenu({ reputation: 0.75 })]));
-    expect(recommend([menu('a', [], { priority: 1 })], [], { engine: e })[0].score).toBe(2); // 0.5 + 1.5
+    expect(recommend([menu('a', [], { priority: 1 })], [], { engine: e })[0].score).toBe(1); // 평판 0.5 + priority 0.5
   });
 
   it('매칭 안 된 메뉴는 v1 점수 그대로', () => {
@@ -151,12 +165,50 @@ describe('recommend + 엔진', () => {
     expect(recommend([menu('a', [])], soupYes, { engine: e })[0].score).toBe(0.4);
   });
 
-  it('reasons는 엔진 특징값 기여 기준, store_pick은 맨 끝', () => {
-    const e = mustParse(engineFile([engineMenu({ features: { soup: 0.9, soft: 0.2, spicy: 0 }, ageFit: { under35: 0.5, '35to54': 0.5, '55plus': 1 } })]));
-    const r = recommend([menu('a', ['spicy'], { priority: 1 })], [
-      { questionId: 'q_soup', answer: 'yes' },
-      { questionId: 'q_soft', answer: 'yes' },
-    ], { engine: e, band: '55plus' });
-    expect(r[0].reasons).toEqual(['soup', 'soft', 'store_pick']);
+  it('q_light는 엔진의 light 특징값으로 점수를 낸다', () => {
+    const e = mustParse(engineFile([engineMenu({ features: { light: 0.8 } })]));
+    expect(recommend([menu('a', [])], [{ questionId: 'q_light', answer: 'yes' }], { engine: e })[0].score).toBe(1.6);
+  });
+
+  describe('reasons (questions v2)', () => {
+    const basis = (over: object) => engineMenu({ menuId: 'a', ...over });
+    const reasons = (em: object, answers: { questionId: string; answer: 'yes' | 'no' | 'skip' }[], band?: 'under35' | '35to54' | '55plus', priority = 0) =>
+      recommend([menu('a', ['spicy'], { priority })], answers, { engine: mustParse(engineFile([em])), band })[0].reasons;
+
+    it('특징 이유는 prefs > 0 이고 feature ≥ 0.5일 때만, 기여 큰 순', () => {
+      expect(reasons(basis({ features: { soup: 0.9, soft: 0.6, light: 0.49 } }), [
+        { questionId: 'q_soft', answer: 'yes' },
+        { questionId: 'q_soup', answer: 'yes' },
+        { questionId: 'q_light', answer: 'yes' },
+      ])).toEqual(['soup', 'soft']);
+    });
+
+    it('age_fit: 연령대 결과에서 ageFit ≥ 0.6 이고 ageFitBasis가 stats일 때만', () => {
+      const em = basis({ ageFit: { under35: 0.2, '35to54': 0.5, '55plus': 0.6 }, ageFitBasis: 'stats' });
+      expect(reasons(em, [], '55plus')).toEqual(['age_fit']);
+      expect(reasons(em, [], 'under35')).toEqual([]);
+      expect(reasons(em, [])).toEqual([]); // items에는 붙지 않음
+      expect(reasons(basis({ ageFit: { under35: 0.5, '35to54': 0.5, '55plus': 0.9 }, ageFitBasis: 'rule' }), [], '55plus')).toEqual([]);
+    });
+
+    it('review_good: reputation ≥ 0.70 이고 reviewCount ≥ 100', () => {
+      expect(reasons(basis({ reputation: 0.7, reviewCount: 100 }), [])).toEqual(['review_good']);
+      expect(reasons(basis({ reputation: 0.69, reviewCount: 500 }), [])).toEqual([]);
+      expect(reasons(basis({ reputation: 0.9, reviewCount: 99 }), [])).toEqual([]);
+    });
+
+    it('순서: 특징 이유 → age_fit → review_good → store_pick', () => {
+      const em = basis({
+        features: { soup: 0.9 }, ageFit: { under35: 0.5, '35to54': 0.5, '55plus': 0.8 }, ageFitBasis: 'stats',
+        reputation: 0.8, reviewCount: 300,
+      });
+      expect(reasons(em, [{ questionId: 'q_soup', answer: 'yes' }], '55plus', 1)).toEqual(['soup', 'age_fit', 'review_good', 'store_pick']);
+    });
+
+    it('엔진에 없는 메뉴에는 특징 이유(태그 1/0)와 store_pick만 붙는다', () => {
+      const e = mustParse(engineFile([engineMenu({ menuId: 'zzz', reputation: 1, reviewCount: 999 })]));
+      const r = recommend([menu('a', ['soup'], { priority: 1 })], [{ questionId: 'q_soup', answer: 'yes' }], { engine: e, band: '55plus' });
+      expect(r[0].reasons).toEqual(['soup', 'store_pick']);
+    });
   });
 });

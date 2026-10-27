@@ -2,8 +2,8 @@
   "engineVersion": "example-not-trained",
   "generatedAt": "2026-10-27T00:00:00+09:00",
   "weights": {
-    "ageFit": 2,
-    "reputation": 2
+    "ageFit": 3,
+    "reputation": 1.5
   },
   "menus": [
     {
@@ -13,7 +13,8 @@
         "mild": 0.9,
         "soup": 0.95,
         "soft": 0.7,
-        "hearty": 0.4
+        "hearty": 0.4,
+        "light": 0.26
       },
       "ageFit": {
         "under35": 0.35,
@@ -22,7 +23,8 @@
       },
       "reputation": 0.8,
       "reviewCount": 320,
-      "adFilteredCount": 14
+      "adFilteredCount": 14,
+      "ageFitBasis": "stats"
     },
     {
       "menuName": "김치찌개",
@@ -31,7 +33,8 @@
         "mild": 0.1,
         "soup": 0.95,
         "soft": 0.3,
-        "hearty": 0.6
+        "hearty": 0.6,
+        "light": 0.38
       },
       "ageFit": {
         "under35": 0.7,
@@ -40,7 +43,8 @@
       },
       "reputation": 0.75,
       "reviewCount": 510,
-      "adFilteredCount": 30
+      "adFilteredCount": 30,
+      "ageFitBasis": "rule"
     },
     {
       "menuName": "제육덮밥",
@@ -49,7 +53,8 @@
         "mild": 0.1,
         "soup": 0.05,
         "soft": 0.2,
-        "hearty": 0.9
+        "hearty": 0.9,
+        "light": 0.38
       },
       "ageFit": {
         "under35": 0.85,
@@ -58,7 +63,8 @@
       },
       "reputation": 0.7,
       "reviewCount": 280,
-      "adFilteredCount": 9
+      "adFilteredCount": 9,
+      "ageFitBasis": "rule"
     },
     {
       "menuName": "전복죽",
@@ -67,7 +73,8 @@
         "mild": 0.95,
         "soup": 0.3,
         "soft": 1.0,
-        "hearty": 0.2
+        "hearty": 0.2,
+        "light": 0.48
       },
       "ageFit": {
         "under35": 0.2,
@@ -76,7 +83,8 @@
       },
       "reputation": 0.85,
       "reviewCount": 120,
-      "adFilteredCount": 4
+      "adFilteredCount": 4,
+      "ageFitBasis": "rule"
     },
     {
       "menuName": "LA갈비",
@@ -85,7 +93,8 @@
         "mild": 0.5,
         "soup": 0.0,
         "soft": 0.4,
-        "hearty": 0.95
+        "hearty": 0.95,
+        "light": 0.29
       },
       "ageFit": {
         "under35": 0.6,
@@ -94,7 +103,8 @@
       },
       "reputation": 0.6,
       "reviewCount": 90,
-      "adFilteredCount": 11
+      "adFilteredCount": 11,
+      "ageFitBasis": "rule"
     }
   ]
 }

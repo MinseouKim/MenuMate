@@ -3,7 +3,10 @@
 export type OrderType = 'dine_in' | 'takeout';
 export type Answer = 'yes' | 'no' | 'skip';
 export type Tag = 'spicy' | 'mild' | 'soup' | 'soft' | 'hearty';
-export type Reason = Tag | 'store_pick';
+/** 추천 점수에 쓰는 특징. 메뉴 태그 5개 + 엔진의 담백함 (questions v2) */
+export type Feature = Tag | 'light';
+/** questions v2: 특징 이유 + age_fit(또래 분들이 자주 드세요) + review_good(손님 평이 좋아요) + store_pick */
+export type Reason = Feature | 'age_fit' | 'review_good' | 'store_pick';
 /** v2 (D72). 서버로 보내지 않는다 (D47, D73). 서버는 세 연령대 결과를 모두 계산해 보낸다 */
 export type AgeBand = 'under35' | '35to54' | '55plus';
 

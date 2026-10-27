@@ -59,14 +59,15 @@ describe('GET /api/menu', () => {
 });
 
 describe('GET /api/questions', () => {
-  it('질문 4개를 order 오름차순으로', async () => {
+  it('질문 5개를 order 오름차순으로', async () => {
     const r = await app.inject('/api/questions');
     expect(r.statusCode).toBe(200);
     expect(r.json<QuestionsResponse>().questions).toEqual([
       { id: 'q_spicy', order: 1, text: '매운 음식도 괜찮으세요?' },
-      { id: 'q_soup', order: 2, text: '따뜻한 국물이 있는 음식이 좋으세요?' },
+      { id: 'q_soup', order: 2, text: '따뜻한 국물 요리가 좋으세요?' },
       { id: 'q_soft', order: 3, text: '부드러운 음식이 좋으세요?' },
       { id: 'q_hearty', order: 4, text: '든든하게 드시고 싶으세요?' },
+      { id: 'q_light', order: 5, text: '담백한 맛이 좋으세요?' },
     ]);
   });
 });
@@ -83,7 +84,7 @@ describe('POST /api/recommendations', () => {
     });
     expect(r.statusCode).toBe(200);
     const items = r.json<RecommendationResponse>().items;
-    // m001, m005: soup 2 + mild 1 + soft 2 = 5 (sortOrder 같음 → id) / m003: mild 1 / m002: soup 2 - 3 + 1.5 = 0.5
+    // m001, m005: soup 2 + mild 1 + soft 2 = 5 (sortOrder 같음 → id) / m003: mild 1 / m002: soup 2 - 3 + 0.5 = -0.5
     expect(items.map((i) => [i.menu.id, i.score, i.reasons])).toEqual([
       ['m001', 5, ['soup', 'soft', 'mild']],
       ['m005', 5, ['soup', 'soft', 'mild']],
@@ -180,9 +181,9 @@ describe('POST /api/recommendations + 엔진 (v2)', () => {
     const body = r.json<RecommendationResponse>();
     expect(body.engineVersion).toBe('2026-10-30-test');
     const top = (list: { menu: { id: string }; score: number }[]) => list.map((i) => [i.menu.id, i.score]);
-    expect(top(body.items)).toEqual([['m002', 1.5], ['m001', 0], ['m003', 0]]);
-    expect(top(body.byAgeBand['55plus'])).toEqual([['m002', 1.5], ['m001', 1], ['m005', 0]]);
-    expect(top(body.byAgeBand.under35)).toEqual([['m002', 1.5], ['m003', 1], ['m005', 0]]);
+    expect(top(body.items)).toEqual([['m002', 0.5], ['m001', 0], ['m003', 0]]);
+    expect(top(body.byAgeBand['55plus'])).toEqual([['m001', 1], ['m002', 0.5], ['m005', 0]]);
+    expect(top(body.byAgeBand.under35)).toEqual([['m003', 1], ['m002', 0.5], ['m005', 0]]);
     expect(top(body.byAgeBand['35to54'])).toEqual(top(body.items));
   });
 });

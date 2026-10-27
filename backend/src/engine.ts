@@ -1,19 +1,21 @@
 // 리뷰 학습 엔진 결과 파일(backend/engine/menu-features.json)을 읽는다 (v2-changes 5장, D74).
 // 파일이 없거나 형식이 틀리면 null을 돌려주고, 추천은 v1 점수로 동작한다 (전시 안전).
 import fs from 'node:fs';
-import type { AgeBand, Tag } from './contracts.js';
-import { AGE_BANDS, TAGS } from './recommend.js';
+import type { AgeBand, Feature } from './contracts.js';
+import { AGE_BANDS, FEATURES } from './recommend.js';
 
 export interface EngineMenu {
   menuName: string;
   menuId?: string;
-  /** 0~1. 지금은 v1 태그 5개만 읽고 모르는 키는 무시한다 */
-  features: Partial<Record<Tag, number>>;
+  /** 0~1. 특징 6개(태그 5개 + light)만 읽고 모르는 키는 무시한다 */
+  features: Partial<Record<Feature, number>>;
   ageFit: Record<AgeBand, number>;
   /** 0~1, 0.5가 중립 */
   reputation: number;
   reviewCount: number;
   adFilteredCount: number;
+  /** 연령대 적합도 근거. "stats"일 때만 age_fit 이유를 붙인다 (questions v2). 없으면 "rule" */
+  ageFitBasis: 'stats' | 'rule';
 }
 
 export interface Engine {
@@ -49,13 +51,13 @@ export function parseEngine(json: unknown): EngineParseResult {
       const before = errors.length;
       if (typeof m.menuName !== 'string' || m.menuName.trim() === '') errors.push(`${label}.menuName: 비어 있지 않은 문자열이어야 해요`);
       if (m.menuId !== undefined && typeof m.menuId !== 'string') errors.push(`${label}.menuId: 문자열이어야 해요`);
-      const features: Partial<Record<Tag, number>> = {};
+      const features: Partial<Record<Feature, number>> = {};
       if (!isObj(m.features)) {
         errors.push(`${label}.features: 객체여야 해요`);
       } else {
         for (const [k, v] of Object.entries(m.features)) {
           if (!isUnit(v)) errors.push(`${label}.features.${k}: 0~1 숫자여야 해요 (받은 값: ${JSON.stringify(v)})`);
-          else if (TAGS.includes(k as Tag)) features[k as Tag] = v;
+          else if (FEATURES.includes(k as Feature)) features[k as Feature] = v;
         }
       }
       if (!isObj(m.ageFit)) {
@@ -68,6 +70,9 @@ export function parseEngine(json: unknown): EngineParseResult {
       if (!isUnit(m.reputation)) errors.push(`${label}.reputation: 0~1 숫자여야 해요`);
       if (!isCount(m.reviewCount)) errors.push(`${label}.reviewCount: 0 이상의 정수여야 해요`);
       if (!isCount(m.adFilteredCount)) errors.push(`${label}.adFilteredCount: 0 이상의 정수여야 해요`);
+      if (m.ageFitBasis !== undefined && m.ageFitBasis !== 'stats' && m.ageFitBasis !== 'rule') {
+        errors.push(`${label}.ageFitBasis: "stats"나 "rule"이어야 해요 (받은 값: ${JSON.stringify(m.ageFitBasis)})`);
+      }
       if (errors.length > before) return;
       const ageFit = m.ageFit as Record<AgeBand, number>;
       menus.push({
@@ -78,6 +83,7 @@ export function parseEngine(json: unknown): EngineParseResult {
         reputation: m.reputation as number,
         reviewCount: m.reviewCount as number,
         adFilteredCount: m.adFilteredCount as number,
+        ageFitBasis: m.ageFitBasis === 'stats' ? 'stats' : 'rule',
       });
     });
   }

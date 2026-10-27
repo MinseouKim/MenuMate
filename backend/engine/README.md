@@ -8,6 +8,9 @@
 ## 동작
 - `menu-features.json`이 없거나, JSON이 깨졌거나, 형식이 틀리면 경고만 남기고 **v1 점수**로 추천한다 (전시 안전). 응답 `engineVersion`은 `"none"`.
 - `menuId`가 있는 항목은 그 id의 메뉴에만, `menuId`가 없는 항목은 이름이 같은 메뉴에 붙는다.
-- 엔진에 없는 메뉴는 v1 점수 그대로다 (특징값 = 메뉴 태그 1/0, 연령대·평판은 중립).
-- 점수: `Σ prefs[f] × features[f] + weights.ageFit × (ageFit[band] − 0.5) + weights.reputation × (reputation − 0.5) + priority × 1.5`. `items`(연령대 모름)는 연령대 항을 넣지 않는다.
-- `features`는 지금 v1 태그 5개(`spicy`, `mild`, `soup`, `soft`, `hearty`)만 읽고 모르는 키는 무시한다.
+- 엔진에 없는 메뉴는 v1 방식이다 (특징값 = 메뉴 태그 1/0, light는 0, 연령대·평판 항은 0).
+- 점수와 추천 이유의 기준은 `docs/contracts/questions.md` v2 (D82):
+  `Σ prefs[f] × features[f] + weights.ageFit × (ageFit[band] − 0.5) + weights.reputation × (reputation − 0.5) + priority × 0.5`.
+  `items`(연령대 모름)는 연령대 항과 `age_fit` 이유를 넣지 않는다.
+- `features`는 특징 6개(`spicy`, `mild`, `soup`, `soft`, `hearty`, `light`)만 읽고 모르는 키는 무시한다.
+- `ageFitBasis`(`"stats"` | `"rule"`, 없으면 `"rule"`)가 `"stats"`인 메뉴에만 `age_fit` 이유를 붙인다.
