@@ -69,19 +69,31 @@ def band_of(age: float) -> str | None:
     return '55plus'
 
 
-def prevalence(rows: Iterable[tuple]) -> dict[str, dict[str, tuple[float, int]]]:
+def prevalence(
+    rows: Iterable[tuple], persons: Iterable[tuple] | None = None
+) -> dict[str, dict[str, tuple[float, int]]]:
     """rows: (ID, 나이, 영양조사 가중치, 음식명) → {메뉴: {연령대: (가중 섭취 비율, 섭취자 수)}}.
 
     섭취 비율 = 조사 하루 동안 그 메뉴를 한 번이라도 먹은 사람의 가중 비율.
+    persons: 기본DB(ALL)의 (ID, 나이, 영양조사 가중치). 주면 가중치 > 0인 사람을 분모로 쓴다
+    (24RC에 음식 행이 없는 영양조사 대상자도 포함). 없으면 24RC에 나온 사람이 분모다.
     """
     person: dict[str, tuple[str, float]] = {}
+    if persons is not None:
+        for pid, age, w in persons:
+            b = band_of(age)
+            if b is not None and w and w > 0:
+                person[pid] = (b, float(w))
     ate: dict[str, set[str]] = defaultdict(set)
     match_cache: dict[str, set[str]] = {}
     for pid, age, w, dish in rows:
         b = band_of(age)
         if b is None:
             continue
-        person[pid] = (b, float(w or 0))
+        if persons is None:
+            person[pid] = (b, float(w or 0))
+        elif pid not in person:
+            continue  # 기본DB에서 영양조사 대상이 아닌 사람
         if dish not in match_cache:
             match_cache[dish] = match_dish(dish)
         for m in match_cache[dish]:
@@ -118,12 +130,30 @@ def load_rows(path: Path) -> list[tuple]:
     return list(df[['ID', 'age', 'wt_ntr', 'N_DNAME']].itertuples(index=False, name=None))
 
 
+def load_persons(path: Path) -> list[tuple]:
+    import pyreadstat
+
+    df, _ = pyreadstat.read_sav(str(path), usecols=['ID', 'age', 'wt_ntr'])
+    return list(df[['ID', 'age', 'wt_ntr']].itertuples(index=False, name=None))
+
+
 def load_knhanes(directory: Path = KNHANES_DIR) -> tuple[dict, dict] | None:
-    """data/knhanes/HN??_24RC.sav를 모두 읽어 메뉴별 연령대 통계를 낸다. 파일이 없으면 None."""
+    """data/knhanes/HN??_24RC.sav를 모두 읽어 메뉴별 연령대 통계를 낸다. 파일이 없으면 None.
+
+    같은 연도의 기본DB(HN??_ALL.sav)가 있으면 ID로 합쳐 분모(영양조사 대상자)를 기본DB 기준으로 잡는다.
+    한 연도라도 기본DB가 없으면 모든 연도를 24RC 기준으로 계산한다 (연도끼리 기준을 맞춤).
+    """
     files = sorted(directory.glob('HN*_24RC.sav')) if directory.exists() else []
     if not files:
         return None
     rows: list[tuple] = []
     for f in files:
         rows += load_rows(f)
-    return prevalence(rows), {'files': [f.name for f in files]}
+    alls = [f.with_name(f.name.replace('_24RC', '_ALL')) for f in files]
+    persons = None
+    if all(a.exists() for a in alls):
+        persons = []
+        for a in alls:
+            persons += load_persons(a)
+    used = [f.name for f in files] + ([a.name for a in alls] if persons is not None else [])
+    return prevalence(rows, persons=persons), {'files': used}

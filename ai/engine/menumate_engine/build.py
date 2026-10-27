@@ -226,7 +226,7 @@ def main() -> None:
     )
     if kn:
         out['sources'].append(
-            {'name': f'질병관리청 국민건강영양조사 원시자료 ({", ".join(kn[1]["files"])})', 'url': 'https://knhanes.kdca.go.kr', 'license': '통계자료 이용자 준수사항 이행서약·보안서약 (원시자료 미포함, 연령대별 집계값만 사용)'}
+            {'name': f'질병관리청 국민건강영양조사 원시자료 ({", ".join(kn[1]["files"])})', 'url': 'https://knhanes.kdca.go.kr', 'license': '통계자료 이용자 준수사항 이행서약·보안서약. 전시 사용 가능 확인(D84). 원시자료 미포함, 연령대별 집계값만 사용'}
         )
     errs = validate_backend_schema(out)
     if errs:

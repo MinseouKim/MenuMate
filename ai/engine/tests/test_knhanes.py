@@ -69,3 +69,12 @@ def test_knhanes_age_fit_needs_enough_eaters_and_shrinks():
     fit = knhanes_age_fit(many)
     assert fit is not None and fit['55plus'] > 0.5 > fit['under35']
     assert knhanes_age_fit(few) is None  # 섭취자 30명 미만 → 통계 근거로 쓰지 않음
+
+
+def test_prevalence_uses_base_db_people_as_denominator():
+    # 기본DB(ALL)의 영양조사 대상자(가중치 > 0)는 24RC에 음식 행이 없어도 분모에 든다
+    rows = [('a', 60, 1.0, '된장찌개')]
+    persons = [('a', 60, 1.0), ('b', 62, 1.0), ('c', 30, 1.0), ('d', 70, 0.0)]  # d: 영양조사 비대상
+    p = prevalence(rows, persons=persons)
+    assert p['m001']['55plus'] == (pytest.approx(0.5), 1)
+    assert p['m001']['under35'] == (0.0, 0)
