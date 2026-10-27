@@ -325,4 +325,39 @@ describe("recommendationService.recommend", () => {
 
     expect(result[0].matched_conditions).toContain('요청하신 "딤섬" 관련 메뉴');
   });
+  it("직접 언급 리뷰가 있는 메뉴가 공통 근거('딤섬' 전체 칭찬)만 있는 메뉴보다 먼저 추천된다", () => {
+    const aggregate = (mention: number) => [{
+      field_name: "overall", source_type: "manual_public_review_aggregate" as const,
+      source_summary: "공개 리뷰 집계", sample_size: 23 + mention, mention_count: mention,
+      collected_at: "2026-10-27", verified_at: null,
+    }];
+    const menu = [
+      makeMain({ id: 1, name: "홍게살 소룡포", kind: "딤섬", price: 9500, evidences: aggregate(0) }),
+      makeMain({ id: 2, name: "하가우", kind: "딤섬", price: 9800, evidences: aggregate(3) }),
+      makeMain({ id: 3, name: "쇼마이", kind: "딤섬", price: 9800, evidences: aggregate(4) }),
+      makeMain({ id: 4, name: "소룡포", kind: "딤섬", price: 8900, evidences: aggregate(6) }),
+      makeMain({ id: 5, name: "리뷰 없는 딤섬", kind: "딤섬", price: 9000, evidences: [] }),
+    ];
+    const conditions = { ...emptyConditions(), food_keywords: ["딤섬"], budget_per_person: 10000 };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    // 직접 언급 수 순서(6 > 4 > 3). 공통 근거만 있는 홍게살 소룡포와 근거 없는 메뉴는 그 뒤라 3개 안에 못 든다.
+    expect(result.map((r) => r.main.id)).toEqual([4, 3, 2]);
+  });
+
+  it("공통 근거만 있어도 리뷰 근거가 아예 없는 메뉴보다는 먼저 추천된다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "근거 없음", evidences: [] }),
+      makeMain({ id: 2, name: "공통 근거만", evidences: [{
+        field_name: "overall", source_type: "manual_public_review_aggregate",
+        source_summary: "공개 리뷰 집계", sample_size: 23, mention_count: 0,
+        collected_at: "2026-10-27", verified_at: null,
+      }] }),
+    ];
+
+    const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
+
+    expect(result.map((r) => r.main.id)).toEqual([2, 1]);
+  });
 });

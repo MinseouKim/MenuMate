@@ -24,7 +24,8 @@ export interface RecommendationInput {
  *    점주 추천 세트는 세트 합계가 1인 예산 x 인원수를 넘으면 제외).
  * 2. 다단계(tiered) 비교 — 상위 티어가 같을 때만 다음 티어로 내려가므로 하위 티어가 상위를 절대 못 뒤집는다.
  *    1) 음식 키워드 매칭 (사용자가 가장 구체적으로 말한 내용)
- *    2) 리뷰/후기 근거가 있는 메뉴(menu_evidences 1건 이상) > 근거 없는 메뉴
+ *    2) 리뷰/후기 근거 3단계: 그 메뉴를 직접 언급한 근거 > '딤섬' 전체 칭찬 같은 공통 근거만 있음 > 근거 없음
+ *       (직접 언급 근거끼리는 직접 언급 리뷰 수가 많은 메뉴가 먼저)
  *    3) 사용자가 말한 나머지 선호: 식감 선호 + 맵기 근접도
  *    4) 점주 지정(단일 메뉴 is_featured, 또는 점주 추천 세트) — 위 조건이 같을 때만 앞세운다
  *    5) 비전 보조 신호(최저 가중치)
@@ -155,8 +156,10 @@ function passesHardFilters(item: MenuWithDetails, conditions: ExtractedCondition
 interface TieredScore {
   /** 1순위: 음식 키워드 매칭 */
   keywordScore: number;
-  /** 2순위: 리뷰/후기 근거(menu_evidences)가 1건이라도 있는지 */
-  hasEvidence: boolean;
+  /** 2순위: 리뷰/후기 근거 단계 — 2: 직접 언급 근거 있음, 1: 공통 근거만 있음, 0: 근거 없음 */
+  evidenceLevel: 0 | 1 | 2;
+  /** 2순위 안에서: 직접 언급 리뷰 수 (많을수록 먼저) */
+  directMentions: number;
   /** 3순위: 사용자가 말한 나머지 선호(식감 + 맵기 근접도) */
   preferenceScore: number;
   /** 4순위: 점주 지정(단일 메뉴 is_featured 또는 점주 추천 세트) */
@@ -204,7 +207,7 @@ function scoreItem(
 
   return {
     keywordScore,
-    hasEvidence: item.evidences.length > 0,
+    ...evidenceStrength(item),
     preferenceScore,
     isOwnerPick: item.is_featured,
     visionScore,
@@ -213,9 +216,35 @@ function scoreItem(
 }
 
 /** 티어 순서대로 비교: 키워드 → 리뷰 근거 → 식감/맵기 → 점주 지정 → 비전 → featured_rank. */
+/**
+ * 리뷰/후기 근거의 세기.
+ * - 공개 리뷰 집계(manual_public_review_aggregate)는 mention_count가 "그 메뉴를 직접 언급한 리뷰 수"다
+ *   (import:evidences 참고). 0이면 '딤섬' 전체 칭찬 같은 공통 근거만 있다는 뜻.
+ * - 팀 시식·점주 확인·동의 후기·공식 메뉴 같은 다른 근거는 그 메뉴 자체에 대한 근거이므로 직접 근거로 본다.
+ */
+function evidenceStrength(item: MenuWithDetails): Pick<TieredScore, "evidenceLevel" | "directMentions"> {
+  if (item.evidences.length === 0) return { evidenceLevel: 0, directMentions: 0 };
+  let directMentions = 0;
+  let hasDirect = false;
+  for (const e of item.evidences) {
+    if (e.source_type === "manual_public_review_aggregate") {
+      const n = e.mention_count ?? 0;
+      if (n > 0) {
+        hasDirect = true;
+        directMentions += n;
+      }
+    } else {
+      hasDirect = true;
+      directMentions += 1;
+    }
+  }
+  return { evidenceLevel: hasDirect ? 2 : 1, directMentions };
+}
+
 function compareTieredScores(a: TieredScore, b: TieredScore): number {
   if (a.keywordScore !== b.keywordScore) return b.keywordScore - a.keywordScore;
-  if (a.hasEvidence !== b.hasEvidence) return a.hasEvidence ? -1 : 1;
+  if (a.evidenceLevel !== b.evidenceLevel) return b.evidenceLevel - a.evidenceLevel;
+  if (a.directMentions !== b.directMentions) return b.directMentions - a.directMentions;
   if (a.preferenceScore !== b.preferenceScore) return b.preferenceScore - a.preferenceScore;
   if (a.isOwnerPick !== b.isOwnerPick) return a.isOwnerPick ? -1 : 1;
   if (a.visionScore !== b.visionScore) return b.visionScore - a.visionScore;
@@ -232,10 +261,11 @@ function compareTieredScores(a: TieredScore, b: TieredScore): number {
  *  숫자 크기 순서가 compareTieredScores 순서와 같게 한다. */
 function toDisplayScore(t: TieredScore): number {
   return (
-    t.keywordScore * 1e12 +
-    (t.hasEvidence ? 1 : 0) * 1e10 +
-    t.preferenceScore * 1e6 +
-    (t.isOwnerPick ? 1 : 0) * 1e5 +
+    t.keywordScore * 1e13 +
+    t.evidenceLevel * 1e11 +
+    Math.min(t.directMentions, 9999) * 1e7 +
+    t.preferenceScore * 1e4 +
+    (t.isOwnerPick ? 1 : 0) * 1e3 +
     t.visionScore * 10
   );
 }
