@@ -40,7 +40,6 @@
 ### 이전에 거절된 시도 (반복하지 말 것)
 - 2026-10-26에 "주문서(전표·영수증)" 모티프와 고정폭 서체(D2Coding)로 전체를 바꿨으나, **사용자가 실제 화면을 보고 "이전보다 못하다"고 판단해 되돌렸다** (D70).
 - 그래서 이번 의뢰는 **지금 방향을 바탕으로 완성도를 높이는 것**이다. 방향 자체를 바꾸고 싶으면 시안을 만들기 전에 근거와 함께 PM에게 먼저 제안하고, 사용자 확인을 받은 뒤 진행한다.
-- 참고: [`design/RULES.md`](RULES.md) 4장의 "D2Coding 통일"은 D70으로 취소되었다. 서체는 이 의뢰서를 따른다.
 
 ## 4. 만들 화면
 
@@ -138,7 +137,7 @@ Frontend가 [`frontend/docs/usability-review.md`](../frontend/docs/usability-rev
 | 화면 흐름 계약 | `docs/contracts/kiosk-flow.md`, `docs/contracts/v2-changes.md` |
 | 질문·추천 이유 | `docs/contracts/questions.md` |
 | 사용성 점검 | `frontend/docs/usability-review.md` |
-| 디자인 규칙 | `design/RULES.md` (서체 항목은 이 의뢰서가 우선) |
+| 디자인 규칙 | `design/RULES.md` |
 
 ## 11. 소통
 - 결정 권한: 화면의 색·크기·배치·문구는 디자이너가 결정, 기술 구현은 Frontend, 계약·일정·방향 대전환은 PM (D60).
