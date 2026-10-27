@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import mysql from "mysql2/promise";
-import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 
 /**
  * 점주 로그인 계정을 만들거나(없으면) 비밀번호를 갱신한다(있으면).
@@ -23,13 +23,7 @@ async function main() {
   const password = readArg("--password", "change-me-1234");
   const displayName = readArg("--name", "우루루 본점 사장님");
 
-  const connection = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-  });
+  const connection = await mysql.createConnection({ ...dbConnectionOptions(), });
 
   try {
     const [storeRows] = await connection.query<mysql.RowDataPacket[]>(

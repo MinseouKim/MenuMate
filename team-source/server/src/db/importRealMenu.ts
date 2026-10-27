@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import mysql, { type ResultSetHeader } from "mysql2/promise";
-import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 
 /**
  * 키오스크 정적 데이터(team-source/src/prototype/menu/menus.json)의 실제 우루루 메뉴를
@@ -53,13 +53,7 @@ async function main() {
   const raw = readFileSync(MENUS_JSON_PATH, "utf-8");
   const items: RealMenuItem[] = JSON.parse(raw);
 
-  const connection = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-  });
+  const connection = await mysql.createConnection({ ...dbConnectionOptions(), });
 
   try {
     const [storeRows] = await connection.query<mysql.RowDataPacket[]>(

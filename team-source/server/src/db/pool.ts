@@ -1,18 +1,14 @@
 import mysql from "mysql2/promise";
 import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 
 /**
  * mysql2/promise 커넥션 풀. ORM을 쓰지 않고, repositories/* 에서 이 풀로 직접 파라미터 바인딩 쿼리를 실행한다.
  */
 export function createPool(): mysql.Pool {
   return mysql.createPool({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
+    ...dbConnectionOptions(),
     connectionLimit: env.DB_CONNECTION_LIMIT,
-    charset: "utf8mb4_unicode_ci",
     namedPlaceholders: false,
     dateStrings: true,
   });

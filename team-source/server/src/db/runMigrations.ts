@@ -2,7 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import mysql, { type RowDataPacket } from "mysql2/promise";
-import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 
 /**
  * sql/ 폴더의 *.sql 파일을 파일명 순서(001_, 002_, ...)대로 실행하는 마이그레이션 러너.
@@ -23,14 +23,7 @@ async function main() {
     .filter((f) => f.endsWith(".sql"))
     .sort();
 
-  const connection = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-    multipleStatements: true,
-  });
+  const connection = await mysql.createConnection({ ...dbConnectionOptions(), multipleStatements: true });
 
   try {
     await connection.query(`

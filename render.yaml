@@ -1,0 +1,47 @@
+# Render 배포 설정 (Blueprint) — 키오스크 API 서버(team-source/server)를 무료 웹 서비스로 올린다.
+# Render 대시보드 → New → Blueprint → 이 저장소의 backend 브랜치 선택 → 아래 sync:false 값들을 입력.
+# DB는 Aiven 무료 MySQL을 쓴다 (team-source/server/README.md "클라우드 배포" 절 참고).
+services:
+  - type: web
+    name: menumate-api
+    runtime: node
+    plan: free                # 15분간 요청이 없으면 잠들고, 다음 요청 때 1분 정도 걸려 깨어난다
+    region: singapore         # 한국에서 가장 가까운 Render 리전 (생성 후 변경 불가)
+    rootDir: team-source/server
+    branch: backend
+    # NODE_ENV=production이면 npm ci가 devDependencies(typescript)를 빼므로 --include=dev로 빌드 도구까지 설치
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_JWT_SECRET   # 점주 로그인 토큰 서명용 — Render가 무작위 값을 만들어 준다
+        generateValue: true
+      - key: CORS_ORIGIN        # 키오스크(Vercel) 주소. 관리자 화면을 배포하면 쉼표로 그 주소도 추가
+        value: https://menumate-dl.vercel.app
+      - key: DB_HOST            # ↓ Aiven MySQL 서비스의 Connection information 값
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: DB_SSL_CA          # Aiven에서 받은 CA 인증서(ca.pem) 내용 전체를 붙여 넣는다
+        sync: false
+      - key: DB_CONNECTION_LIMIT
+        value: "5"
+      - key: LLM_API_BASE       # ↓ 선택: LLM 조건 추출을 쓸 때만 (비우면 규칙 기반으로 동작)
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false

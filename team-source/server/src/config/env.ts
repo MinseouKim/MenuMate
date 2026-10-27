@@ -18,6 +18,13 @@ const envSchema = z.object({
   DB_PASSWORD: z.string().default(""),
   DB_NAME: z.string().min(1).default("kiosk_dev"),
   DB_CONNECTION_LIMIT: z.coerce.number().int().positive().default(10),
+  // 클라우드 MySQL(Aiven 등) TLS 접속 — src/db/connection.ts 참고. 로컬 MySQL은 false(기본값) 그대로.
+  DB_SSL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
+  ),
+  DB_SSL_CA: z.string().optional().default(""),
+  DB_SSL_CA_FILE: z.string().optional().default(""),
 
   // LLM 설정은 선택사항 — 비어 있으면 조건 추출기가 규칙 기반으로만 동작한다.
   LLM_API_BASE: z.string().optional().default(""),

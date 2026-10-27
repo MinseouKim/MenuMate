@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import mysql, { type RowDataPacket } from "mysql2/promise";
-import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 import { buildEvidenceRows, REVIEW_EVIDENCE_SOURCE_TYPE, type MergedMenuReviews } from "./menuReviewEvidence.js";
 
 /**
@@ -31,13 +31,7 @@ async function main() {
   const data = JSON.parse(readFileSync(file, "utf-8")) as MergedMenuReviews;
   const rows = buildEvidenceRows(data);
 
-  const connection = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-  });
+  const connection = await mysql.createConnection({ ...dbConnectionOptions(), });
 
   try {
     const [storeRows] = await connection.query<RowDataPacket[]>("SELECT id FROM stores WHERE slug = ? LIMIT 1", [slug]);

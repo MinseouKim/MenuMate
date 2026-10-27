@@ -81,6 +81,23 @@ npm run seed:admin -- --password <비밀번호>      # 점주 관리자 로그�
 
 `scripts/buildUruruSeed.ts`(`npm run seed:build`)는 더 단순한 과거 경로로 남겨 두었다 — `kind`/`external_id`/`is_featured`/`featured_rank`를 채우지 않으므로, 관리자 화면에서 메뉴를 고칠 계획이 없을 때만 쓴다.
 
+### 1-2. 클라우드 배포 (Render 서버 + Aiven MySQL, 둘 다 무료)
+
+저장소 루트의 `render.yaml`이 배포 설정이다. 순서:
+
+1. **Aiven** (https://aiven.io) — MySQL 서비스를 Free plan으로 만든다. 서비스 화면의 Connection information에서 Host/Port/User/Password/Database와 **CA certificate**를 받는다.
+2. **클라우드 DB에 데이터 넣기 (내 PC에서)** — CA 인증서를 `certs/aiven-ca.pem`으로 저장하고, `.env.aiven.example`을 `.env.aiven`으로 복사해서 채운 뒤:
+   ```bash
+   npm run cloud:setup                              # 테이블 + 메뉴 80개 + 리뷰 근거
+   npm run cloud:seed-admin -- --password <점주 비밀번호>
+   ```
+   `.env.aiven`, `certs/`는 커밋되지 않는다. 로컬 `.env`는 그대로 두고 로컬 개발에 계속 쓴다.
+3. **Render** (https://render.com) — New → Blueprint → 이 저장소 `backend` 브랜치. `sync: false`로 표시된 DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME에 Aiven 값을, `DB_SSL_CA`에 CA 인증서 내용 전체를 붙여 넣는다. 배포 후 `https://<서비스 주소>/health`가 `{"status":"ok"}`면 성공.
+   - Blueprint 화면에 저장소가 안 보이면(저장소 연결 권한 문제) New → Web Service → Public Git Repository에 저장소 주소를 넣고 `render.yaml`과 같은 값(Root Directory `team-source/server`, Build `npm ci --include=dev && npm run build`, Start `npm start`, Health Check `/health`, 환경변수)을 직접 입력한다.
+4. **키오스크(Vercel)** — 환경변수 `VITE_API_BASE_URL=https://<Render 서비스 주소>`를 넣고 다시 배포한다. 키오스크 주소가 바뀌면 Render의 `CORS_ORIGIN`도 같이 바꾼다.
+
+무료 플랜이라 Render 서버는 15분간 요청이 없으면 잠들고 다음 요청 때 1분쯤 걸려 깨어난다 — 시연 직전에 `/health`를 한 번 열어 두면 된다. Aiven 무료 DB도 오래 쓰지 않으면 꺼질 수 있는데, Aiven 콘솔에서 다시 켜면 된다.
+
 ### 2. 서버 실행
 
 ```bash

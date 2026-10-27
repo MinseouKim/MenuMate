@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { env } from "../config/env.js";
+import { dbConnectionOptions } from "./connection.js";
 
 /**
  * 이번에 schema_migrations 추적 테이블을 처음 도입하면서, 이미 수동으로 적용되어 있던
@@ -14,13 +14,7 @@ import { env } from "../config/env.js";
 const ALREADY_APPLIED = ["001_init.sql", "002_seed_placeholder.sql", "003_admin.sql"];
 
 async function main() {
-  const connection = await mysql.createConnection({
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-  });
+  const connection = await mysql.createConnection({ ...dbConnectionOptions(), });
   try {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
