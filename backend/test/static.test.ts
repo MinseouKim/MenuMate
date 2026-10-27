@@ -30,7 +30,7 @@ afterAll(async () => {
 
 const expectNotFound = (r: { statusCode: number; json: () => any }) => {
   expect(r.statusCode).toBe(404);
-  expect(r.json()).toEqual({ error: { code: 'NOT_FOUND', message: expect.any(String) } });
+  expect(r.json()).toEqual({ error: { code: 'NOT_FOUND', message: '잠시 문제가 생겼어요. 직원을 불러 주세요.' } });
 };
 
 describe('/models/*', () => {
@@ -97,6 +97,19 @@ describe('프론트 빌드 (FRONTEND_DIST)', () => {
 
   it('API는 그대로 동작한다', async () => {
     expect((await app.inject('/api/health')).json()).toEqual({ ok: true });
+  });
+});
+
+describe('프론트 빌드 없이 사진·모델 폴더만 있을 때 (개발 중 기본 상태)', () => {
+  it('사진과 모델 파일을 그대로 보낸다', async () => {
+    const noFront = await makeApp({ config: testConfig({ MODEL_DIR: dirs.models, MENU_IMAGE_DIR: dirs.images }) });
+    const img = await noFront.inject('/static/menu-images/m001.jpg');
+    expect(img.statusCode).toBe(200);
+    expect(img.headers['content-type']).toBe('image/jpeg');
+    const wasm = await noFront.inject('/models/ort-wasm/ort-wasm-simd.wasm');
+    expect(wasm.statusCode).toBe(200);
+    expect(wasm.headers['content-type']).toBe('application/wasm');
+    await noFront.close();
   });
 });
 

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { MenuResponse, QuestionsResponse, RecommendationResponse } from '../src/contracts.js';
+import { parseEngine } from '../src/engine.js';
 import { makeApp } from './app-helpers.js';
 import { resetDb, seedFixture } from './helpers.js';
 
@@ -58,14 +59,15 @@ describe('GET /api/menu', () => {
 });
 
 describe('GET /api/questions', () => {
-  it('질문 4개를 order 오름차순으로', async () => {
+  it('질문 5개를 order 오름차순으로', async () => {
     const r = await app.inject('/api/questions');
     expect(r.statusCode).toBe(200);
     expect(r.json<QuestionsResponse>().questions).toEqual([
       { id: 'q_spicy', order: 1, text: '매운 음식도 괜찮으세요?' },
-      { id: 'q_soup', order: 2, text: '따뜻한 국물이 있는 음식이 좋으세요?' },
-      { id: 'q_soft', order: 3, text: '부드럽게 드실 수 있는 음식이 좋으세요?' },
+      { id: 'q_soup', order: 2, text: '따뜻한 국물 요리가 좋으세요?' },
+      { id: 'q_soft', order: 3, text: '부드러운 음식이 좋으세요?' },
       { id: 'q_hearty', order: 4, text: '든든하게 드시고 싶으세요?' },
+      { id: 'q_light', order: 5, text: '담백한 맛이 좋으세요?' },
     ]);
   });
 });
@@ -82,7 +84,7 @@ describe('POST /api/recommendations', () => {
     });
     expect(r.statusCode).toBe(200);
     const items = r.json<RecommendationResponse>().items;
-    // m001, m005: soup 2 + mild 1 + soft 2 = 5 (sortOrder 같음 → id) / m003: mild 1 / m002: soup 2 - 3 + 1.5 = 0.5
+    // m001, m005: soup 2 + mild 1 + soft 2 = 5 (sortOrder 같음 → id) / m003: mild 1 / m002: soup 2 - 3 + 0.5 = -0.5
     expect(items.map((i) => [i.menu.id, i.score, i.reasons])).toEqual([
       ['m001', 5, ['soup', 'soft', 'mild']],
       ['m005', 5, ['soup', 'soft', 'mild']],
@@ -96,13 +98,34 @@ describe('POST /api/recommendations', () => {
     expect(r.json<RecommendationResponse>().items.map((i) => i.menu.id)).toEqual(['m002', 'm001', 'm003']);
   });
 
+  it('v2: 세 연령대 추천(byAgeBand)과 engineVersion을 함께 돌려준다', async () => {
+    const r = await post('/api/recommendations', { answers: [{ questionId: 'q_soup', answer: 'yes' }] });
+    expect(r.statusCode).toBe(200);
+    const body = r.json<RecommendationResponse>();
+    expect(Object.keys(body.byAgeBand).sort()).toEqual(['35to54', '55plus', 'under35']);
+    for (const band of ['under35', '35to54', '55plus'] as const) {
+      expect(body.byAgeBand[band]).toHaveLength(3);
+    }
+    expect(typeof body.engineVersion).toBe('string');
+  });
+
+  it('v2: 엔진 파일이 없으면 세 연령대 모두 items와 같고 engineVersion은 "none"', async () => {
+    const r = await post('/api/recommendations', { answers: [{ questionId: 'q_spicy', answer: 'no' }] });
+    const body = r.json<RecommendationResponse>();
+    expect(body.byAgeBand.under35).toEqual(body.items);
+    expect(body.byAgeBand['35to54']).toEqual(body.items);
+    expect(body.byAgeBand['55plus']).toEqual(body.items);
+    expect(body.engineVersion).toBe('none');
+  });
+
   it('같은 questionId가 두 번 오면 400 VALIDATION_FAILED', async () => {
     const r = await post('/api/recommendations', {
       answers: [{ questionId: 'q_soup', answer: 'yes' }, { questionId: 'q_soup', answer: 'no' }],
     });
     expect(r.statusCode).toBe(400);
-    expect(r.json().error.code).toBe('VALIDATION_FAILED');
-    expect(typeof r.json().error.message).toBe('string');
+    expect(r.json()).toEqual({
+      error: { code: 'VALIDATION_FAILED', message: '주문 내용을 확인하지 못했어요. 처음부터 다시 해 주세요.' },
+    });
   });
 
   it.each([
@@ -132,8 +155,35 @@ describe('에러 형식', () => {
     const broken = await makeApp({ prisma: failingPrisma });
     const r = await broken.inject('/api/menu');
     expect(r.statusCode).toBe(500);
-    expect(r.json()).toEqual({ error: { code: 'INTERNAL', message: expect.any(String) } });
+    expect(r.json()).toEqual({ error: { code: 'INTERNAL', message: '잠시 문제가 생겼어요. 다시 시도해 주세요.' } });
     expect(r.body).not.toContain('secret');
     await broken.close();
+  });
+});
+
+describe('POST /api/recommendations + 엔진 (v2)', () => {
+  const parsed = parseEngine({
+    engineVersion: '2026-10-30-test',
+    weights: { ageFit: 2, reputation: 2 },
+    menus: [
+      // 된장찌개(m001): 55+에게 잘 맞음, 비빔밥(m003): 35세 미만에게 잘 맞음
+      { menuName: '된장찌개', features: {}, ageFit: { under35: 0, '35to54': 0.5, '55plus': 1 }, reputation: 0.5, reviewCount: 10, adFilteredCount: 0 },
+      { menuName: '비빔밥', features: {}, ageFit: { under35: 1, '35to54': 0.5, '55plus': 0 }, reputation: 0.5, reviewCount: 10, adFilteredCount: 0 },
+    ],
+  });
+  if (!parsed.ok) throw new Error(parsed.errors.join());
+  let engineApp: FastifyInstance;
+  beforeAll(async () => { engineApp = await makeApp({ engine: parsed.engine }); });
+  afterAll(() => engineApp.close());
+
+  it('연령대마다 엔진의 연령대 적합 점수를 반영하고, items는 연령대 없이 계산한다', async () => {
+    const r = await engineApp.inject({ method: 'POST', url: '/api/recommendations', payload: { answers: [] } });
+    const body = r.json<RecommendationResponse>();
+    expect(body.engineVersion).toBe('2026-10-30-test');
+    const top = (list: { menu: { id: string }; score: number }[]) => list.map((i) => [i.menu.id, i.score]);
+    expect(top(body.items)).toEqual([['m002', 0.5], ['m001', 0], ['m003', 0]]);
+    expect(top(body.byAgeBand['55plus'])).toEqual([['m001', 1], ['m002', 0.5], ['m005', 0]]);
+    expect(top(body.byAgeBand.under35)).toEqual([['m003', 1], ['m002', 0.5], ['m005', 0]]);
+    expect(top(body.byAgeBand['35to54'])).toEqual(top(body.items));
   });
 });

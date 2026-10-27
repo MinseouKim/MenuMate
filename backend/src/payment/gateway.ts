@@ -13,7 +13,7 @@ export interface PaymentGateway {
   pay(req: PayRequest): Promise<PayResult>;
 }
 
-export const FAIL_REASON = '카드 승인이 되지 않았어요. 다시 시도해 주세요.';
+export const FAIL_REASON = '카드 승인이 되지 않았어요.';
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

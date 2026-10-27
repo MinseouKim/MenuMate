@@ -64,7 +64,7 @@ describe('POST /api/orders/:orderId/payment', () => {
     expect(fail.statusCode).toBe(200);
     expect(fail.json()).toEqual({
       result: 'fail',
-      reason: '카드 승인이 되지 않았어요. 다시 시도해 주세요.',
+      reason: '카드 승인이 되지 않았어요.',
       order: expect.objectContaining({ orderId: id, status: 'pending_payment', orderNumber: null, paidAt: null, totalAmount: 18000 }),
     });
     const retry = await pay(a, id, { method: 'card_simulated', simulate: 'success' });
@@ -97,7 +97,7 @@ describe('POST /api/orders/:orderId/payment', () => {
     await pay(a, id);
     const again = await pay(a, id);
     expect(again.statusCode).toBe(409);
-    expect(again.json().error.code).toBe('ORDER_ALREADY_PAID');
+    expect(again.json()).toEqual({ error: { code: 'ORDER_ALREADY_PAID', message: '이미 결제가 끝난 주문이에요.' } });
     expect((await testPrisma.dailyOrderCounter.findUnique({ where: { dateKey: '2026-10-24' } }))?.lastNumber).toBe(1);
   });
 
