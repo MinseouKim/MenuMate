@@ -50,15 +50,19 @@ def reputation(pos: int, neg: int, p_all: float, m: float = 50.0, k: float = 2.0
     return round(1 / (1 + math.exp(-k * (_logit(p) - _logit(p_all)))), 3)
 
 
-def age_fit_from_stats(ratios: dict[str, float]) -> dict[str, float]:
-    """연령층별 섭취 비율(%) → 연령대 적합도. 세 연령대 평균보다 2배 많이 먹으면 1, 절반이면 0."""
-    mix = {b: sum(w * ratios[g] for g, w in BAND_MIX[b].items()) for b in AGE_BANDS}
-    mean = sum(mix.values()) / len(mix)
+def age_fit_from_band_values(values: dict[str, float]) -> dict[str, float]:
+    """연령대별 섭취 비율 → 연령대 적합도. 세 연령대 평균보다 2배 많이 먹으면 1, 절반이면 0."""
+    mean = sum(values[b] for b in AGE_BANDS) / len(AGE_BANDS)
     out = {}
     for b in AGE_BANDS:
-        idx = mix[b] / mean if mean > 0 else 1.0
+        idx = values[b] / mean if mean > 0 else 1.0
         out[b] = round(min(1.0, max(0.0, 0.5 + 0.5 * math.log2(max(idx, 1e-6)))), 3)
     return out
+
+
+def age_fit_from_stats(ratios: dict[str, float]) -> dict[str, float]:
+    """국민영양통계 연령층별 섭취 비율(%) → 연령대 적합도 (연령층을 BAND_MIX로 섞은 뒤)."""
+    return age_fit_from_band_values({b: sum(w * ratios[g] for g, w in BAND_MIX[b].items()) for b in AGE_BANDS})
 
 
 def age_fit_rule(features: dict[str, float]) -> dict[str, float]:

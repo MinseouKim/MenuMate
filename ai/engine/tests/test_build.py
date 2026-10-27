@@ -84,3 +84,20 @@ def test_d82_weights_and_age_fit_basis():
     by = {m['menuId']: m for m in out2['menus']}
     assert by['m002']['ageFit']['35to54'] == 0.5  # D81
     assert validate_backend_schema(out2) == []
+
+
+def test_knhanes_stats_take_precedence_over_freqfood():
+    kn = {
+        'm002': {'under35': (0.08, 60), '35to54': (0.07, 90), '55plus': (0.04, 80)},  # 젊은 층이 더 먹음
+        'm001': {'under35': (0.01, 1), '35to54': (0.01, 2), '55plus': (0.02, 5)},  # 섭취자 적음 → 규칙
+    }
+    ratios = {'된장찌개': {'19~29세': 5.0, '30~49세': 8.0, '50~64세': 11.0}}
+    out = build_engine(sample_reviews(), MENUS, freqfood=(ratios, {'된장찌개': 33}), version='t', now='n',
+                       min_reviews=20, knhanes=kn)
+    by = {m['menuId']: m for m in out['menus']}
+    assert by['m002']['ageFitBasis'] == 'stats'
+    assert by['m002']['evidence']['statSource'] == 'knhanes'
+    assert by['m002']['ageFit']['under35'] > by['m002']['ageFit']['55plus']
+    # KNHANES가 있으면 국민영양통계는 쓰지 않는다 (섭취자가 적은 메뉴는 규칙)
+    assert by['m001']['ageFitBasis'] == 'rule'
+    assert validate_backend_schema(out) == []

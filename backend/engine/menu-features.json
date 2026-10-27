@@ -1,6 +1,6 @@
 {
   "engineVersion": "2026-10-27-v1",
-  "generatedAt": "2026-10-27T03:14:40+09:00",
+  "generatedAt": "2026-10-27T11:59:22+09:00",
   "weights": {
     "ageFit": 3,
     "reputation": 1.5
@@ -20,6 +20,11 @@
       "name": "한국보건산업진흥원_국민영양통계 다빈도음식의 식품섭취량",
       "url": "https://www.data.go.kr/data/15160119/fileData.do",
       "license": "공공데이터 이용허락범위 제한 없음"
+    },
+    {
+      "name": "질병관리청 국민건강영양조사 원시자료 (HN24_24RC.sav)",
+      "url": "https://knhanes.kdca.go.kr",
+      "license": "통계자료 이용자 준수사항 이행서약·보안서약 (원시자료 미포함, 연령대별 집계값만 사용)"
     }
   ],
   "note": "리뷰 원문은 담지 않는다. 메뉴별 통계값만 담는다. 계산: ai/docs/engine.md",
@@ -36,9 +41,9 @@
         "light": 0.26
       },
       "ageFit": {
-        "under35": 0.286,
-        "35to54": 0.537,
-        "55plus": 0.624
+        "under35": 0.219,
+        "35to54": 0.573,
+        "55plus": 0.633
       },
       "reputation": 0.644,
       "reviewCount": 3723,
@@ -48,10 +53,14 @@
         "sentences": 4723,
         "ratedReviews": 2927,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "된장찌개"
-        ],
-        "statCells": 33
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 52,
+          "35to54": 177,
+          "55plus": 368
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -66,9 +75,9 @@
         "light": 0.38
       },
       "ageFit": {
-        "under35": 0.427,
-        "35to54": 0.514,
-        "55plus": 0.538
+        "under35": 0.332,
+        "35to54": 0.568,
+        "55plus": 0.563
       },
       "reputation": 0.616,
       "reviewCount": 3223,
@@ -78,10 +87,14 @@
         "sentences": 4208,
         "ratedReviews": 1989,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "김치찌개"
-        ],
-        "statCells": 33
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 64,
+          "35to54": 166,
+          "55plus": 337
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -96,22 +109,26 @@
         "light": 0.679
       },
       "ageFit": {
-        "under35": 0.514,
-        "35to54": 0.5,
-        "55plus": 0.531
+        "under35": 0.583,
+        "35to54": 0.558,
+        "55plus": 0.349
       },
       "reputation": 0.504,
       "reviewCount": 3522,
       "adFilteredCount": 4,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 6153,
         "ratedReviews": 2652,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "순두부찌개"
-        ],
-        "statCells": 4
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 17,
+          "35to54": 37,
+          "55plus": 31
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -126,22 +143,26 @@
         "light": 0.502
       },
       "ageFit": {
-        "under35": 0.596,
-        "35to54": 0.5,
-        "55plus": 0.408
+        "under35": 0.579,
+        "35to54": 0.625,
+        "55plus": 0.271
       },
       "reputation": 0.668,
       "reviewCount": 1891,
       "adFilteredCount": 11,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 3082,
         "ratedReviews": 1142,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "부대찌개"
-        ],
-        "statCells": 3
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 17,
+          "35to54": 32,
+          "55plus": 20
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -156,22 +177,26 @@
         "light": 0.746
       },
       "ageFit": {
-        "under35": 0.425,
-        "35to54": 0.5,
-        "55plus": 0.65
+        "under35": 0.27,
+        "35to54": 0.558,
+        "55plus": 0.644
       },
       "reputation": 0.318,
       "reviewCount": 1977,
       "adFilteredCount": 1,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 2587,
         "ratedReviews": 1409,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "갈비탕"
-        ],
-        "statCells": 2
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 6,
+          "35to54": 21,
+          "55plus": 41
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -186,22 +211,26 @@
         "light": 0.63
       },
       "ageFit": {
-        "under35": 0.613,
-        "35to54": 0.5,
-        "55plus": 0.437
+        "under35": 0.503,
+        "35to54": 0.53,
+        "55plus": 0.49
       },
       "reputation": 0.721,
       "reviewCount": 1549,
       "adFilteredCount": 12,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 2034,
         "ratedReviews": 1066,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "육개장· 쇠고기"
-        ],
-        "statCells": 5
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 13,
+          "35to54": 35,
+          "55plus": 53
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -228,6 +257,12 @@
         "sentences": 1832,
         "ratedReviews": 921,
         "ageFitSource": "rule",
+        "statSource": null,
+        "statEaters": {
+          "under35": 1,
+          "35to54": 2,
+          "55plus": 1
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -244,22 +279,26 @@
         "light": 0.675
       },
       "ageFit": {
-        "under35": 0.539,
-        "35to54": 0.5,
-        "55plus": 0.486
+        "under35": 0.356,
+        "35to54": 0.7,
+        "55plus": 0.449
       },
       "reputation": 0.64,
       "reviewCount": 5685,
       "adFilteredCount": 72,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 8883,
         "ratedReviews": 3278,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "순대국"
-        ],
-        "statCells": 3
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 11,
+          "35to54": 38,
+          "55plus": 36
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -274,22 +313,26 @@
         "light": 0.685
       },
       "ageFit": {
-        "under35": 0.272,
-        "35to54": 0.543,
-        "55plus": 0.651
+        "under35": 0.394,
+        "35to54": 0.5,
+        "55plus": 0.614
       },
       "reputation": 0.725,
       "reviewCount": 664,
       "adFilteredCount": 0,
-      "ageFitBasis": "stats",
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 899,
         "ratedReviews": 432,
-        "ageFitSource": "stats+rule",
-        "statFoods": [
-          "콩나물국"
-        ],
-        "statCells": 28
+        "ageFitSource": "rule",
+        "statSource": null,
+        "statEaters": {
+          "under35": 2,
+          "35to54": 9,
+          "55plus": 7
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -304,18 +347,24 @@
         "light": 0.48
       },
       "ageFit": {
-        "under35": 0.387,
-        "35to54": 0.5,
-        "55plus": 0.584
+        "under35": 0.288,
+        "35to54": 0.506,
+        "55plus": 0.645
       },
       "reputation": 0.673,
       "reviewCount": 671,
       "adFilteredCount": 0,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 925,
         "ratedReviews": 541,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 2,
+          "35to54": 10,
+          "55plus": 19
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -332,18 +381,24 @@
         "light": 0.649
       },
       "ageFit": {
-        "under35": 0.329,
-        "35to54": 0.5,
-        "55plus": 0.643
+        "under35": 0.263,
+        "35to54": 0.333,
+        "55plus": 0.722
       },
       "reputation": 0.64,
       "reviewCount": 130,
       "adFilteredCount": 0,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 147,
         "ratedReviews": 97,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 4,
+          "35to54": 11,
+          "55plus": 39
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -360,9 +415,9 @@
         "light": 0.464
       },
       "ageFit": {
-        "under35": 0.484,
-        "35to54": 0.495,
-        "55plus": 0.5
+        "under35": 0.421,
+        "35to54": 0.637,
+        "55plus": 0.446
       },
       "reputation": 0.531,
       "reviewCount": 5203,
@@ -372,10 +427,14 @@
         "sentences": 7349,
         "ratedReviews": 3789,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "비빔밥"
-        ],
-        "statCells": 31
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 35,
+          "35to54": 72,
+          "55plus": 88
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -390,22 +449,26 @@
         "light": 0.452
       },
       "ageFit": {
-        "under35": 0.499,
-        "35to54": 0.495,
-        "55plus": 0.485
+        "under35": 0.535,
+        "35to54": 0.5,
+        "55plus": 0.403
       },
       "reputation": 0.453,
       "reviewCount": 138,
       "adFilteredCount": 0,
-      "ageFitBasis": "stats",
+      "ageFitBasis": "rule",
       "evidence": {
         "sentences": 156,
         "ratedReviews": 92,
-        "ageFitSource": "stats+rule",
-        "statFoods": [
-          "비빔밥"
-        ],
-        "statCells": 31
+        "ageFitSource": "rule",
+        "statSource": null,
+        "statEaters": {
+          "under35": 3,
+          "35to54": 8,
+          "55plus": 3
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -420,9 +483,9 @@
         "light": 0.38
       },
       "ageFit": {
-        "under35": 0.508,
-        "35to54": 0.552,
-        "55plus": 0.441
+        "under35": 0.641,
+        "35to54": 0.502,
+        "55plus": 0.309
       },
       "reputation": 0.655,
       "reviewCount": 2756,
@@ -432,10 +495,14 @@
         "sentences": 3867,
         "ratedReviews": 1888,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "불고기· 돼지고기"
-        ],
-        "statCells": 6
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 67,
+          "35to54": 94,
+          "55plus": 100
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -450,9 +517,9 @@
         "light": 0.326
       },
       "ageFit": {
-        "under35": 0.448,
-        "35to54": 0.595,
-        "55plus": 0.464
+        "under35": 0.579,
+        "35to54": 0.627,
+        "55plus": 0.235
       },
       "reputation": 0.555,
       "reviewCount": 5503,
@@ -462,10 +529,14 @@
         "sentences": 7784,
         "ratedReviews": 3340,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "불고기"
-        ],
-        "statCells": 28
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 73,
+          "35to54": 129,
+          "55plus": 101
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -480,18 +551,24 @@
         "light": 0.27
       },
       "ageFit": {
-        "under35": 0.608,
-        "35to54": 0.5,
-        "55plus": 0.272
+        "under35": 0.32,
+        "35to54": 0.7,
+        "55plus": 0.473
       },
       "reputation": 0.775,
       "reviewCount": 356,
       "adFilteredCount": 3,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 466,
         "ratedReviews": 236,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 2,
+          "35to54": 20,
+          "55plus": 24
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -508,18 +585,24 @@
         "light": 0.255
       },
       "ageFit": {
-        "under35": 0.414,
-        "35to54": 0.5,
-        "55plus": 0.568
+        "under35": 0.568,
+        "35to54": 0.611,
+        "55plus": 0.27
       },
       "reputation": 0.645,
       "reviewCount": 1312,
       "adFilteredCount": 10,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 1783,
         "ratedReviews": 823,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 37,
+          "35to54": 72,
+          "55plus": 57
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -536,9 +619,9 @@
         "light": 0.526
       },
       "ageFit": {
-        "under35": 0.34,
-        "35to54": 0.52,
-        "55plus": 0.631
+        "under35": 0.422,
+        "35to54": 0.408,
+        "55plus": 0.632
       },
       "reputation": 0.592,
       "reviewCount": 773,
@@ -548,10 +631,14 @@
         "sentences": 970,
         "ratedReviews": 534,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "국수"
-        ],
-        "statCells": 11
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 11,
+          "35to54": 24,
+          "55plus": 66
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -566,9 +653,9 @@
         "light": 0.554
       },
       "ageFit": {
-        "under35": 0.534,
-        "35to54": 0.496,
-        "55plus": 0.472
+        "under35": 0.327,
+        "35to54": 0.615,
+        "55plus": 0.556
       },
       "reputation": 0.636,
       "reviewCount": 10276,
@@ -578,10 +665,14 @@
         "sentences": 16747,
         "ratedReviews": 7529,
         "ageFitSource": "stats+rule",
-        "statFoods": [
-          "칼국수"
-        ],
-        "statCells": 12
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 15,
+          "35to54": 44,
+          "55plus": 72
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -596,18 +687,24 @@
         "light": 0.342
       },
       "ageFit": {
-        "under35": 0.635,
-        "35to54": 0.5,
-        "55plus": 0.286
+        "under35": 0.533,
+        "35to54": 0.607,
+        "55plus": 0.351
       },
       "reputation": 0.701,
       "reviewCount": 2395,
       "adFilteredCount": 4,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 3283,
         "ratedReviews": 1823,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 15,
+          "35to54": 35,
+          "55plus": 42
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -624,22 +721,26 @@
         "light": 0.746
       },
       "ageFit": {
-        "under35": 0.362,
-        "35to54": 0.5,
-        "55plus": 0.623
+        "under35": 0.202,
+        "35to54": 0.553,
+        "55plus": 0.68
       },
       "reputation": 0.502,
       "reviewCount": 12443,
       "adFilteredCount": 11,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 22801,
         "ratedReviews": 9284,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "물냉면"
-        ],
-        "statCells": 1
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 7,
+          "35to54": 24,
+          "55plus": 51
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     },
     {
@@ -654,18 +755,24 @@
         "light": 0.476
       },
       "ageFit": {
-        "under35": 0.48,
-        "35to54": 0.5,
-        "55plus": 0.57
+        "under35": 0.458,
+        "35to54": 0.586,
+        "55plus": 0.486
       },
       "reputation": 0.729,
       "reviewCount": 2220,
       "adFilteredCount": 4,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 3309,
         "ratedReviews": 1536,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 7,
+          "35to54": 16,
+          "55plus": 15
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -694,6 +801,12 @@
         "sentences": 187,
         "ratedReviews": 133,
         "ageFitSource": "rule",
+        "statSource": null,
+        "statEaters": {
+          "under35": 6,
+          "35to54": 10,
+          "55plus": 5
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -710,18 +823,24 @@
         "light": 0.255
       },
       "ageFit": {
-        "under35": 0.528,
-        "35to54": 0.5,
+        "under35": 0.532,
+        "35to54": 0.544,
         "55plus": 0.406
       },
       "reputation": 0.634,
       "reviewCount": 1631,
       "adFilteredCount": 0,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 2348,
         "ratedReviews": 1203,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 7,
+          "35to54": 14,
+          "55plus": 14
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -738,18 +857,24 @@
         "light": 0.282
       },
       "ageFit": {
-        "under35": 0.575,
-        "35to54": 0.5,
-        "55plus": 0.329
+        "under35": 0.671,
+        "35to54": 0.416,
+        "55plus": 0.272
       },
       "reputation": 0.692,
       "reviewCount": 266,
       "adFilteredCount": 1,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 308,
         "ratedReviews": 179,
-        "ageFitSource": "rule",
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 19,
+          "35to54": 17,
+          "55plus": 15
+        },
         "statFoods": [],
         "statCells": 0
       }
@@ -766,22 +891,26 @@
         "light": 0.696
       },
       "ageFit": {
-        "under35": 0.301,
-        "35to54": 0.5,
-        "55plus": 0.684
+        "under35": 0.157,
+        "35to54": 0.644,
+        "55plus": 0.637
       },
       "reputation": 0.758,
       "reviewCount": 107,
       "adFilteredCount": 0,
-      "ageFitBasis": "rule",
+      "ageFitBasis": "stats",
       "evidence": {
         "sentences": 145,
         "ratedReviews": 86,
-        "ageFitSource": "rule",
-        "statFoods": [
-          "두부부침/전"
-        ],
-        "statCells": 5
+        "ageFitSource": "stats+rule",
+        "statSource": "knhanes",
+        "statEaters": {
+          "under35": 10,
+          "35to54": 49,
+          "55plus": 74
+        },
+        "statFoods": [],
+        "statCells": 0
       }
     }
   ]

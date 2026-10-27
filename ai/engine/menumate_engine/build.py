@@ -18,6 +18,7 @@ from typing import Iterable
 from .ad_filter import find_duplicates, rule_reasons
 from .features import FEATURES, cue_hits, score_features
 from .fetch import DATA_DIR, SOURCES
+from .knhanes import knhanes_age_fit, load_knhanes
 from .menus import MENU_RULES, load_menus, match_menus, mention_windows
 from .signals import AGE_BANDS, MIN_OBSERVED_CELLS, STAT_GROUPS, age_fit_from_stats, age_fit_rule, blend_age_fit, load_freqfood, reputation
 
@@ -59,7 +60,9 @@ def build_engine(
     version: str,
     now: str,
     min_reviews: int = MIN_REVIEWS,
+    knhanes: dict[str, dict[str, tuple[float, int]]] | None = None,
 ) -> dict:
+    """knhanes가 있으면 연령대 통계로 그것을 쓰고(국민영양통계는 쓰지 않음), 없으면 freqfood를 쓴다."""
     reviews = list(reviews)
     dups = find_duplicates([r.text for r in reviews])
     stats = {m: {'n': 0, **{f: [0, 0] for f in FEATURES}} for m in menus}
@@ -112,9 +115,15 @@ def build_engine(
         ratios, observed = freqfood if freqfood else ({}, {})
         names = [n for n in MENU_RULES[m]['freqfood'] if n in ratios]
         stat = None
-        if names and sum(observed.get(n, 0) for n in names) >= MIN_OBSERVED_CELLS:
+        stat_source = None
+        if knhanes is not None:
+            if m in knhanes:
+                stat = knhanes_age_fit(knhanes[m])
+                stat_source = 'knhanes' if stat else None
+        elif names and sum(observed.get(n, 0) for n in names) >= MIN_OBSERVED_CELLS:
             avg = {g: sum(ratios[n][g] for n in names) / len(names) for g in STAT_GROUPS}
             stat = age_fit_from_stats(avg)
+            stat_source = 'freqfood'
         rule = age_fit_rule(feats[m])
         out_menus.append(
             {
@@ -132,8 +141,10 @@ def build_engine(
                     'sentences': int(stats[m]['n']),
                     'ratedReviews': int(n_rep),
                     'ageFitSource': 'stats+rule' if stat else 'rule',
-                    'statFoods': names,
-                    'statCells': int(sum(observed.get(n, 0) for n in names)),
+                    'statSource': stat_source,
+                    'statEaters': {b: int(knhanes[m][b][1]) for b in AGE_BANDS} if knhanes and m in knhanes else None,
+                    'statFoods': names if stat_source == 'freqfood' else [],
+                    'statCells': int(sum(observed.get(n, 0) for n in names)) if stat_source == 'freqfood' else 0,
                 },
             }
         )
@@ -206,7 +217,17 @@ def main() -> None:
     kst = timezone(timedelta(hours=9))
     now = datetime.now(kst).replace(microsecond=0)
     version = f'{now:%Y-%m-%d}-v1'
-    out = build_engine(load_reviews(), load_menus(), load_freqfood(DATA_DIR / SOURCES['freqfood']['file']), version, now.isoformat())
+    kn = load_knhanes()
+    if kn:
+        print(f'KNHANES 사용: {kn[1]["files"]}')
+    out = build_engine(
+        load_reviews(), load_menus(), load_freqfood(DATA_DIR / SOURCES['freqfood']['file']), version, now.isoformat(),
+        knhanes=kn[0] if kn else None,
+    )
+    if kn:
+        out['sources'].append(
+            {'name': f'질병관리청 국민건강영양조사 원시자료 ({", ".join(kn[1]["files"])})', 'url': 'https://knhanes.kdca.go.kr', 'license': '통계자료 이용자 준수사항 이행서약·보안서약 (원시자료 미포함, 연령대별 집계값만 사용)'}
+        )
     errs = validate_backend_schema(out)
     if errs:
         raise SystemExit(f'형식 오류: {errs[:10]}')
