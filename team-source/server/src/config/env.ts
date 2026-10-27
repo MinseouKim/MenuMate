@@ -28,10 +28,12 @@ const envSchema = z.object({
   // 기본값으로 채움), NODE_ENV=production에서는 반드시 .env에서 고유한 값으로 채워야 한다 — 안 그러면
   // 누구나 이 공개된 기본값으로 관리자 토큰을 위조할 수 있다. 그래서 여기서는 기본값을 두지 않는다
   // (운영 환경에서 값이 없으면 아래 검증에서 서버가 바로 멈춘다).
-  ADMIN_JWT_SECRET: z
-    .string()
-    .min(16, "ADMIN_JWT_SECRET은 16자 이상이어야 합니다.")
-    .optional(),
+  // .env.example처럼 "ADMIN_JWT_SECRET=" 으로 비워 둔 줄은 dotenv가 빈 문자열("")로 넣는다 —
+  // 이걸 "설정 안 함"으로 취급해야 개발 환경에서 .env.example을 그대로 복사해도 바로 실행된다.
+  ADMIN_JWT_SECRET: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    z.string().min(16, "ADMIN_JWT_SECRET은 16자 이상이어야 합니다.").optional(),
+  ),
 });
 
 const parsed = envSchema.safeParse(process.env);
