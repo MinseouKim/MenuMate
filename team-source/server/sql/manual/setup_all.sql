@@ -20,18 +20,19 @@
 SET NAMES utf8mb4;  -- 한글(매장명·메뉴명)이 깨지지 않게 접속 문자셋을 맞춘다
 
 -- 0) 데이터베이스 + 앱 전용 계정 ------------------------------------------------
--- DROP DATABASE IF EXISTS kiosk_dev;   -- 처음부터 다시 만들 때만 주석 해제
+DROP DATABASE IF EXISTS kiosk_dev;   -- 처음부터 다시 만들 때만 주석 해제
 
 CREATE DATABASE IF NOT EXISTS kiosk_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- ↓ 'change-this-db-password' 네 군데를 모두 같은 비밀번호로 바꾸고, team-source/server/.env 의
---   DB_USER=kiosk_app / DB_PASSWORD=<같은 비밀번호> 로 맞춘다.
---   CREATE USER IF NOT EXISTS 는 계정이 이미 있으면 비밀번호를 바꾸지 않으므로, 바로 뒤의
---   ALTER USER 로 항상 이 비밀번호로 다시 맞춘다 (예전에 다른 스크립트로 계정을 만들어 둔 경우 대비).
-CREATE USER IF NOT EXISTS 'kiosk_app'@'localhost' IDENTIFIED BY 'change-this-db-password';
-CREATE USER IF NOT EXISTS 'kiosk_app'@'127.0.0.1' IDENTIFIED BY 'change-this-db-password';
+-- 앱 전용 계정. 계정이 이미 있어도(예전 스크립트로 만든 경우) 아래 ALTER USER가 비밀번호를 다시 맞춘다.
+CREATE USER IF NOT EXISTS 'kiosk_app'@'localhost';
+CREATE USER IF NOT EXISTS 'kiosk_app'@'127.0.0.1';
+
+-- ▼▼▼ 비밀번호는 이 두 줄에만 있다. 두 줄 모두 같은 값으로 바꾸고, .env 의 DB_PASSWORD 도 같은 값으로. ▼▼▼
 ALTER USER 'kiosk_app'@'localhost' IDENTIFIED BY 'change-this-db-password';
 ALTER USER 'kiosk_app'@'127.0.0.1' IDENTIFIED BY 'change-this-db-password';
+-- ▲▲▲ ----------------------------------------------------------------------------------------- ▲▲▲
+
 GRANT ALL PRIVILEGES ON kiosk_dev.* TO 'kiosk_app'@'localhost';
 GRANT ALL PRIVILEGES ON kiosk_dev.* TO 'kiosk_app'@'127.0.0.1';
 FLUSH PRIVILEGES;
