@@ -14,6 +14,8 @@
     "migrate": "tsx src/db/runMigrations.ts",
     "migrate:bootstrap": "tsx src/db/bootstrapMigrationTracking.ts",
     "import:real-menu": "tsx src/db/importRealMenu.ts",
+    "import:evidences": "tsx src/db/importMenuEvidences.ts",
+    "import:real-data": "npm run import:real-menu && npm run import:evidences",
     "seed:build": "tsx scripts/buildUruruSeed.ts",
     "seed:admin": "tsx src/db/seedAdmin.ts",
     "test": "vitest run",

@@ -1,0 +1,5548 @@
+{
+ "info": {
+  "store": "우루루 평촌본점",
+  "sources": [
+   "네이버지도",
+   "카카오맵",
+   "캐치테이블",
+   "블로그(다이닝코드 경유)",
+   "다이닝코드",
+   "커뮤니티(루리웹)",
+   "블로그 댓글"
+  ],
+  "generated_at": "2026-10-27",
+  "merged_from": [
+   "팀원 ururu-menu/menu_reviews.json (80개 메뉴, 메뉴당 최대 3개 인용)",
+   "민재 A담당 리뷰 키워드 정리 (40개 메뉴, 카카오맵 82개 전수·캐치테이블 약 170개·네이버 캡처·블로그/커뮤니티)"
+  ],
+  "menus": 80,
+  "menus_with_reviews": 57,
+  "menus_without_reviews": 23,
+  "reviews_kept": 149,
+  "reviews_excluded": 28,
+  "selection": "메뉴당 화면 표시는 최대 3개(reviews). 메뉴를 직접 언급한 리뷰 우선, 긍정 키워드가 많은 순, 별점 4 이상 우선, 플랫폼이 겹치지 않게, 같은 조건이면 최근 순. 직접 언급이 3개보다 적으면 공통 근거로 채움. 추천 근거로 쓸 전체 목록은 evidence(개별)와 common_pools(공통).",
+  "exclusion_rule": "부정 리뷰(해당 메뉴 혹평, 같은 메뉴 안의 호불호 혼재), 평가 없이 먹은 메뉴만 나열한 리뷰, 정보성 안내, 가격 나열, 플랫폼 요약문, 판독이 불확실한 캡처는 제외. 다른 메뉴에 대한 불만 문장이 섞인 긍정 리뷰는 그 문장만 덜어내고 note에 '일부 발췌'로 표시. 제외 목록과 사유는 excluded에 있음.",
+  "cleaning_rule": "웃음·울음 자모(ㅋㅋ, ㅎㅎ, ㅠㅠ 등), '헤헤' 같은 웃음말, 이모티콘(^^ 등), 이모지, 물결표, 반복 느낌표만 지움. 맞춤법·띄어쓰기를 포함한 나머지 내용은 원문 그대로. 원래 글은 evidence가 아닌 검토 파일에 함께 남김.",
+  "common_rule": "메뉴 이름 없이 '딤섬', '베이징덕', '탕수육', '교자', '냉채'처럼 뭉뚱그려 칭찬한 리뷰는 그 단어가 이름에 들어간 메뉴 전체의 공통 근거로 반영하고 인용 앞에 [OO 전체 언급]을 붙임. 구체적인 메뉴 이름이 나오면 그 메뉴의 개별 근거.",
+  "note_generic": "'[OO 전체 언급]'으로 시작하는 인용은 특정 세부 메뉴를 가리키지 않고 그 이름의 메뉴들을 함께 언급한 리뷰."
+ },
+ "menus": [
+  {
+   "no": 1,
+   "id": "duck-fish-1",
+   "category": "베이징덕/생선",
+   "name": "베이징덕 한 마리",
+   "price": 105000,
+   "total_mentions": 109,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "바삭함"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 11,
+   "specific_count": 0,
+   "common_pools": [
+    "베이징덕"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.02.09",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 7가지 요리를 골고루 먹었는데요 팔보채, 베이징덕를 최고로 추천 합니다-물론 다른것도 맛있음니다.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    },
+    {
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 베이징덕 바삭하니 넘 맛있어요 요리도 맛있고 친절하시고 잘 먹었습니다",
+     "keywords": [
+      "맛있음",
+      "바삭함"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 2,
+   "id": "duck-fish-2",
+   "category": "베이징덕/생선",
+   "name": "베이징덕 반 마리",
+   "price": 64000,
+   "total_mentions": 112,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 12,
+   "specific_count": 1,
+   "common_pools": [
+    "베이징덕"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2024.12.29",
+     "rating": null,
+     "quote": "오랜만에 맛있게 잘 해준 중식당을 찾았어요 베이징덕 반마리 너무 좋네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.02.09",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 7가지 요리를 골고루 먹었는데요 팔보채, 베이징덕를 최고로 추천 합니다-물론 다른것도 맛있음니다.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R006",
+     "platform": "네이버지도",
+     "date": "2024.12.29",
+     "rating": null,
+     "quote": "오랜만에 맛있게 잘 해준 중식당을 찾았어요 베이징덕 반마리 너무 좋네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 3,
+   "id": "dimsum-1",
+   "category": "딤섬",
+   "name": "모듬 딤섬",
+   "price": 19500,
+   "total_mentions": 12,
+   "top_keywords": [
+    "맛있음",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 26,
+   "specific_count": 3,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "모듬딤섬 진짜 맛있어요 속도 꽉차있고 모양도 너무 이뻐서 먹는게 아까울정도에요 올때마다 항상 맛있게 먹고 가요",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R007",
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "모듬딤섬 진짜 맛있어요 속도 꽉차있고 모양도 너무 이뻐서 먹는게 아까울정도에요 올때마다 항상 맛있게 먹고 가요",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "rid": "R051",
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R066",
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ]
+  },
+  {
+   "no": 4,
+   "id": "dimsum-2",
+   "category": "딤섬",
+   "name": "홍콩식 딤섬 트리오",
+   "price": 11000,
+   "total_mentions": 0,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 23,
+   "specific_count": 0,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 모든 음식이 정말 깔끔하고 훌륭했지만, 특히 깊은 풍미의 짜장면과 육즙이 탁 터지는 딤섬은 단연 최고였고요!",
+     "keywords": [
+      "최고·강추",
+      "감칠맛·진함",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 5,
+   "id": "dimsum-3",
+   "category": "딤섬",
+   "name": "소룡포",
+   "price": 8900,
+   "total_mentions": 25,
+   "top_keywords": [
+    "맛있음",
+    "육즙",
+    "최고·강추"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 29,
+   "specific_count": 6,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.29",
+     "rating": 5,
+     "quote": "오늘은 소룡포와 쇼마이, 짬뽕으로 선택했는데, 정말 최고의 조합입니다 여러 딤섬을 먹어봐도 쇼마이의 탱탱함과 소룡포의 묵직한 맛은 열판도 먹을 정도로 환상의 짝궁이죠 거기에 칼칼하고 깔끔한 짬뽕국물이면 오늘 점심으로 최고 만족합니다",
+     "keywords": [
+      "최고·강추",
+      "매콤함",
+      "감칠맛·진함",
+      "쫄깃·탱글"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.09.26",
+     "rating": null,
+     "quote": "딤섬 전문 식당이라서 그런지 소룡포는 맛이 훌륭했음.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "팀원 제공, 다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R010",
+     "platform": "네이버지도",
+     "date": "2026.09.29",
+     "rating": 5,
+     "quote": "오늘은 소룡포와 쇼마이, 짬뽕으로 선택했는데, 정말 최고의 조합입니다 여러 딤섬을 먹어봐도 쇼마이의 탱탱함과 소룡포의 묵직한 맛은 열판도 먹을 정도로 환상의 짝궁이죠 거기에 칼칼하고 깔끔한 짬뽕국물이면 오늘 점심으로 최고 만족합니다",
+     "keywords": [
+      "최고·강추",
+      "매콤함",
+      "감칠맛·진함",
+      "쫄깃·탱글"
+     ]
+    },
+    {
+     "rid": "R019",
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉",
+      "육즙"
+     ]
+    },
+    {
+     "rid": "R013",
+     "platform": "네이버지도",
+     "date": "2026.10.11",
+     "rating": 5,
+     "quote": "샤오롱바오랑 하가우 맛있다",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R064",
+     "platform": "네이버지도",
+     "date": "2026.08.29",
+     "rating": 5,
+     "quote": "소룡포 진짜맛나요 유니짜장,해물짬뽕도 굿 대기가 좀 있었지만 최고",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R012",
+     "platform": "네이버지도",
+     "date": "2026.08.05",
+     "rating": 5,
+     "quote": "쇼룡포도 육즙이 많고 감칠맛이 뛰어나더라고요 면 요리도 아주 맛있었어요 가족끼리 이벤트 있을때 오면 좋을 것 같아요",
+     "keywords": [
+      "육즙"
+     ]
+    },
+    {
+     "rid": "R011",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.09.26",
+     "rating": null,
+     "quote": "딤섬 전문 식당이라서 그런지 소룡포는 맛이 훌륭했음.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "팀원 제공, 다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    }
+   ]
+  },
+  {
+   "no": 6,
+   "id": "dimsum-4",
+   "category": "딤섬",
+   "name": "홍게살 소룡포",
+   "price": 9500,
+   "total_mentions": 0,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 23,
+   "specific_count": 0,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 모든 음식이 정말 깔끔하고 훌륭했지만, 특히 깊은 풍미의 짜장면과 육즙이 탁 터지는 딤섬은 단연 최고였고요!",
+     "keywords": [
+      "최고·강추",
+      "감칠맛·진함",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 7,
+   "id": "dimsum-5",
+   "category": "딤섬",
+   "name": "하가우",
+   "price": 9800,
+   "total_mentions": 4,
+   "top_keywords": [
+    "맛있음",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 26,
+   "specific_count": 3,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.11",
+     "rating": 5,
+     "quote": "샤오롱바오랑 하가우 맛있다",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R015",
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "rid": "R013",
+     "platform": "네이버지도",
+     "date": "2026.10.11",
+     "rating": 5,
+     "quote": "샤오롱바오랑 하가우 맛있다",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R019",
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 8,
+   "id": "dimsum-6",
+   "category": "딤섬",
+   "name": "쇼마이",
+   "price": 9800,
+   "total_mentions": 5,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "매콤함"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 27,
+   "specific_count": 4,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.29",
+     "rating": 5,
+     "quote": "오늘은 소룡포와 쇼마이, 짬뽕으로 선택했는데, 정말 최고의 조합입니다 여러 딤섬을 먹어봐도 쇼마이의 탱탱함과 소룡포의 묵직한 맛은 열판도 먹을 정도로 환상의 짝궁이죠 거기에 칼칼하고 깔끔한 짬뽕국물이면 오늘 점심으로 최고 만족합니다",
+     "keywords": [
+      "최고·강추",
+      "매콤함",
+      "감칠맛·진함",
+      "쫄깃·탱글"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.09.21",
+     "rating": null,
+     "quote": "유니짜장, 탄탄면, 어향가지덮밥, 쇼마이 먹었습니다. 그중 짜장이 제일 맛있었어요 탄탄면은 새콤하고 가지덮밥은 매콤하고 쇼마이는 육즙가득 맛있었습니다.",
+     "keywords": [
+      "맛있음",
+      "새콤달콤"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.05",
+     "rating": 5,
+     "quote": "쇼룡포도 육즙이 많고 감칠맛이 뛰어나더라고요 면 요리도 아주 맛있었어요 가족끼리 이벤트 있을때 오면 좋을 것 같아요",
+     "keywords": [
+      "육즙"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R010",
+     "platform": "네이버지도",
+     "date": "2026.09.29",
+     "rating": 5,
+     "quote": "오늘은 소룡포와 쇼마이, 짬뽕으로 선택했는데, 정말 최고의 조합입니다 여러 딤섬을 먹어봐도 쇼마이의 탱탱함과 소룡포의 묵직한 맛은 열판도 먹을 정도로 환상의 짝궁이죠 거기에 칼칼하고 깔끔한 짬뽕국물이면 오늘 점심으로 최고 만족합니다",
+     "keywords": [
+      "최고·강추",
+      "매콤함",
+      "감칠맛·진함",
+      "쫄깃·탱글"
+     ]
+    },
+    {
+     "rid": "R016",
+     "platform": "네이버지도",
+     "date": "2025.09.21",
+     "rating": null,
+     "quote": "유니짜장, 탄탄면, 어향가지덮밥, 쇼마이 먹었습니다. 그중 짜장이 제일 맛있었어요 탄탄면은 새콤하고 가지덮밥은 매콤하고 쇼마이는 육즙가득 맛있었습니다.",
+     "keywords": [
+      "맛있음",
+      "새콤달콤"
+     ]
+    },
+    {
+     "rid": "R012",
+     "platform": "네이버지도",
+     "date": "2026.08.05",
+     "rating": 5,
+     "quote": "쇼룡포도 육즙이 많고 감칠맛이 뛰어나더라고요 면 요리도 아주 맛있었어요 가족끼리 이벤트 있을때 오면 좋을 것 같아요",
+     "keywords": [
+      "육즙"
+     ]
+    },
+    {
+     "rid": "R017",
+     "platform": "네이버지도",
+     "date": "2024.04.21",
+     "rating": null,
+     "quote": "딤섬은 소룡포보다는 쇼마이가 더 맛있었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 9,
+   "id": "dimsum-7",
+   "category": "딤섬",
+   "name": "트러플 쇼마이",
+   "price": 9800,
+   "total_mentions": 1,
+   "top_keywords": [
+    "감칠맛·진함"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 24,
+   "specific_count": 1,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "트러플 쇼마에를 먹을땐 향과 맛으로 먹는것이기 때문에 다른 메뉴들보다 먼저 맛을보는게 좋아요. 그래야 트러플의 향과 풍미를 제대로 느낄 수 있어요.",
+     "keywords": [
+      "감칠맛·진함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R018",
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "트러플 쇼마에를 먹을땐 향과 맛으로 먹는것이기 때문에 다른 메뉴들보다 먼저 맛을보는게 좋아요. 그래야 트러플의 향과 풍미를 제대로 느낄 수 있어요.",
+     "keywords": [
+      "감칠맛·진함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 10,
+   "id": "dimsum-8",
+   "category": "딤섬",
+   "name": "모듬버섯 야채교자",
+   "price": 8900,
+   "total_mentions": 0,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 24,
+   "specific_count": 0,
+   "common_pools": [
+    "딤섬",
+    "교자"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 모든 음식이 정말 깔끔하고 훌륭했지만, 특히 깊은 풍미의 짜장면과 육즙이 탁 터지는 딤섬은 단연 최고였고요!",
+     "keywords": [
+      "최고·강추",
+      "감칠맛·진함",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 11,
+   "id": "dimsum-9",
+   "category": "딤섬",
+   "name": "부추교자",
+   "price": 9800,
+   "total_mentions": 1,
+   "top_keywords": [
+    "양 넉넉",
+    "육즙"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 25,
+   "specific_count": 1,
+   "common_pools": [
+    "딤섬",
+    "교자"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R019",
+     "platform": "네이버지도",
+     "date": "2026.01.30",
+     "rating": null,
+     "quote": "새우가 가득 들어간 허가우,부추교자,소룡포 등의 딤섬은 육즙이 가득하고 부드러워 먹는 즐거움이 있고, 차돌과 해물이 가득한 짬뽕도 모두 맛이 좋습니다.",
+     "keywords": [
+      "양 넉넉",
+      "육즙"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 12,
+   "id": "dimsum-10",
+   "category": "딤섬",
+   "name": "사천식 돼지고기 완탕",
+   "price": 9500,
+   "total_mentions": 0,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "양 넉넉"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 23,
+   "specific_count": 0,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 모든 음식이 정말 깔끔하고 훌륭했지만, 특히 깊은 풍미의 짜장면과 육즙이 탁 터지는 딤섬은 단연 최고였고요!",
+     "keywords": [
+      "최고·강추",
+      "감칠맛·진함",
+      "육즙"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 13,
+   "id": "dimsum-11",
+   "category": "딤섬",
+   "name": "카다이프 새우완자 튀김",
+   "price": 10500,
+   "total_mentions": 1,
+   "top_keywords": [
+    "최고·강추"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 24,
+   "specific_count": 1,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.05.28",
+     "rating": null,
+     "quote": "카다이프새우완자튀김 꼭 드셔보세요",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R020",
+     "platform": "네이버지도",
+     "date": "2025.05.28",
+     "rating": null,
+     "quote": "카다이프새우완자튀김 꼭 드셔보세요",
+     "keywords": [
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 14,
+   "id": "dimsum-12",
+   "category": "딤섬",
+   "name": "두부피 새우 춘권",
+   "price": 9500,
+   "total_mentions": 1,
+   "top_keywords": [
+    "담백·깔끔"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 24,
+   "specific_count": 1,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.12.17",
+     "rating": null,
+     "quote": "너무 깔끔한 평촌 중식당 우루루 유명한 이유가 있었네요 시즌메뉴 굴덮밥 굴튀김 꽃게탕면 두유피새우춘권까지 잘 먹어보고 갑니다",
+     "keywords": [
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R021",
+     "platform": "네이버지도",
+     "date": "2025.12.17",
+     "rating": null,
+     "quote": "너무 깔끔한 평촌 중식당 우루루 유명한 이유가 있었네요 시즌메뉴 굴덮밥 굴튀김 꽃게탕면 두유피새우춘권까지 잘 먹어보고 갑니다",
+     "keywords": [
+      "담백·깔끔"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 15,
+   "id": "dimsum-13",
+   "category": "딤섬",
+   "name": "수제 군만두",
+   "price": 8900,
+   "total_mentions": 18,
+   "top_keywords": [
+    "최고·강추",
+    "맛있음"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 25,
+   "specific_count": 2,
+   "common_pools": [
+    "딤섬"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "짜장면도 맛있고 특히 군만두가 일품이네요",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.01.25",
+     "rating": null,
+     "quote": "만두도 너무 맛있고 기존 우루루에서 업데이트가 되었네요 수제 군만두 강추",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R022",
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "짜장면도 맛있고 특히 군만두가 일품이네요",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R024",
+     "platform": "네이버지도",
+     "date": "2025.01.25",
+     "rating": null,
+     "quote": "만두도 너무 맛있고 기존 우루루에서 업데이트가 되었네요 수제 군만두 강추",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 16,
+   "id": "vegetable-1",
+   "category": "야채",
+   "name": "마라 오이 무침",
+   "price": 7900,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "특히 탕수육, 마라오이무침이 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R025",
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "특히 탕수육, 마라오이무침이 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 17,
+   "id": "vegetable-2",
+   "category": "야채",
+   "name": "목이 버섯 무침",
+   "price": 7900,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 18,
+   "id": "vegetable-3",
+   "category": "야채",
+   "name": "매콤 크리스피 가지튀김",
+   "price": 12000,
+   "total_mentions": 17,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "담백·깔끔"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 5,
+   "specific_count": 5,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "특히 양장피 맛집이네요 글고 리뷰이벤트 가지튀김이 진짜 취향저격이에요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.12",
+     "rating": 5,
+     "quote": "간만에 가족들과 저녁외식 깐풍기 가지튀김 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R026",
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ]
+    },
+    {
+     "rid": "R028",
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "특히 양장피 맛집이네요 글고 리뷰이벤트 가지튀김이 진짜 취향저격이에요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R045",
+     "platform": "네이버지도",
+     "date": "2026.09.12",
+     "rating": 5,
+     "quote": "간만에 가족들과 저녁외식 깐풍기 가지튀김 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R027",
+     "platform": "네이버지도",
+     "date": "2025.05.11",
+     "rating": null,
+     "quote": "간짜장 딤섬 가지튀김 최고 넘 맛있어요!",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R131",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "서비스로 받은 가지튀김, 탕수육소스에 찍어먹으니 굿",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 19,
+   "id": "vegetable-4",
+   "category": "야채",
+   "name": "핫팟 광동식 어향가지",
+   "price": 20000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 20,
+   "id": "vegetable-5",
+   "category": "야채",
+   "name": "핫팟 사천식 마파두부",
+   "price": 20000,
+   "total_mentions": 4,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 21,
+   "id": "vegetable-6",
+   "category": "야채",
+   "name": "청경채 야채볶음",
+   "price": 15000,
+   "total_mentions": 1,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 22,
+   "id": "vegetable-7",
+   "category": "야채",
+   "name": "비타민 야채볶음",
+   "price": 15000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 23,
+   "id": "vegetable-8",
+   "category": "야채",
+   "name": "공심채 야채볶음",
+   "price": 18000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.06",
+     "rating": 5,
+     "quote": "여기 공심채 진짜 존맛 무조건 시키세요 강추임 전 야채파라 진짜 진짜 맛잇엇음요",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R033",
+     "platform": "네이버지도",
+     "date": "2026.09.06",
+     "rating": 5,
+     "quote": "여기 공심채 진짜 존맛 무조건 시키세요 강추임 전 야채파라 진짜 진짜 맛잇엇음요",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 24,
+   "id": "cold-1",
+   "category": "냉채/샐러드",
+   "name": "참깨소스로 맛을 낸 유자향 토마토 샐러드",
+   "price": 12000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 25,
+   "id": "cold-2",
+   "category": "냉채/샐러드",
+   "name": "오향장우육 냉채",
+   "price": 28000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 2,
+   "specific_count": 1,
+   "common_pools": [
+    "냉채"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2023.07.30",
+     "rating": null,
+     "quote": "메뉴가 다양하고 다 맛있어요 게샬샥스핀 오향장우육 볶음밥 짬뽕탕 하나같이 다 맘에 들어요 추천합니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.02.05",
+     "rating": null,
+     "quote": "[냉채 전체 언급] 여긴 탕수육과 냉채 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R034",
+     "platform": "네이버지도",
+     "date": "2023.07.30",
+     "rating": null,
+     "quote": "메뉴가 다양하고 다 맛있어요 게샬샥스핀 오향장우육 볶음밥 짬뽕탕 하나같이 다 맘에 들어요 추천합니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 26,
+   "id": "cold-3",
+   "category": "냉채/샐러드",
+   "name": "양장피 잡채",
+   "price": 35000,
+   "total_mentions": 17,
+   "top_keywords": [
+    "맛있음",
+    "신선함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.09.26",
+     "rating": null,
+     "quote": "양장피의 재료들의 신선도도 괜찮았고 맛도 조화로웠음.",
+     "keywords": [
+      "맛있음",
+      "신선함"
+     ],
+     "note": "팀원 제공, 다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "특히 양장피 맛집이네요 글고 리뷰이벤트 가지튀김이 진짜 취향저격이에요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.08",
+     "rating": 5,
+     "quote": "간짜장이 먹고싶어서 찾아왔는데 간짜장은 물론이고 짬뽕 양장피까지 너무 맛있게 먹었어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R035",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.09.26",
+     "rating": null,
+     "quote": "양장피의 재료들의 신선도도 괜찮았고 맛도 조화로웠음.",
+     "keywords": [
+      "맛있음",
+      "신선함"
+     ],
+     "note": "팀원 제공, 다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    },
+    {
+     "rid": "R028",
+     "platform": "네이버지도",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "특히 양장피 맛집이네요 글고 리뷰이벤트 가지튀김이 진짜 취향저격이에요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R036",
+     "platform": "네이버지도",
+     "date": "2026.09.08",
+     "rating": 5,
+     "quote": "간짜장이 먹고싶어서 찾아왔는데 간짜장은 물론이고 짬뽕 양장피까지 너무 맛있게 먹었어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 27,
+   "id": "cold-4",
+   "category": "냉채/샐러드",
+   "name": "우루루 특선냉채",
+   "price": 38000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음 (공통)",
+   "evidence_count": 1,
+   "specific_count": 0,
+   "common_pools": [
+    "냉채"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2023.02.05",
+     "rating": null,
+     "quote": "[냉채 전체 언급] 여긴 탕수육과 냉채 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": []
+  },
+  {
+   "no": 28,
+   "id": "soup-1",
+   "category": "스프/탕",
+   "name": "송이 청채 전복 맑은 스프",
+   "price": 15000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 29,
+   "id": "soup-2",
+   "category": "스프/탕",
+   "name": "붉은 대게살 스프",
+   "price": 9000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 30,
+   "id": "soup-3",
+   "category": "스프/탕",
+   "name": "옥수수 게살스프",
+   "price": 9000,
+   "total_mentions": 1,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 31,
+   "id": "soup-4",
+   "category": "스프/탕",
+   "name": "해물 산라탕",
+   "price": 9000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음",
+    "매콤함",
+    "양 넉넉"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "커뮤니티(루리웹)",
+     "date": "2024.03.06",
+     "rating": null,
+     "quote": "약간의 산미와 후추의 알싸함이 매우 좋은 다른 요리에 곁들여 먹기 좋았습니다 … 해삼 듬뿍!",
+     "keywords": [
+      "맛있음",
+      "매콤함",
+      "양 넉넉"
+     ],
+     "note": "팀원 제공, 루리웹 원문 확인 (m.ruliweb.com/hobby/board/300117/read/30669219)"
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R039",
+     "platform": "커뮤니티(루리웹)",
+     "date": "2024.03.06",
+     "rating": null,
+     "quote": "약간의 산미와 후추의 알싸함이 매우 좋은 다른 요리에 곁들여 먹기 좋았습니다 … 해삼 듬뿍!",
+     "keywords": [
+      "맛있음",
+      "매콤함",
+      "양 넉넉"
+     ],
+     "note": "팀원 제공, 루리웹 원문 확인 (m.ruliweb.com/hobby/board/300117/read/30669219)"
+    },
+    {
+     "rid": "R066",
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ]
+  },
+  {
+   "no": 32,
+   "id": "chicken-1",
+   "category": "치킨",
+   "name": "고추 유린기",
+   "price": 35000,
+   "total_mentions": 21,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "바삭함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 6,
+   "specific_count": 6,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "유린기 진짜 맛있어요 강추",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.06.08",
+     "rating": 4.5,
+     "quote": "크림새우.유린기 요리 바삭함과 소스가 너무 맛있었습니다",
+     "keywords": [
+      "맛있음",
+      "바삭함"
+     ]
+    },
+    {
+     "platform": "블로그 댓글",
+     "date": null,
+     "rating": null,
+     "quote": "유린기가 괜찮았어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R040",
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "유린기 진짜 맛있어요 강추",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R041",
+     "platform": "캐치테이블",
+     "date": "2026.06.08",
+     "rating": 4.5,
+     "quote": "크림새우.유린기 요리 바삭함과 소스가 너무 맛있었습니다",
+     "keywords": [
+      "맛있음",
+      "바삭함"
+     ]
+    },
+    {
+     "rid": "R042",
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "특히 유린기와 어향동고가 맛있고, 이베리코 짜장면도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R132",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "고추 유린기가 가장 맛있었고요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R133",
+     "platform": "블로그 댓글",
+     "date": null,
+     "rating": null,
+     "quote": "유린기가 괜찮았어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R134",
+     "platform": "블로그 댓글",
+     "date": null,
+     "rating": null,
+     "quote": "유린기는 확실히 맛있었습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 33,
+   "id": "chicken-2",
+   "category": "치킨",
+   "name": "마늘 깐풍기",
+   "price": 35000,
+   "total_mentions": 38,
+   "top_keywords": [
+    "바삭함",
+    "맛있음",
+    "매콤함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 5,
+   "specific_count": 5,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.03.15",
+     "rating": null,
+     "quote": "깐풍기는 바삭하게 튀긴 닭고기에 매콤달콤한 소스가 코팅되어 있어, 한입 베어 물면 겉은 바삭하고 속은 촉촉하다. 은은하게 퍼지는 마늘 향과 칼칼한 청양고추의 조합이 깐풍기를 제대로 돋우어주었다.",
+     "keywords": [
+      "바삭함",
+      "매콤함",
+      "새콤달콤"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.12",
+     "rating": 5,
+     "quote": "간만에 가족들과 저녁외식 깐풍기 가지튀김 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.01",
+     "rating": 5,
+     "quote": "탕수육이랑 깐풍기 튀김이 바삭바삭하고 맛있어요!",
+     "keywords": [
+      "바삭함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R136",
+     "platform": "네이버지도",
+     "date": "2025.03.15",
+     "rating": null,
+     "quote": "깐풍기는 바삭하게 튀긴 닭고기에 매콤달콤한 소스가 코팅되어 있어, 한입 베어 물면 겉은 바삭하고 속은 촉촉하다. 은은하게 퍼지는 마늘 향과 칼칼한 청양고추의 조합이 깐풍기를 제대로 돋우어주었다.",
+     "keywords": [
+      "바삭함",
+      "매콤함",
+      "새콤달콤"
+     ]
+    },
+    {
+     "rid": "R045",
+     "platform": "네이버지도",
+     "date": "2026.09.12",
+     "rating": 5,
+     "quote": "간만에 가족들과 저녁외식 깐풍기 가지튀김 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R043",
+     "platform": "네이버지도",
+     "date": "2026.08.01",
+     "rating": 5,
+     "quote": "탕수육이랑 깐풍기 튀김이 바삭바삭하고 맛있어요!",
+     "keywords": [
+      "바삭함"
+     ]
+    },
+    {
+     "rid": "R135",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "깐풍기는 과하게 달지 않고 계속 손이 갔어요.",
+     "keywords": [
+      "간 적당함"
+     ]
+    },
+    {
+     "rid": "R137",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "마늘깐풍기와 이베리코간짜장 먹었는데 너무 맛있게 먹었어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 34,
+   "id": "chicken-3",
+   "category": "치킨",
+   "name": "핫팟 좌종당계",
+   "price": 35000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 35,
+   "id": "chicken-4",
+   "category": "치킨",
+   "name": "사천식 라즈지",
+   "price": 35000,
+   "total_mentions": 2,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.21",
+     "rating": 5,
+     "quote": "이메리코간짜장은 언제 먹어도 참 맛있네요 이번엔 특이한 사천식 라즈지라는 것도 먹었는데 괜찮았습니다",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R047",
+     "platform": "네이버지도",
+     "date": "2026.08.21",
+     "rating": 5,
+     "quote": "이메리코간짜장은 언제 먹어도 참 맛있네요 이번엔 특이한 사천식 라즈지라는 것도 먹었는데 괜찮았습니다",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 36,
+   "id": "chicken-5",
+   "category": "치킨",
+   "name": "치킨 캐슈넛 볶음",
+   "price": 35000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 37,
+   "id": "pork-1",
+   "category": "돼지고기",
+   "name": "이베리코 싱가폴식 탕수육",
+   "price": 36000,
+   "total_mentions": 21,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "신선함"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 38,
+   "specific_count": 6,
+   "common_pools": [
+    "탕수육"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.13",
+     "rating": 5,
+     "quote": "아빠 생신기념 우루루 재방문했어요 너무 맛있고 이베리코 탕수육 처음 먹어보는데 추천합니다 딤섬은 말할 것도 없이 맛있음.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2025.10.12",
+     "rating": 5.0,
+     "quote": "깔끔한 짬뽕. 이베리코 탕수육 추천해요. 늘 올때마다 맛있어서 기분좋은 방문입니다",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R049",
+     "platform": "네이버지도",
+     "date": "2026.09.13",
+     "rating": 5,
+     "quote": "아빠 생신기념 우루루 재방문했어요 너무 맛있고 이베리코 탕수육 처음 먹어보는데 추천합니다 딤섬은 말할 것도 없이 맛있음.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R048",
+     "platform": "네이버지도",
+     "date": "2026.10.14",
+     "rating": 5,
+     "quote": "오픈런했어요 싱가폴식 탕수육이랑 짜장면 맛있게 먹고갑니당 매장도 넓고 쾌적했어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R138",
+     "platform": "캐치테이블",
+     "date": "2025.10.12",
+     "rating": 5.0,
+     "quote": "깔끔한 짬뽕. 이베리코 탕수육 추천해요. 늘 올때마다 맛있어서 기분좋은 방문입니다",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R066",
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    },
+    {
+     "rid": "R031",
+     "platform": "네이버지도",
+     "date": "2026.02.07",
+     "rating": null,
+     "quote": "아이 둘과 함께 자주 오는 곳이에요 전에는 마파두부 간짜장 등 먹었었는데 오늘은 싱가폴식 이베리코 탕수육을 시켜봤어요 고기가 신선하고 튀김옷이 눅지지 않아 바삭달콩고소합니다 강추메뉴에요 유니짜장도 면 굵기도 적당하고 간도 맞고 기름기 적습니당 맛있…",
+     "keywords": [
+      "신선함"
+     ]
+    },
+    {
+     "rid": "R160",
+     "platform": "커뮤니티(루리웹)",
+     "date": "2024.03.06",
+     "rating": null,
+     "quote": "탕수육도 맛있었습니다. 과일 듬뿍 소스라 새콤달콤 좋더군요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 38,
+   "id": "pork-2",
+   "category": "돼지고기",
+   "name": "항저우식 동파육",
+   "price": 40000,
+   "total_mentions": 21,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "부드러움"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 4,
+   "specific_count": 4,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R050",
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    },
+    {
+     "rid": "R051",
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R066",
+     "platform": "카카오맵",
+     "date": "2024.10.21",
+     "rating": 4,
+     "quote": "기대 안 하고갔는데 시킨 요리들 전부 맛있었음 — 딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 끝문장('맛의 전체적인 평균이 ㄱㅊ함')과 짜장 종류를 헷갈린 부분 제외"
+    },
+    {
+     "rid": "R161",
+     "platform": "캐치테이블",
+     "date": "2026.10.18",
+     "rating": 3.7,
+     "quote": "동파육은 다른 곳보다 부드럽고 진한 맛을 느낄 수 있었습니다.",
+     "keywords": [
+      "부드러움"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 39,
+   "id": "pork-3",
+   "category": "돼지고기",
+   "name": "고추잡채&바오번",
+   "price": 35000,
+   "total_mentions": 8,
+   "top_keywords": [
+    "맛있음",
+    "부드러움",
+    "매콤함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2021.06.19",
+     "rating": 4,
+     "quote": "4명부터 룸이라해서 기대안했는데 2명임에두 룸을 해주셔서 좋았어요 음식은 전체적으로 맛있었어요 전 특히 고추잡채가 매콤하구 맛있드라구요 시그니쳐 탕슉두 고기가 통으로 튀겨서 잘라먹는게 고기가 부드럽구 소스도 좋았어요 담에두 가족들이랑 룸예약해서 또 와…",
+     "keywords": [
+      "맛있음",
+      "부드러움",
+      "매콤함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.11.18",
+     "rating": null,
+     "quote": "부모님도 모셔와서 오리+고추잡채 만들어 주셔서 맛있게 다 잘 먹었네요 다시 또 와서 다른 메뉴들도 먹어보고 싶어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.10.10",
+     "rating": null,
+     "quote": "깐풍기 짜장면 고추잡채 구성좋고 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R053",
+     "platform": "네이버지도",
+     "date": "2021.06.19",
+     "rating": 4,
+     "quote": "4명부터 룸이라해서 기대안했는데 2명임에두 룸을 해주셔서 좋았어요 음식은 전체적으로 맛있었어요 전 특히 고추잡채가 매콤하구 맛있드라구요 시그니쳐 탕슉두 고기가 통으로 튀겨서 잘라먹는게 고기가 부드럽구 소스도 좋았어요 담에두 가족들이랑 룸예약해서 또 와…",
+     "keywords": [
+      "맛있음",
+      "부드러움",
+      "매콤함"
+     ]
+    },
+    {
+     "rid": "R054",
+     "platform": "네이버지도",
+     "date": "2023.11.18",
+     "rating": null,
+     "quote": "부모님도 모셔와서 오리+고추잡채 만들어 주셔서 맛있게 다 잘 먹었네요 다시 또 와서 다른 메뉴들도 먹어보고 싶어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R055",
+     "platform": "네이버지도",
+     "date": "2023.10.10",
+     "rating": null,
+     "quote": "깐풍기 짜장면 고추잡채 구성좋고 맛있네요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 40,
+   "id": "pork-4",
+   "category": "돼지고기",
+   "name": "생등심 탕수육",
+   "price": 32000,
+   "total_mentions": 34,
+   "top_keywords": [
+    "맛있음",
+    "고기 두툼",
+    "부드러움"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 38,
+   "specific_count": 6,
+   "common_pools": [
+    "탕수육"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.05",
+     "rating": 5,
+     "quote": "등심 탕수육 맛집 두툼한 고기가 엄청 부드럽네요 다양한 요리도 많고 맛이 훌륭합니다",
+     "keywords": [
+      "맛있음",
+      "부드러움",
+      "고기 두툼"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 5,
+     "quote": "너무 맛있어요 특히 꿔바로우보다 등심탕수육 추천이요 암튼 다 맛나요",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "다이닝코드",
+     "date": "2025.10.26",
+     "rating": 4.5,
+     "quote": "탕수육 도톰하니 진짜 맛있네요",
+     "keywords": [
+      "맛있음",
+      "고기 두툼"
+     ],
+     "note": "팀원 제공, 다이닝코드 원문 확인. 주문 메뉴에 생등심 탕수육 명시"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R056",
+     "platform": "네이버지도",
+     "date": "2026.09.05",
+     "rating": 5,
+     "quote": "등심 탕수육 맛집 두툼한 고기가 엄청 부드럽네요 다양한 요리도 많고 맛이 훌륭합니다",
+     "keywords": [
+      "맛있음",
+      "부드러움",
+      "고기 두툼"
+     ]
+    },
+    {
+     "rid": "R058",
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 5,
+     "quote": "너무 맛있어요 특히 꿔바로우보다 등심탕수육 추천이요 암튼 다 맛나요",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R057",
+     "platform": "다이닝코드",
+     "date": "2025.10.26",
+     "rating": 4.5,
+     "quote": "탕수육 도톰하니 진짜 맛있네요",
+     "keywords": [
+      "맛있음",
+      "고기 두툼"
+     ],
+     "note": "팀원 제공, 다이닝코드 원문 확인. 주문 메뉴에 생등심 탕수육 명시"
+    },
+    {
+     "rid": "R164",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "등심 탕수육 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R165",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "생등심 탕수육, 이베리코 간짜장 맛있었어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R163",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "탕수육은 양이 많았다. 32000원의 값을 함.",
+     "keywords": [
+      "양 넉넉"
+     ],
+     "note": "메뉴 추정 — 가격(32,000원)이 생등심 탕수육과 일치 / 일부 발췌 — 다른 메뉴 불만 문장('소스가 좀 없어서 뻑뻑하긴 했지만') 제외"
+    }
+   ]
+  },
+  {
+   "no": 41,
+   "id": "beef-1",
+   "category": "소고기",
+   "name": "숙성 소고기 탕수육",
+   "price": 40000,
+   "total_mentions": 11,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "부드러움"
+   ],
+   "status": "근거 있음 (개별+공통)",
+   "evidence_count": 35,
+   "specific_count": 3,
+   "common_pools": [
+    "탕수육"
+   ],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.01.03",
+     "rating": null,
+     "quote": "소고기 탕수육 최고로 맛있습니다 너무 부드러워요 게살 볶음밥 차돌 짬뽕 다 너무 맛있었어요",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "부드러움"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "해물짬뽕과 소고기 안심 탕수육 주문했어요 고기와 해산물이 질기지 않고 부드러워요 전반적으로 서비스가 훌륭해요",
+     "keywords": [
+      "맛있음",
+      "부드러움"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.19",
+     "rating": 5,
+     "quote": "늘 간이 딱 맞고 맛있어서 데이트로 자주 옵니다 소고기 탕수육 추천",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R059",
+     "platform": "네이버지도",
+     "date": "2025.01.03",
+     "rating": null,
+     "quote": "소고기 탕수육 최고로 맛있습니다 너무 부드러워요 게살 볶음밥 차돌 짬뽕 다 너무 맛있었어요",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "부드러움"
+     ]
+    },
+    {
+     "rid": "R060",
+     "platform": "네이버지도",
+     "date": "2026.10.15",
+     "rating": 5,
+     "quote": "해물짬뽕과 소고기 안심 탕수육 주문했어요 고기와 해산물이 질기지 않고 부드러워요 전반적으로 서비스가 훌륭해요",
+     "keywords": [
+      "맛있음",
+      "부드러움"
+     ]
+    },
+    {
+     "rid": "R061",
+     "platform": "네이버지도",
+     "date": "2026.09.19",
+     "rating": 5,
+     "quote": "늘 간이 딱 맞고 맛있어서 데이트로 자주 옵니다 소고기 탕수육 추천",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 42,
+   "id": "beef-2",
+   "category": "소고기",
+   "name": "흑후추 마늘 소고기 안심",
+   "price": 45000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 43,
+   "id": "beef-3",
+   "category": "소고기",
+   "name": "흑후추 소고기 꽈리고추볶음",
+   "price": 38000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "흑후추 소고기랑 대파소고기도 먹었는데 같은 소고기도 각각 다르게 맛을 내며 양념과 야채들 조합이 좋았어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 뒷문장('조금 간이 짜서') 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R062",
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "흑후추 소고기랑 대파소고기도 먹었는데 같은 소고기도 각각 다르게 맛을 내며 양념과 야채들 조합이 좋았어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 뒷문장('조금 간이 짜서') 제외"
+    }
+   ]
+  },
+  {
+   "no": 44,
+   "id": "beef-4",
+   "category": "소고기",
+   "name": "굴소스에 볶아낸 소고기&아스파라거스",
+   "price": 38000,
+   "total_mentions": 1,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 45,
+   "id": "beef-5",
+   "category": "소고기",
+   "name": "채끝등심과 신선한 미니코스 랩",
+   "price": 38000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 46,
+   "id": "beef-6",
+   "category": "소고기",
+   "name": "상해식 대파 소고기",
+   "price": 38000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "흑후추 소고기랑 대파소고기도 먹었는데 같은 소고기도 각각 다르게 맛을 내며 양념과 야채들 조합이 좋았어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 뒷문장('조금 간이 짜서') 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R062",
+     "platform": "네이버지도",
+     "date": "2026.07.18",
+     "rating": 5,
+     "quote": "흑후추 소고기랑 대파소고기도 먹었는데 같은 소고기도 각각 다르게 맛을 내며 양념과 야채들 조합이 좋았어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 뒷문장('조금 간이 짜서') 제외"
+    }
+   ]
+  },
+  {
+   "no": 47,
+   "id": "noodle-1",
+   "category": "면",
+   "name": "원심 유니짜장",
+   "price": 8000,
+   "total_mentions": 31,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "캐치테이블",
+     "date": "2026.09.24",
+     "rating": 4.7,
+     "quote": "요기 유니짜장&해물짬뽕 제 취향저격임요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.29",
+     "rating": 5,
+     "quote": "소룡포 진짜맛나요 유니짜장,해물짬뽕도 굿 대기가 좀 있었지만 최고",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R065",
+     "platform": "캐치테이블",
+     "date": "2026.09.24",
+     "rating": 4.7,
+     "quote": "요기 유니짜장&해물짬뽕 제 취향저격임요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R064",
+     "platform": "네이버지도",
+     "date": "2026.08.29",
+     "rating": 5,
+     "quote": "소룡포 진짜맛나요 유니짜장,해물짬뽕도 굿 대기가 좀 있었지만 최고",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 48,
+   "id": "noodle-2",
+   "category": "면",
+   "name": "싱가폴식 원 새우탕면",
+   "price": 16000,
+   "total_mentions": 4,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.14",
+     "rating": 5,
+     "quote": "우루루산본점을 자주 찾았었는데 오늘은 우루루본점에 와서 차돌짬뽕과 신메뉴 새우탕면을 먹었어요 맛이야 말할것도 없지만, 오늘 먹은 새우탕면이 진짜 끝내주게 맛있었습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.10",
+     "rating": 4,
+     "quote": "짜장면도 맛있고 새로나온 새우탕면 먹어봤는데 너무 맛있습니다 담에 다시 방문예정 있습니다!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R068",
+     "platform": "네이버지도",
+     "date": "2026.10.14",
+     "rating": 5,
+     "quote": "우루루산본점을 자주 찾았었는데 오늘은 우루루본점에 와서 차돌짬뽕과 신메뉴 새우탕면을 먹었어요 맛이야 말할것도 없지만, 오늘 먹은 새우탕면이 진짜 끝내주게 맛있었습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R067",
+     "platform": "네이버지도",
+     "date": "2026.10.10",
+     "rating": 4,
+     "quote": "짜장면도 맛있고 새로나온 새우탕면 먹어봤는데 너무 맛있습니다 담에 다시 방문예정 있습니다!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 49,
+   "id": "noodle-3",
+   "category": "면",
+   "name": "블랙 이베리코 간짜장",
+   "price": 15000,
+   "total_mentions": 147,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "부드러움"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "캐치테이블",
+     "date": "2024.11.10",
+     "rating": 5,
+     "quote": "아는 중국집 중에 가장 맛있는 집인 것 같아요 특히 이베리코간짜장은 최고에요 간짜장 먹고 밥도 비벼먹으면 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.04.25",
+     "rating": null,
+     "quote": "삼선짬뽕은 자극적이지 않은 진한국물이 좋았고, 이베리코 간짜장은 어쩜 고기가 이리 부드럽고 맛있는지 감탄하면서 먹었어요 면발도 쫄깃하고 탕수육도 정말 맛있어요!",
+     "keywords": [
+      "부드러움"
+     ]
+    },
+    {
+     "platform": "블로그(다이닝코드 경유)",
+     "date": null,
+     "rating": null,
+     "quote": "간짜장은 많이 안먹어봤는데, 확실히 그냥 짜장보다 담백하고 맛이 좋았어요",
+     "keywords": [
+      "담백·깔끔"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 게시 10월 11일, 방문일 미상"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R072",
+     "platform": "캐치테이블",
+     "date": "2024.11.10",
+     "rating": 5,
+     "quote": "아는 중국집 중에 가장 맛있는 집인 것 같아요 특히 이베리코간짜장은 최고에요 간짜장 먹고 밥도 비벼먹으면 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R070",
+     "platform": "네이버지도",
+     "date": "2024.04.25",
+     "rating": null,
+     "quote": "삼선짬뽕은 자극적이지 않은 진한국물이 좋았고, 이베리코 간짜장은 어쩜 고기가 이리 부드럽고 맛있는지 감탄하면서 먹었어요 면발도 쫄깃하고 탕수육도 정말 맛있어요!",
+     "keywords": [
+      "부드러움"
+     ]
+    },
+    {
+     "rid": "R071",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": null,
+     "rating": null,
+     "quote": "간짜장은 많이 안먹어봤는데, 확실히 그냥 짜장보다 담백하고 맛이 좋았어요",
+     "keywords": [
+      "담백·깔끔"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 게시 10월 11일, 방문일 미상"
+    }
+   ]
+  },
+  {
+   "no": 50,
+   "id": "noodle-4",
+   "category": "면",
+   "name": "깻잎 차돌 짬뽕",
+   "price": 14000,
+   "total_mentions": 63,
+   "top_keywords": [
+    "맛있음",
+    "매콤함",
+    "감칠맛·진함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "블로그(다이닝코드 경유)",
+     "date": null,
+     "rating": null,
+     "quote": "국물이 얼큰해서 간짜장이랑 번갈아 먹기 딱 좋았어요! 면도 쫄깃해서 국물이랑 잘 어울렸어요.",
+     "keywords": [
+      "맛있음",
+      "매콤함"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 게시 10월 11일, 방문일 미상"
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.04.11",
+     "rating": null,
+     "quote": "짬뽕 맛집이예요 삼선짬뽕도 맛있지만 전에 먹었던 깻잎차돌짬뽕도 맛있어요 특밥도 매콤하니 맛있네요 우루루는 재료가 주변 다른데 보다 신선한거같아서 맘에 듭니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.04.07",
+     "rating": null,
+     "quote": "차돌짬뽕 국물진짜 진하고 맛있어요!",
+     "keywords": [
+      "감칠맛·진함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R074",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": null,
+     "rating": null,
+     "quote": "국물이 얼큰해서 간짜장이랑 번갈아 먹기 딱 좋았어요! 면도 쫄깃해서 국물이랑 잘 어울렸어요.",
+     "keywords": [
+      "맛있음",
+      "매콤함"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 게시 10월 11일, 방문일 미상"
+    },
+    {
+     "rid": "R073",
+     "platform": "네이버지도",
+     "date": "2024.04.11",
+     "rating": null,
+     "quote": "짬뽕 맛집이예요 삼선짬뽕도 맛있지만 전에 먹었던 깻잎차돌짬뽕도 맛있어요 특밥도 매콤하니 맛있네요 우루루는 재료가 주변 다른데 보다 신선한거같아서 맘에 듭니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R075",
+     "platform": "네이버지도",
+     "date": "2024.04.07",
+     "rating": null,
+     "quote": "차돌짬뽕 국물진짜 진하고 맛있어요!",
+     "keywords": [
+      "감칠맛·진함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 51,
+   "id": "noodle-5",
+   "category": "면",
+   "name": "해물 짬뽕",
+   "price": 14000,
+   "total_mentions": 24,
+   "top_keywords": [
+    "양 넉넉",
+    "국물 시원함",
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "짜장면은 진하고 고소해서 부담 없이 맛있고, 해물짬뽕은 해물이 푸짐하게 들어가 국물도 얼큰하고 시원해요. 짜장, 해물짬뽕 둘 다 추천합니다!",
+     "keywords": [
+      "매콤함",
+      "양 넉넉",
+      "국물 시원함"
+     ]
+    },
+    {
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.02.21",
+     "rating": null,
+     "quote": "해물가득 짬뽕도 시원하니 맛있구여",
+     "keywords": [
+      "맛있음",
+      "양 넉넉",
+      "국물 시원함"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.09.24",
+     "rating": 4.7,
+     "quote": "요기 유니짜장&해물짬뽕 제 취향저격임요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R076",
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "짜장면은 진하고 고소해서 부담 없이 맛있고, 해물짬뽕은 해물이 푸짐하게 들어가 국물도 얼큰하고 시원해요. 짜장, 해물짬뽕 둘 다 추천합니다!",
+     "keywords": [
+      "매콤함",
+      "양 넉넉",
+      "국물 시원함"
+     ]
+    },
+    {
+     "rid": "R077",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.02.21",
+     "rating": null,
+     "quote": "해물가득 짬뽕도 시원하니 맛있구여",
+     "keywords": [
+      "맛있음",
+      "양 넉넉",
+      "국물 시원함"
+     ],
+     "note": "다이닝코드 블로그 발췌에서 원문 확인. 날짜는 방문일"
+    },
+    {
+     "rid": "R065",
+     "platform": "캐치테이블",
+     "date": "2026.09.24",
+     "rating": 4.7,
+     "quote": "요기 유니짜장&해물짬뽕 제 취향저격임요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 52,
+   "id": "noodle-6",
+   "category": "면",
+   "name": "사천식 딴딴면",
+   "price": 13000,
+   "total_mentions": 8,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2024.01.28",
+     "rating": null,
+     "quote": "탄탄면 특히 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.11.12",
+     "rating": null,
+     "quote": "부모님과 아이와 함 베이징덕과 이베리코 간짜장,딴딴면을 정말 맛있게 잘 먹었습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.01.08",
+     "rating": 5,
+     "quote": "먹어보고 싶은 메뉴가 너무 많은데 최근에 여기 탄탄멘에 꽂혀서 이것만 먹어요.",
+     "keywords": []
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R080",
+     "platform": "네이버지도",
+     "date": "2024.01.28",
+     "rating": null,
+     "quote": "탄탄면 특히 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R078",
+     "platform": "네이버지도",
+     "date": "2023.11.12",
+     "rating": null,
+     "quote": "부모님과 아이와 함 베이징덕과 이베리코 간짜장,딴딴면을 정말 맛있게 잘 먹었습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R079",
+     "platform": "캐치테이블",
+     "date": "2026.01.08",
+     "rating": 5,
+     "quote": "먹어보고 싶은 메뉴가 너무 많은데 최근에 여기 탄탄멘에 꽂혀서 이것만 먹어요.",
+     "keywords": []
+    }
+   ]
+  },
+  {
+   "no": 53,
+   "id": "noodle-7",
+   "category": "면",
+   "name": "소고기 우육탕면",
+   "price": 13000,
+   "total_mentions": 12,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.02",
+     "rating": 4.5,
+     "quote": "지난번에 우육면을 넘 맛있게 먹고 나서 다시 방문하게 되었습니다 역시 오늘도 맛난 우육면이네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.25",
+     "rating": 4.5,
+     "quote": "가족이 함께 주말 식사하러온곳 유니짜장 우육탕면 탕수육 맛집입니다 딤섬도 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R081",
+     "platform": "네이버지도",
+     "date": "2026.08.02",
+     "rating": 4.5,
+     "quote": "지난번에 우육면을 넘 맛있게 먹고 나서 다시 방문하게 되었습니다 역시 오늘도 맛난 우육면이네요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R082",
+     "platform": "네이버지도",
+     "date": "2026.07.25",
+     "rating": 4.5,
+     "quote": "가족이 함께 주말 식사하러온곳 유니짜장 우육탕면 탕수육 맛집입니다 딤섬도 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 54,
+   "id": "noodle-8",
+   "category": "면",
+   "name": "X.O 해산물 에그누들 차우면",
+   "price": 15000,
+   "total_mentions": 6,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2025.06.03",
+     "rating": 4,
+     "quote": "면이 맛있고 요리도 괜찮음 에그누들볶음면 맛있음",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('근데 딤섬은 별로') 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R051",
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R084",
+     "platform": "카카오맵",
+     "date": "2025.06.03",
+     "rating": 4,
+     "quote": "면이 맛있고 요리도 괜찮음 에그누들볶음면 맛있음",
+     "keywords": [
+      "맛있음"
+     ],
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('근데 딤섬은 별로') 제외"
+    }
+   ]
+  },
+  {
+   "no": 55,
+   "id": "noodle-9",
+   "category": "면",
+   "name": "상해식 소고기 에그누들 차우면",
+   "price": 15000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 56,
+   "id": "noodle-10",
+   "category": "면",
+   "name": "빙화 비취냉면(하절기)",
+   "price": 15000,
+   "total_mentions": 14,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "담백·깔끔"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.06.23",
+     "rating": 5,
+     "quote": "중국비치냉면 넘 맛있게 먹었습니다 여름시즌메뉴로 강추!",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.08.02",
+     "rating": null,
+     "quote": "탕수육 바삭하고 중국냉면 깔끔한 육수와 푸짐하고 담백합니다.",
+     "keywords": [
+      "담백·깔끔",
+      "양 넉넉"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R085",
+     "platform": "네이버지도",
+     "date": "2026.06.23",
+     "rating": 5,
+     "quote": "중국비치냉면 넘 맛있게 먹었습니다 여름시즌메뉴로 강추!",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R086",
+     "platform": "네이버지도",
+     "date": "2023.08.02",
+     "rating": null,
+     "quote": "탕수육 바삭하고 중국냉면 깔끔한 육수와 푸짐하고 담백합니다.",
+     "keywords": [
+      "담백·깔끔",
+      "양 넉넉"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 57,
+   "id": "rice-1",
+   "category": "밥",
+   "name": "팔진 잡탕밥",
+   "price": 18000,
+   "total_mentions": 13,
+   "top_keywords": [
+    "맛있음",
+    "양 넉넉",
+    "신선함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.05.04",
+     "rating": null,
+     "quote": "활조개 탕면은 가리비와 조개가 푸짐한 칼칼한 육수가 아주 매력적이고, 해산물과 야채 등이 푸짐한 잡탕밥도 아주 맛이 괜찮았답니다.",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ],
+     "note": "일부 발췌 — 주문 메뉴 나열 문장 제외, 평가 문장만 발췌"
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.03.18",
+     "rating": null,
+     "quote": "가까이 있어서 종종 오게 되는 중식당이네요 우루루 탕수육은 늘 생각나는 맛 고기도 두툼하고 소스도 맛있어요 잡탕밥 야채도 신선하고 푸짐 식사 메뉴들이 다 굿굿 오랜만에 먹은 군만두 맛있네요",
+     "keywords": [
+      "맛있음",
+      "신선함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R083",
+     "platform": "네이버지도",
+     "date": "2025.05.04",
+     "rating": null,
+     "quote": "활조개 탕면은 가리비와 조개가 푸짐한 칼칼한 육수가 아주 매력적이고, 해산물과 야채 등이 푸짐한 잡탕밥도 아주 맛이 괜찮았답니다.",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ],
+     "note": "일부 발췌 — 주문 메뉴 나열 문장 제외, 평가 문장만 발췌"
+    },
+    {
+     "rid": "R088",
+     "platform": "네이버지도",
+     "date": "2024.03.18",
+     "rating": null,
+     "quote": "가까이 있어서 종종 오게 되는 중식당이네요 우루루 탕수육은 늘 생각나는 맛 고기도 두툼하고 소스도 맛있어요 잡탕밥 야채도 신선하고 푸짐 식사 메뉴들이 다 굿굿 오랜만에 먹은 군만두 맛있네요",
+     "keywords": [
+      "맛있음",
+      "신선함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 58,
+   "id": "rice-2",
+   "category": "밥",
+   "name": "붉은 대게살 류산슬 덮밥",
+   "price": 15000,
+   "total_mentions": 5,
+   "top_keywords": [
+    "최고·강추",
+    "가성비"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2024.05.25",
+     "rating": null,
+     "quote": "유산슬덮밥도 가성비 좋아서 강추합니다!",
+     "keywords": [
+      "최고·강추",
+      "가성비"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "배달로 먹어봤는데 자장면 면이 맛있고 게살볶음밥이랑 유산슬덮밥 개강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R091",
+     "platform": "네이버지도",
+     "date": "2024.05.25",
+     "rating": null,
+     "quote": "유산슬덮밥도 가성비 좋아서 강추합니다!",
+     "keywords": [
+      "최고·강추",
+      "가성비"
+     ]
+    },
+    {
+     "rid": "R090",
+     "platform": "카카오맵",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "배달로 먹어봤는데 자장면 면이 맛있고 게살볶음밥이랑 유산슬덮밥 개강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 59,
+   "id": "rice-3",
+   "category": "밥",
+   "name": "홍콩식 날치알 흰자 볶음밥",
+   "price": 13000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.25",
+     "rating": 5,
+     "quote": "날치알흰자볶음밥도 처음먹어보는데 맛있네요 우루루 가족이랑 오기 너무 좋은거같아요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R093",
+     "platform": "네이버지도",
+     "date": "2026.10.25",
+     "rating": 5,
+     "quote": "날치알흰자볶음밥도 처음먹어보는데 맛있네요 우루루 가족이랑 오기 너무 좋은거같아요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 60,
+   "id": "rice-4",
+   "category": "밥",
+   "name": "X.O소스 게살볶음밥",
+   "price": 13000,
+   "total_mentions": 26,
+   "top_keywords": [
+    "최고·강추"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.13",
+     "rating": 5,
+     "quote": "메뉴도 진짜 많은데 뭘 시켜도 다 맛있네요 사진에는 없지만 게살볶음밥 강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "카카오맵",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "배달로 먹어봤는데 자장면 면이 맛있고 게살볶음밥이랑 유산슬덮밥 개강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2024.09.28",
+     "rating": 5,
+     "quote": "감탄하면서 먹었네요 게살볶음밥과 짬뽕도 잘먹었습니다",
+     "keywords": [],
+     "note": "일부 발췌 — '짬뽕은 조금 매운편이었어요' 제외"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R094",
+     "platform": "네이버지도",
+     "date": "2026.10.13",
+     "rating": 5,
+     "quote": "메뉴도 진짜 많은데 뭘 시켜도 다 맛있네요 사진에는 없지만 게살볶음밥 강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R090",
+     "platform": "카카오맵",
+     "date": "2026.09.24",
+     "rating": 5,
+     "quote": "배달로 먹어봤는데 자장면 면이 맛있고 게살볶음밥이랑 유산슬덮밥 개강추",
+     "keywords": [
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R095",
+     "platform": "캐치테이블",
+     "date": "2024.09.28",
+     "rating": 5,
+     "quote": "감탄하면서 먹었네요 게살볶음밥과 짬뽕도 잘먹었습니다",
+     "keywords": [],
+     "note": "일부 발췌 — '짬뽕은 조금 매운편이었어요' 제외"
+    }
+   ]
+  },
+  {
+   "no": 61,
+   "id": "rice-5",
+   "category": "밥",
+   "name": "잡채밥",
+   "price": 13000,
+   "total_mentions": 19,
+   "top_keywords": [
+    "간 적당함",
+    "담백·깔끔"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "캐치테이블",
+     "date": "2026.03.08",
+     "rating": 5,
+     "quote": "기름지지 않고 짬뽕이 담뱍하다 잡채밥도 간이 적당 하고 짜장면도 양이 넉넉해서 좋았다",
+     "keywords": [
+      "담백·깔끔",
+      "간 적당함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.25",
+     "rating": 5,
+     "quote": "한달에 두세번은 꼭 오는곳이에요 해물짬뽕도 잡채밥도 간도적당하고 맛있고 유니짜장은 아기먹기 딱좋아요",
+     "keywords": [
+      "간 적당함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R097",
+     "platform": "캐치테이블",
+     "date": "2026.03.08",
+     "rating": 5,
+     "quote": "기름지지 않고 짬뽕이 담뱍하다 잡채밥도 간이 적당 하고 짜장면도 양이 넉넉해서 좋았다",
+     "keywords": [
+      "담백·깔끔",
+      "간 적당함"
+     ]
+    },
+    {
+     "rid": "R096",
+     "platform": "네이버지도",
+     "date": "2026.10.25",
+     "rating": 5,
+     "quote": "한달에 두세번은 꼭 오는곳이에요 해물짬뽕도 잡채밥도 간도적당하고 맛있고 유니짜장은 아기먹기 딱좋아요",
+     "keywords": [
+      "간 적당함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 62,
+   "id": "rice-6",
+   "category": "밥",
+   "name": "어향가지 덮밥",
+   "price": 13000,
+   "total_mentions": 9,
+   "top_keywords": [
+    "맛있음",
+    "매콤함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.09.21",
+     "rating": null,
+     "quote": "유니짜장, 탄탄면, 어향가지덮밥, 쇼마이 먹었습니다. 그중 짜장이 제일 맛있었어요 탄탄면은 새콤하고 가지덮밥은 매콤하고 쇼마이는 육즙가득 맛있었습니다.",
+     "keywords": [
+      "매콤함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.03.29",
+     "rating": null,
+     "quote": "탕수육 다들 많이 드시고 가지덮밥 맛있어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R015",
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R016",
+     "platform": "네이버지도",
+     "date": "2025.09.21",
+     "rating": null,
+     "quote": "유니짜장, 탄탄면, 어향가지덮밥, 쇼마이 먹었습니다. 그중 짜장이 제일 맛있었어요 탄탄면은 새콤하고 가지덮밥은 매콤하고 쇼마이는 육즙가득 맛있었습니다.",
+     "keywords": [
+      "매콤함"
+     ]
+    },
+    {
+     "rid": "R099",
+     "platform": "네이버지도",
+     "date": "2025.03.29",
+     "rating": null,
+     "quote": "탕수육 다들 많이 드시고 가지덮밥 맛있어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 63,
+   "id": "rice-7",
+   "category": "밥",
+   "name": "채소볶음밥과 마파소스",
+   "price": 13000,
+   "total_mentions": 2,
+   "top_keywords": [
+    "최고·강추"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.04.02",
+     "rating": null,
+     "quote": "마파두부 볶음밥도 강추!",
+     "keywords": [
+      "최고·강추"
+     ],
+     "note": "메뉴 추정 — '마파두부 볶음밥'을 채소볶음밥과 마파소스로 봄"
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R030",
+     "platform": "네이버지도",
+     "date": "2025.04.02",
+     "rating": null,
+     "quote": "마파두부 볶음밥도 강추!",
+     "keywords": [
+      "최고·강추"
+     ],
+     "note": "메뉴 추정 — '마파두부 볶음밥'을 채소볶음밥과 마파소스로 봄"
+    }
+   ]
+  },
+  {
+   "no": 64,
+   "id": "seafood-1",
+   "category": "해산물",
+   "name": "X.O 금사오룡해삼",
+   "price": 72000,
+   "total_mentions": 1,
+   "top_keywords": [
+    "맛있음",
+    "양 넉넉"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 1,
+   "specific_count": 1,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.01.23",
+     "rating": null,
+     "quote": "금사오룡해삼은 새우살이 가득 든 튀김에 야채가득 소스에 같이 먹으니 너무 맛있어요 전가복에 해산물도 고급지구요 차돌짬뽕에 면도 따로놀지않고 국물맛도 끝내주네요 중식 먹고플때마다 자주 오는 우루루!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R102",
+     "platform": "네이버지도",
+     "date": "2025.01.23",
+     "rating": null,
+     "quote": "금사오룡해삼은 새우살이 가득 든 튀김에 야채가득 소스에 같이 먹으니 너무 맛있어요 전가복에 해산물도 고급지구요 차돌짬뽕에 면도 따로놀지않고 국물맛도 끝내주네요 중식 먹고플때마다 자주 오는 우루루!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 65,
+   "id": "seafood-2",
+   "category": "해산물",
+   "name": "국산 해삼전복 굴소스",
+   "price": 80000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 66,
+   "id": "seafood-3",
+   "category": "해산물",
+   "name": "국산 해삼과 동파육",
+   "price": 80000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 67,
+   "id": "seafood-4",
+   "category": "해산물",
+   "name": "전복과 동파육",
+   "price": 85000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 68,
+   "id": "seafood-5",
+   "category": "해산물",
+   "name": "튀긴 파를 올린 게우소스 전복찜",
+   "price": 65000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 69,
+   "id": "seafood-6",
+   "category": "해산물",
+   "name": "원심 전가복",
+   "price": 65000,
+   "total_mentions": 8,
+   "top_keywords": [
+    "맛있음",
+    "양 넉넉"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.01.23",
+     "rating": null,
+     "quote": "금사오룡해삼은 새우살이 가득 든 튀김에 야채가득 소스에 같이 먹으니 너무 맛있어요 전가복에 해산물도 고급지구요 차돌짬뽕에 면도 따로놀지않고 국물맛도 끝내주네요 중식 먹고플때마다 자주 오는 우루루!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2018.07.25",
+     "rating": 4,
+     "quote": "북경식탕수육 전가복 소고기야채볶음 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.05.25",
+     "rating": null,
+     "quote": "전가복, 어향동고 새우, 싱카폴 이베리코 탕수육 요리들 모두 훌륭한 맛이었습니다 다음에는 꼭 아몬드크림새우와 참나물 활조개 탕면도 먹어보고싶어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R102",
+     "platform": "네이버지도",
+     "date": "2025.01.23",
+     "rating": null,
+     "quote": "금사오룡해삼은 새우살이 가득 든 튀김에 야채가득 소스에 같이 먹으니 너무 맛있어요 전가복에 해산물도 고급지구요 차돌짬뽕에 면도 따로놀지않고 국물맛도 끝내주네요 중식 먹고플때마다 자주 오는 우루루!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ]
+    },
+    {
+     "rid": "R103",
+     "platform": "네이버지도",
+     "date": "2018.07.25",
+     "rating": 4,
+     "quote": "북경식탕수육 전가복 소고기야채볶음 맛있어요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R104",
+     "platform": "네이버지도",
+     "date": "2025.05.25",
+     "rating": null,
+     "quote": "전가복, 어향동고 새우, 싱카폴 이베리코 탕수육 요리들 모두 훌륭한 맛이었습니다 다음에는 꼭 아몬드크림새우와 참나물 활조개 탕면도 먹어보고싶어요!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 70,
+   "id": "seafood-7",
+   "category": "해산물",
+   "name": "어향동고새우",
+   "price": 45000,
+   "total_mentions": 13,
+   "top_keywords": [
+    "맛있음",
+    "매콤함",
+    "담백·깔끔"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2023.05.03",
+     "rating": null,
+     "quote": "어향동고 런치세트 먹었어요. 다진새우를 표고버섯에 넣어 어항소스로 맛을 낸 어향동고 부담스럽지 않고 깔끔하고 매콤하니 맛있게 잘 먹고 왔어요.",
+     "keywords": [
+      "맛있음",
+      "담백·깔끔",
+      "매콤함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "특히 유린기와 어향동고가 맛있고, 이베리코 짜장면도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2024.11.16",
+     "rating": null,
+     "quote": "크림새우도 맛있고 어향동고는 생각했던 매콤한 맛은 아니지만 잘 볶아져서 맛있었습니다.",
+     "keywords": [
+      "매콤함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R105",
+     "platform": "네이버지도",
+     "date": "2023.05.03",
+     "rating": null,
+     "quote": "어향동고 런치세트 먹었어요. 다진새우를 표고버섯에 넣어 어항소스로 맛을 낸 어향동고 부담스럽지 않고 깔끔하고 매콤하니 맛있게 잘 먹고 왔어요.",
+     "keywords": [
+      "맛있음",
+      "담백·깔끔",
+      "매콤함"
+     ]
+    },
+    {
+     "rid": "R042",
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "특히 유린기와 어향동고가 맛있고, 이베리코 짜장면도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R106",
+     "platform": "네이버지도",
+     "date": "2024.11.16",
+     "rating": null,
+     "quote": "크림새우도 맛있고 어향동고는 생각했던 매콤한 맛은 아니지만 잘 볶아져서 맛있었습니다.",
+     "keywords": [
+      "매콤함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 71,
+   "id": "seafood-8",
+   "category": "해산물",
+   "name": "붉은 대게살 류산슬",
+   "price": 40000,
+   "total_mentions": 13,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "신선함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.05.06",
+     "rating": null,
+     "quote": "가족끼리 맛있게 식사했습니다 유산슬이 강추합니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R109",
+     "platform": "네이버지도",
+     "date": "2025.05.06",
+     "rating": null,
+     "quote": "가족끼리 맛있게 식사했습니다 유산슬이 강추합니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R107",
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 72,
+   "id": "seafood-9",
+   "category": "해산물",
+   "name": "팔보채",
+   "price": 40000,
+   "total_mentions": 13,
+   "top_keywords": [
+    "맛있음",
+    "최고·강추",
+    "신선함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.02.09",
+     "rating": null,
+     "quote": "7가지 요리를 골고루 먹었는데요 팔보채, 베이징덕를 최고로 추천 합니다-물론 다른것도 맛있음니다.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.09.19",
+     "rating": 5,
+     "quote": "팔보채 탕수육 다 너무 맛있고 룸에서 시원하게 먹었습니다!",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R111",
+     "platform": "네이버지도",
+     "date": "2025.02.09",
+     "rating": null,
+     "quote": "7가지 요리를 골고루 먹었는데요 팔보채, 베이징덕를 최고로 추천 합니다-물론 다른것도 맛있음니다.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    },
+    {
+     "rid": "R110",
+     "platform": "네이버지도",
+     "date": "2026.09.19",
+     "rating": 5,
+     "quote": "팔보채 탕수육 다 너무 맛있고 룸에서 시원하게 먹었습니다!",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R107",
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 73,
+   "id": "seafood-10",
+   "category": "해산물",
+   "name": "해물 핫팟 누룽지탕",
+   "price": 42000,
+   "total_mentions": 7,
+   "top_keywords": [
+    "맛있음",
+    "신선함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.07.22",
+     "rating": 5,
+     "quote": "갑자기 누룽지탕이 드시고 싶다 하신 남치니때문에 처음 방문 해봤어요, 달달한 짜장면도 맛있었고 큼지막하게 썰린 재료들이 들어간 누룽지탕도 맛있었어요, 사진 이외에 볶음밥도 주문 했는데 아주 고슬고슬하니 맛있었어요 재방문 의사 홀 서빙해주시는 직원 분들도 친절하셨습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2022.07.05",
+     "rating": null,
+     "quote": "누룽지탕도 맛있고 짜장면이 진짜 맛있었어요 면이 완전 쫀득쫀득 후식은 딸기샤베트!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R113",
+     "platform": "네이버지도",
+     "date": "2026.07.22",
+     "rating": 5,
+     "quote": "갑자기 누룽지탕이 드시고 싶다 하신 남치니때문에 처음 방문 해봤어요, 달달한 짜장면도 맛있었고 큼지막하게 썰린 재료들이 들어간 누룽지탕도 맛있었어요, 사진 이외에 볶음밥도 주문 했는데 아주 고슬고슬하니 맛있었어요 재방문 의사 홀 서빙해주시는 직원 분들도 친절하셨습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R107",
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ]
+    },
+    {
+     "rid": "R112",
+     "platform": "네이버지도",
+     "date": "2022.07.05",
+     "rating": null,
+     "quote": "누룽지탕도 맛있고 짜장면이 진짜 맛있었어요 면이 완전 쫀득쫀득 후식은 딸기샤베트!",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 74,
+   "id": "seafood-11",
+   "category": "해산물",
+   "name": "X.O 아스파라거스 새우 관자 요리",
+   "price": 42000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 75,
+   "id": "seafood-12",
+   "category": "해산물",
+   "name": "어지 간장소스 메로요리",
+   "price": 38000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 76,
+   "id": "seafood-13",
+   "category": "해산물",
+   "name": "화연 마늘 간장소스 관자찜",
+   "price": 38000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 77,
+   "id": "seafood-14",
+   "category": "해산물",
+   "name": "아몬드 크림새우",
+   "price": 38000,
+   "total_mentions": 35,
+   "top_keywords": [
+    "바삭함",
+    "부드러움",
+    "감칠맛·진함"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 2,
+   "specific_count": 2,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2025.03.15",
+     "rating": null,
+     "quote": "아몬드크림새우, 깐풍기, 팔보채 완벽 조합 오늘 제대로 된 중식 한상을 즐겼다. 아몬드크림새우는 바삭하게 튀긴 새우에 고소한 아몬드와 부드러운 크림소스가 어우러져 한입 베어 물 때마다 달콤하면서도 깊은 풍미가 퍼졌다.",
+     "keywords": [
+      "바삭함",
+      "부드러움",
+      "감칠맛·진함",
+      "새콤달콤",
+      "고소함"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2025.11.29",
+     "rating": null,
+     "quote": "예전부터 방문해보고싶었는데 드디어 방문했어요 짜장면 탕수육 짬뽕 크림새우 딤섬 모든메뉴가 너무맛있어요 가족모임등 모임장소 하기에도 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R114",
+     "platform": "네이버지도",
+     "date": "2025.03.15",
+     "rating": null,
+     "quote": "아몬드크림새우, 깐풍기, 팔보채 완벽 조합 오늘 제대로 된 중식 한상을 즐겼다. 아몬드크림새우는 바삭하게 튀긴 새우에 고소한 아몬드와 부드러운 크림소스가 어우러져 한입 베어 물 때마다 달콤하면서도 깊은 풍미가 퍼졌다.",
+     "keywords": [
+      "바삭함",
+      "부드러움",
+      "감칠맛·진함",
+      "새콤달콤",
+      "고소함"
+     ]
+    },
+    {
+     "rid": "R116",
+     "platform": "네이버지도",
+     "date": "2025.11.29",
+     "rating": null,
+     "quote": "예전부터 방문해보고싶었는데 드디어 방문했어요 짜장면 탕수육 짬뽕 크림새우 딤섬 모든메뉴가 너무맛있어요 가족모임등 모임장소 하기에도 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 78,
+   "id": "seafood-15",
+   "category": "해산물",
+   "name": "깐풍새우",
+   "price": 38000,
+   "total_mentions": 4,
+   "top_keywords": [
+    "맛있음",
+    "매콤함",
+    "새콤달콤"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2023.08.05",
+     "rating": null,
+     "quote": "맛있다는 소뮨 듣고 와봤는데 정말 맛있어요 깐풍새우 매콤달달",
+     "keywords": [
+      "맛있음",
+      "매콤함",
+      "새콤달콤"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2019.03.31",
+     "rating": 5,
+     "quote": "깐풍새우 중짜리 새우 12미 나와서 1인당 2미씩 맛볼 수 있었고 맛도 좋았습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2018.08.08",
+     "rating": 5,
+     "quote": "매장도 깔끔하고 깐풍새우 다른곳보다 간이 자극적이지 않아서 먹고나서 속도 편하고 식사메뉴도 맛있어요",
+     "keywords": [
+      "간 적당함"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R117",
+     "platform": "네이버지도",
+     "date": "2023.08.05",
+     "rating": null,
+     "quote": "맛있다는 소뮨 듣고 와봤는데 정말 맛있어요 깐풍새우 매콤달달",
+     "keywords": [
+      "맛있음",
+      "매콤함",
+      "새콤달콤"
+     ]
+    },
+    {
+     "rid": "R119",
+     "platform": "네이버지도",
+     "date": "2019.03.31",
+     "rating": 5,
+     "quote": "깐풍새우 중짜리 새우 12미 나와서 1인당 2미씩 맛볼 수 있었고 맛도 좋았습니다.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R118",
+     "platform": "네이버지도",
+     "date": "2018.08.08",
+     "rating": 5,
+     "quote": "매장도 깔끔하고 깐풍새우 다른곳보다 간이 자극적이지 않아서 먹고나서 속도 편하고 식사메뉴도 맛있어요",
+     "keywords": [
+      "간 적당함"
+     ]
+    }
+   ]
+  },
+  {
+   "no": 79,
+   "id": "seafood-16",
+   "category": "해산물",
+   "name": "칠리소스 새우",
+   "price": 38000,
+   "total_mentions": 0,
+   "top_keywords": [],
+   "status": "리뷰 근거 없음",
+   "evidence_count": 0,
+   "specific_count": 0,
+   "common_pools": [],
+   "reviews": [],
+   "evidence": []
+  },
+  {
+   "no": 80,
+   "id": "seafood-17",
+   "category": "해산물",
+   "name": "싱가폴식 칠리새우 & 황금 바오번",
+   "price": 45000,
+   "total_mentions": 25,
+   "top_keywords": [
+    "맛있음"
+   ],
+   "status": "근거 있음",
+   "evidence_count": 3,
+   "specific_count": 3,
+   "common_pools": [],
+   "reviews": [
+    {
+     "platform": "네이버지도",
+     "date": "2026.10.20",
+     "rating": 5,
+     "quote": "엄마가 중식 드시고 싶어하셔서 우루루 왔어요 간짜장도 맛있고 칠리새우도 맛있네요 또 올께요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2026.08.17",
+     "rating": 5,
+     "quote": "베이징덕과 칠리새우 맛있게 절 먹었어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "platform": "네이버지도",
+     "date": "2023.02.18",
+     "rating": null,
+     "quote": "깐쇼칠리새우도 맛있고 부드러운 고기요리 좋아하시면 동파육도 괜찮아요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "rid": "R121",
+     "platform": "네이버지도",
+     "date": "2026.10.20",
+     "rating": 5,
+     "quote": "엄마가 중식 드시고 싶어하셔서 우루루 왔어요 간짜장도 맛있고 칠리새우도 맛있네요 또 올께요",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R122",
+     "platform": "네이버지도",
+     "date": "2026.08.17",
+     "rating": 5,
+     "quote": "베이징덕과 칠리새우 맛있게 절 먹었어요.",
+     "keywords": [
+      "맛있음"
+     ]
+    },
+    {
+     "rid": "R120",
+     "platform": "네이버지도",
+     "date": "2023.02.18",
+     "rating": null,
+     "quote": "깐쇼칠리새우도 맛있고 부드러운 고기요리 좋아하시면 동파육도 괜찮아요.",
+     "keywords": [
+      "맛있음"
+     ]
+    }
+   ]
+  }
+ ],
+ "common_pools": {
+  "딤섬": {
+   "menus": [
+    "dimsum-1",
+    "dimsum-2",
+    "dimsum-3",
+    "dimsum-4",
+    "dimsum-5",
+    "dimsum-6",
+    "dimsum-7",
+    "dimsum-8",
+    "dimsum-9",
+    "dimsum-10",
+    "dimsum-11",
+    "dimsum-12",
+    "dimsum-13"
+   ],
+   "evidence_count": 23,
+   "reviews": [
+    {
+     "rid": "R026",
+     "platform": "네이버지도",
+     "date": "2026.10.07",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 유니짜장, 딤섬 시켜먹었는데 대박 맛있네요 가지튀김도 굿굿 음식도 깔끔하고 맛나게 잘 먹었습니다!",
+     "keywords": [
+      "맛있음",
+      "최고·강추",
+      "담백·깔끔"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R170",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 모든 음식이 정말 깔끔하고 훌륭했지만, 특히 깊은 풍미의 짜장면과 육즙이 탁 터지는 딤섬은 단연 최고였고요!",
+     "keywords": [
+      "최고·강추",
+      "감칠맛·진함",
+      "육즙"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R049",
+     "platform": "네이버지도",
+     "date": "2026.09.13",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 아빠 생신기념 우루루 재방문했어요 너무 맛있고 이베리코 탕수육 처음 먹어보는데 추천합니다 딤섬은 말할 것도 없이 맛있음.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R015",
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "[딤섬 전체 언급] 딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R116",
+     "platform": "네이버지도",
+     "date": "2025.11.29",
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 예전부터 방문해보고싶었는데 드디어 방문했어요 짜장면 탕수육 짬뽕 크림새우 딤섬 모든메뉴가 너무맛있어요 가족모임등 모임장소 하기에도 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R050",
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common",
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    },
+    {
+     "rid": "R169",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬 탱글탱글 맛있었고",
+     "keywords": [
+      "맛있음",
+      "쫄깃·탱글"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R175",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬 먹고 싶어서 딤섬도 시켰는데 딤섬도 통통하니 맛있었어요",
+     "keywords": [
+      "맛있음",
+      "고기 두툼"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R176",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬이 너무 먹고싶어서 주변가 찾다가 방문했는데 피도 많고 안에 내용물이 꽉 차서 너무 맛있었어요!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R177",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬은 피가 얇고 속이 촉촉해서 부담 없이 먹기 좋았고",
+     "keywords": [
+      "맛있음",
+      "부드러움"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R082",
+     "platform": "네이버지도",
+     "date": "2026.07.25",
+     "rating": 4.5,
+     "quote": "[딤섬 전체 언급] 가족이 함께 주말 식사하러온곳 유니짜장 우육탕면 탕수육 맛집입니다 딤섬도 맛있어요",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R008",
+     "platform": "캐치테이블",
+     "date": "2026.05.16",
+     "rating": 5,
+     "quote": "[딤섬 전체 언급] 짜장면, 짬뽕, 우육면 시키고 딤섬도 시켰는데 딤섬이 정말 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R167",
+     "platform": "캐치테이블",
+     "date": "2025.06.21",
+     "rating": 5.0,
+     "quote": "[딤섬 전체 언급] 메뉴가 다양하고 딤섬 최고 맛있었습니다.",
+     "keywords": [
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R166",
+     "platform": "캐치테이블",
+     "date": "2026.10.18",
+     "rating": 3.7,
+     "quote": "[딤섬 전체 언급] 식사도 좋았고 딤섬은 특히 맛있었어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R027",
+     "platform": "네이버지도",
+     "date": "2025.05.11",
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 간짜장 딤섬 가지튀김 최고 넘 맛있어요!",
+     "keywords": [
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R146",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 중식당 기본 탕수육 짜장 짬뽕 볶음밥 딤섬 등 기본 메뉴 너무 훌륭하기때문에",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R148",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 아이가 딤섬이랑 탕수육을 맛있었는지, 다시 방문했습니다",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R154",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬도 맛있고 탕수육도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R168",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬은 처음인데 진짜 맛있네용. 육즙 확 머금고 쫙 터집니다",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R171",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 요리하는 딤섬도 맛있어서 아내랑 자주 방문하는 맛집입니다.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R172",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬 맛집이라고 해서 왔는데 진짜 너무 맛있었어요. 딤섬 전문점에서 먹었던 것보다 더 맛있었어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R173",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 딤섬과 우육탕면도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R174",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[딤섬 전체 언급] 유산슬 소고기 볶음 이런저런 딤섬 먹었는데 골고루 다 맛있게 먹었어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    }
+   ]
+  },
+  "베이징덕": {
+   "menus": [
+    "duck-fish-1",
+    "duck-fish-2"
+   ],
+   "evidence_count": 11,
+   "reviews": [
+    {
+     "rid": "R111",
+     "platform": "네이버지도",
+     "date": "2025.02.09",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 7가지 요리를 골고루 먹었는데요 팔보채, 베이징덕를 최고로 추천 합니다-물론 다른것도 맛있음니다.",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R050",
+     "platform": "네이버지도",
+     "date": "2024.11.24",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 음식이 굉장히 빨리나와요 베이징덕 딤섬 에그누들 동파육 전부 맛있었어요 가족모이하기에 괜찮은 분위기 추천입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common",
+     "note": "일부 발췌 — 다른 메뉴 불만 문장('짬뽕이 좀 식어있었지만') 제외"
+    },
+    {
+     "rid": "R125",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 베이징덕 바삭하니 넘 맛있어요 요리도 맛있고 친절하시고 잘 먹었습니다",
+     "keywords": [
+      "맛있음",
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R122",
+     "platform": "네이버지도",
+     "date": "2026.08.17",
+     "rating": 5,
+     "quote": "[베이징덕 전체 언급] 베이징덕과 칠리새우 맛있게 절 먹었어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R002",
+     "platform": "네이버지도",
+     "date": "2026.08.05",
+     "rating": 5,
+     "quote": "[베이징덕 전체 언급] 오랜만에 가족끼리 중국음식 먹으러 우루루 왔어요 베이징덕 껍질도 바삭하고, 고기도 아주 맛있어요!",
+     "keywords": [
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R003",
+     "platform": "네이버지도",
+     "date": "2026.07.25",
+     "rating": 5,
+     "quote": "[베이징덕 전체 언급] 베이징덕 하는데가 없는데 있어서 와봤어요 깔끔하고 맛있네요",
+     "keywords": [
+      "담백·깔끔"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R001",
+     "platform": "네이버지도",
+     "date": "2025.12.27",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 주말점심으로 베이징덕먹으러 우루루에 왔어요 깔끔하고 맛있는 베이징덕!",
+     "keywords": [
+      "담백·깔끔"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R078",
+     "platform": "네이버지도",
+     "date": "2023.11.12",
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 부모님과 아이와 함 베이징덕과 이베리코 간짜장,딴딴면을 정말 맛있게 잘 먹었습니다.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R123",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 베이징덕 먹었는데 생각보다 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R126",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 베이징덕과 팔보채 너무 맛있어요 또 먹고 싶은맛입니다",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R127",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[베이징덕 전체 언급] 베이징덕 먹고 너무 맛있어서 재방문한 맛집입니다!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    }
+   ]
+  },
+  "탕수육": {
+   "menus": [
+    "pork-1",
+    "pork-4",
+    "beef-1"
+   ],
+   "evidence_count": 32,
+   "reviews": [
+    {
+     "rid": "R053",
+     "platform": "네이버지도",
+     "date": "2021.06.19",
+     "rating": 4,
+     "quote": "[탕수육 전체 언급] 4명부터 룸이라해서 기대안했는데 2명임에두 룸을 해주셔서 좋았어요 음식은 전체적으로 맛있었어요 전 특히 고추잡채가 매콤하구 맛있드라구요 시그니쳐 탕슉두 고기가 통으로 튀겨서 잘라먹는게 고기가 부드럽구 소스도 좋았어요 담에두 가족들이랑 룸예약해서 또 와…",
+     "keywords": [
+      "맛있음",
+      "부드러움",
+      "매콤함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R153",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 너무 맛있어요 진짜 탕수육은 고기가 아주 두꺼워서 육즙 콸콸 매장도 넓고 깨끗해요",
+     "keywords": [
+      "맛있음",
+      "육즙",
+      "고기 두툼"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R143",
+     "platform": "캐치테이블",
+     "date": "2026.09.15",
+     "rating": 5.0,
+     "quote": "[탕수육 전체 언급] 탕수육이 먹고싶어서 방문했는데 같이 먹은 음식 모두 맛있게 잘 먹었습니다 특히 짬뽕이 최고였어요!",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R015",
+     "platform": "네이버지도",
+     "date": "2026.07.29",
+     "rating": 4.5,
+     "quote": "[탕수육 전체 언급] 딤섬이 먹고 싶어서 왔는데 딤섬이 제일 맛있었어요 하가우 특히 존맛 탕수육 고기도 가득하고, 가지덮밥 맛있네요!",
+     "keywords": [
+      "맛있음",
+      "양 넉넉"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R145",
+     "platform": "캐치테이블",
+     "date": "2026.03.10",
+     "rating": 4.3,
+     "quote": "[탕수육 전체 언급] 여기 탕수육이랑 짬뽕이 진짜진짜 맛있습니다 강추강추",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R142",
+     "platform": "카카오맵",
+     "date": "2022.12.25",
+     "rating": 4.0,
+     "quote": "[탕수육 전체 언급] 탕수육도 바삭바삭 맛있습니다",
+     "keywords": [
+      "맛있음",
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R116",
+     "platform": "네이버지도",
+     "date": "2025.11.29",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 예전부터 방문해보고싶었는데 드디어 방문했어요 짜장면 탕수육 짬뽕 크림새우 딤섬 모든메뉴가 너무맛있어요 가족모임등 모임장소 하기에도 최고입니다",
+     "keywords": [
+      "맛있음",
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R152",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 양도 푸짐하고 좋았어요 재방문인데 실망하지 않습니다 탕수육도 완전 통통해용",
+     "keywords": [
+      "맛있음",
+      "고기 두툼"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R156",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육 고기가 정말 잡내없이 통통해요 소스없이 그냥 먹어도 최고입니다",
+     "keywords": [
+      "최고·강추",
+      "고기 두툼"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R144",
+     "platform": "캐치테이블",
+     "date": "2026.09.21",
+     "rating": 5.0,
+     "quote": "[탕수육 전체 언급] 볶음밥 짬뽕 탕수육 중에 탕수육이 맛있었어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R110",
+     "platform": "네이버지도",
+     "date": "2026.09.19",
+     "rating": 5,
+     "quote": "[탕수육 전체 언급] 팔보채 탕수육 다 너무 맛있고 룸에서 시원하게 먹었습니다!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R025",
+     "platform": "네이버지도",
+     "date": "2026.08.16",
+     "rating": 5,
+     "quote": "[탕수육 전체 언급] 특히 탕수육, 마라오이무침이 맛있어요!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R043",
+     "platform": "네이버지도",
+     "date": "2026.08.01",
+     "rating": 5,
+     "quote": "[탕수육 전체 언급] 탕수육이랑 깐풍기 튀김이 바삭바삭하고 맛있어요!",
+     "keywords": [
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R082",
+     "platform": "네이버지도",
+     "date": "2026.07.25",
+     "rating": 4.5,
+     "quote": "[탕수육 전체 언급] 가족이 함께 주말 식사하러온곳 유니짜장 우육탕면 탕수육 맛집입니다 딤섬도 맛있어요",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R107",
+     "platform": "캐치테이블",
+     "date": "2026.03.15",
+     "rating": 5,
+     "quote": "[탕수육 전체 언급] 탕수육, 유산슬,누룽지탕,팔보채 등등 요리 간 적당하고 재료 신선합니다.",
+     "keywords": [
+      "신선함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R051",
+     "platform": "캐치테이블",
+     "date": "2026.02.21",
+     "rating": 4.5,
+     "quote": "[탕수육 전체 언급] 가족식사로모두 만족하는 식사 였어요 동파육도 맛있고 탕수육도 바삭하고 해물 짬뽕 에그볶음면도 맛있었어요 딤섬 모듬도 맛있고 다양하게 먹었어요",
+     "keywords": [
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R140",
+     "platform": "카카오맵",
+     "date": "2024.02.26",
+     "rating": 5.0,
+     "quote": "[탕수육 전체 언급] 음식 맛있고 주차직원들도 친철함. 짬뽕이랑 탕수육 추천",
+     "keywords": [
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R141",
+     "platform": "카카오맵",
+     "date": "2023.11.22",
+     "rating": 4.0,
+     "quote": "[탕수육 전체 언급] 어향동고, 블랙빈 우육, 탕수육, 자장면 짬뽕 등 대체적으로 맛있음.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R159",
+     "platform": "블로그(다이닝코드 경유)",
+     "date": "2026.09.26",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육은 색다른 소스로 맛이 새로웠음.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R099",
+     "platform": "네이버지도",
+     "date": "2025.03.29",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육 다들 많이 드시고 가지덮밥 맛있어요.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R088",
+     "platform": "네이버지도",
+     "date": "2024.03.18",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 가까이 있어서 종종 오게 되는 중식당이네요 우루루 탕수육은 늘 생각나는 맛 고기도 두툼하고 소스도 맛있어요 잡탕밥 야채도 신선하고 푸짐 식사 메뉴들이 다 굿굿 오랜만에 먹은 군만두 맛있네요",
+     "keywords": [
+      "고기 두툼"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R086",
+     "platform": "네이버지도",
+     "date": "2023.08.02",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육 바삭하고 중국냉면 깔끔한 육수와 푸짐하고 담백합니다.",
+     "keywords": [
+      "바삭함"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R037",
+     "platform": "네이버지도",
+     "date": "2023.02.05",
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 여긴 탕수육과 냉채 맛있네요",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R131",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 서비스로 받은 가지튀김, 탕수육소스에 찍어먹으니 굿",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R146",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 중식당 기본 탕수육 짜장 짬뽕 볶음밥 딤섬 등 기본 메뉴 너무 훌륭하기때문에",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R147",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 중식의 기본인 짜장면과 탕수육은 물가 생각하면 그리 비싸지도 않아요",
+     "keywords": [
+      "가성비"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R148",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 아이가 딤섬이랑 탕수육을 맛있었는지, 다시 방문했습니다",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R150",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육이 너무 맛있어서 다른 음식도 너무 잘 먹었습니다",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R154",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 딤섬도 맛있고 탕수육도 맛있습니다.",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R157",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 탕수육은 정말 고기 냄새 안나고 너무 맛있어요! 아이가 이 집 탕수육만 먹어요!",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R158",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 짬뽕이 특히 맛있어서 다시 왔는데 탕수육도 대박이었고",
+     "keywords": [
+      "최고·강추"
+     ],
+     "kind": "common"
+    },
+    {
+     "rid": "R151",
+     "platform": "네이버지도",
+     "date": null,
+     "rating": null,
+     "quote": "[탕수육 전체 언급] 짜장면과 탕수육을 시켰는데 후회 안할꺼같아요",
+     "keywords": [],
+     "kind": "common"
+    }
+   ]
+  },
+  "교자": {
+   "menus": [
+    "dimsum-8",
+    "dimsum-9"
+   ],
+   "evidence_count": 1,
+   "reviews": [
+    {
+     "rid": "R128",
+     "platform": "캐치테이블",
+     "date": "2026.04.07",
+     "rating": 5.0,
+     "quote": "[교자 전체 언급] 짜짱면 짬뽕 교자들 너무 맛있어요",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    }
+   ]
+  },
+  "냉채": {
+   "menus": [
+    "cold-2",
+    "cold-4"
+   ],
+   "evidence_count": 1,
+   "reviews": [
+    {
+     "rid": "R037",
+     "platform": "네이버지도",
+     "date": "2023.02.05",
+     "rating": null,
+     "quote": "[냉채 전체 언급] 여긴 탕수육과 냉채 맛있네요",
+     "keywords": [
+      "맛있음"
+     ],
+     "kind": "common"
+    }
+   ]
+  }
+ },
+ "excluded": [
+  {
+   "rid": "R004",
+   "platform": "네이버지도",
+   "date": "2026.07.24",
+   "rating": 5,
+   "quote_original": "북경오리 반마리 2인용으로 시키고 기다리고 있네요~ 20분 걸리니 예약필수!",
+   "menus": [
+    "duck-fish-2"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 대기 시간·예약 안내(정보성)"
+  },
+  {
+   "rid": "R005",
+   "platform": "네이버지도",
+   "date": "2025.02.09",
+   "rating": null,
+   "quote_original": "참고로 베이징덕 반마리는 2인분 정도라 생각하시면 되어요.",
+   "menus": [
+    "duck-fish-2"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 반마리 분량 안내(정보성)"
+  },
+  {
+   "rid": "R009",
+   "platform": "카카오맵",
+   "date": "2024.10.21",
+   "rating": 4,
+   "quote_original": "딤섬 세트, 싱가포르식 이베리코 탕수육, 솬라탕, 동파육, 짜장면, 해산물 잡탕밥 먹었는데 맛의 전체적인 평균이 ㄱㅊ함",
+   "menus": [
+    "dimsum-1"
+   ],
+   "sources": [
+    "mine",
+    "team"
+   ],
+   "reason": "중복 — R066(같은 카카오 리뷰 전체 원문)으로 합침"
+  },
+  {
+   "rid": "R014",
+   "platform": "캐치테이블",
+   "date": "2025.12.18",
+   "rating": 5,
+   "quote_original": "오늘 두번째는 간짜장과 허가우로 점심을 했고 다음 세번째부터 격을 높여 갈 예정.",
+   "menus": [
+    "dimsum-5"
+   ],
+   "sources": [
+    "mine",
+    "team"
+   ],
+   "reason": "평가 없음 — 먹은 메뉴만 언급"
+  },
+  {
+   "rid": "R023",
+   "platform": "네이버지도",
+   "date": "2025.12.13",
+   "rating": null,
+   "quote_original": "탕수육이랑 해물짬뽕이랑 군만두 간짜장 먹었습니다.",
+   "menus": [
+    "dimsum-13"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 먹은 메뉴 나열('…먹었습니다')"
+  },
+  {
+   "rid": "R029",
+   "platform": "네이버지도",
+   "date": "2021.12.11",
+   "rating": null,
+   "quote_original": "룸있어서 좋으나 재방문은 안할듯하네요 아쉬워요 음식은 많은 변화가 필요하네요 양장피도 유산슬도 차돌짬뽕도 마파두부도 ㅠㅠ 어느것하나 맛있는게 없더라구요 그나마 짜샤이랑 깐풍기가 제일 괜찮았어요 저희는 후식 안챙겨주더라구요",
+   "menus": [
+    "vegetable-5"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "부정 리뷰 — 마파두부 포함 '어느것하나 맛있는게 없더라구요', 재방문 안 함"
+  },
+  {
+   "rid": "R032",
+   "platform": "네이버지도",
+   "date": "2026.02.02",
+   "rating": null,
+   "quote_original": "일단 주문하고 5분 만에 등장⭐ 비주얼은 좋았으나 고기가 퍽퍽해서 이빨로 자르기 힘들었고 소스가 짜고 청경채도 사이즈가 너무 작았음 굴튀김은 시즌메뉴라 시켜봤는데 튀김옷이 두꺼워서 굴의 식감이 하나도 느껴지지 않아서 아쉬웠음 하지만 바삭했고 같이 나오…",
+   "menus": [
+    "vegetable-6"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "부정 리뷰 — 청경채 야채볶음 '고기가 퍽퍽…소스가 짜고…사이즈가 너무 작았음'"
+  },
+  {
+   "rid": "R038",
+   "platform": "네이버지도",
+   "date": "2025.07.03",
+   "rating": null,
+   "quote_original": "여기 왜 유명한거죠 11시25분에 매장에 들어갔는데 30분만에 나온 게살스프는 너무 짜서 먹을 수가 없고 바꿔준다고 가져가서 물타서 10분있다 가져다주고 다음 음식 나오기까지 또 30분 걸리고 죄송하다 말 한마디 하는…",
+   "menus": [
+    "soup-3"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "부정 리뷰 — 게살스프 '너무 짜서 먹을 수가 없고'"
+  },
+  {
+   "rid": "R044",
+   "platform": "네이버지도",
+   "date": "2025.03.15",
+   "rating": null,
+   "quote_original": "아몬드크림새우, 깐풍기, 팔보채 완벽 조합” 오늘 제대로 된 중식 한상을 즐겼다. / 깐풍기는 바삭하게 튀긴 닭고기에 매콤달콤한 소스가 코팅되어 있어, 한입 베어 물면 겉은 바삭하고 속은 촉촉하다.",
+   "menus": [
+    "chicken-2"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "중복 — R136(같은 블로그의 깐풍기 문단 전체)으로 합침"
+  },
+  {
+   "rid": "R046",
+   "platform": "네이버지도",
+   "date": "2026.09.12",
+   "rating": 5,
+   "quote_original": "라즈지/팔보채/깻잎차돌짬뽕 먹었습니다.",
+   "menus": [
+    "chicken-4"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 먹은 메뉴 나열('…먹었습니다')"
+  },
+  {
+   "rid": "R052",
+   "platform": "카카오맵",
+   "date": "2024.10.21",
+   "rating": 4,
+   "quote_original": "딤섬 세트, ..., 동파육, ... 맛의 전체적인 평균이 ㄱㅊ함",
+   "menus": [
+    "pork-2"
+   ],
+   "sources": [
+    "mine",
+    "team"
+   ],
+   "reason": "중복 — R066(같은 카카오 리뷰 전체 원문)으로 합침"
+  },
+  {
+   "rid": "R063",
+   "platform": "네이버지도",
+   "date": "2025.05.18",
+   "rating": null,
+   "quote_original": "…조개 탕면과 잡탕밥, 해산물 에그누들 볶음면이었는데, 이번에는 아내와 방문해 모듬 딤섬과, 굴소스에 볶아낸 소고기&아스파라거스, 그리고 XO소스가 들어간 게살볶음밥을 주문했습니다.",
+   "menus": [
+    "beef-4"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 주문 메뉴 나열"
+  },
+  {
+   "rid": "R069",
+   "platform": "네이버지도",
+   "date": "2026.08.30",
+   "rating": 4,
+   "quote_original": "메뉴도 딤섬메뉴와 우육탕면,새우탕면 등 중국음식 많아서 좋고 다음엔 베이징덕 먹으러 오려구요.",
+   "menus": [
+    "noodle-2"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 메뉴 종류가 많다는 언급뿐"
+  },
+  {
+   "rid": "R087",
+   "platform": "네이버지도",
+   "date": "2026.08.29",
+   "rating": 4,
+   "quote_original": "비취냉면 먹으러 왔어요.",
+   "menus": [
+    "noodle-10"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — '비취냉면 먹으러 왔어요'"
+  },
+  {
+   "rid": "R089",
+   "platform": "네이버지도",
+   "date": "2023.10.09",
+   "rating": null,
+   "quote_original": "고기육수베이스 면이 짜다 국물은 괜챦은데 ㅠㅠ 해물 잡탕밥.",
+   "menus": [
+    "rice-1"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "부정 리뷰 — '면이 짜다', 잡탕밥 평가 불명확"
+  },
+  {
+   "rid": "R092",
+   "platform": "네이버지도",
+   "date": "2019.01.20",
+   "rating": 3,
+   "quote_original": "식사는 가장비쌌던 잡탕밥은 맹탕, 류산슬 덮밥은 추천 100일잔치 할 경우 상 세팅 가능함.",
+   "menus": [
+    "rice-2"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "별점 3점 + 다른 메뉴 혹평('잡탕밥은 맹탕') 동반"
+  },
+  {
+   "rid": "R098",
+   "platform": "카카오맵",
+   "date": "2023.10.06",
+   "rating": 5,
+   "quote_original": "잡채밥도 달지않고 맛남 ㅎㅎ 쌀밥은 맛없고 잡채가 맛남 ㅎ 밥은 조금만 달라고 하세요 군만두는 대박 맛있으니 네이버 리뷰쓰고 드셔보세용.",
+   "menus": [
+    "rice-5"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "같은 메뉴 안에서 호불호 섞임 — '쌀밥은 맛없고'(잡채밥)"
+  },
+  {
+   "rid": "R100",
+   "platform": "네이버지도",
+   "date": "2026.06.08",
+   "rating": 4.5,
+   "quote_original": "마라황가무침 7,900 생등심탕수육 32,000 채소볶음밥과 마파소스 13,000 테라🍻",
+   "menus": [
+    "rice-7"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — 메뉴명·가격 나열"
+  },
+  {
+   "rid": "R101",
+   "platform": "네이버지도",
+   "date": "2026.03.14",
+   "rating": null,
+   "quote_original": "언제나 맛있어요😋 생등심탕수육 30,000 소룡포4p 8,900 양장피잡채 35,000 채소볶음과 마파소스 13,000 음료 2,000",
+   "menus": [
+    "rice-7"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "가격 나열 위주 — 메뉴별 평가 없음('언제나 맛있어요'는 매장 전체 평)"
+  },
+  {
+   "rid": "R108",
+   "platform": "네이버지도",
+   "date": "2024.01.16",
+   "rating": null,
+   "quote_original": "평일 점심에 탕수육 유산슬 식사 세트로 먹었어요.",
+   "menus": [
+    "seafood-8"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "평가 없음 — '식사 세트로 먹었어요'"
+  },
+  {
+   "rid": "R115",
+   "platform": "카카오맵",
+   "date": "2023.12.17",
+   "rating": 4,
+   "quote_original": "근데 값이 세서 자주먹기엔 부담돼서 별하나 뺐어요 ㅠ 담번엔 짬뽕, 짜장, 크림새우, 깐풍기를 집에 배달시켜먹어봤어요.",
+   "menus": [
+    "seafood-14"
+   ],
+   "sources": [
+    "team"
+   ],
+   "reason": "불만('값이 세서…별하나 뺐어요') + 메뉴 평가 없음"
+  },
+  {
+   "rid": "R124",
+   "platform": "네이버지도",
+   "date": null,
+   "rating": null,
+   "quote_original": "합리적인 가격의 런치 코스부터 베이징덕까지 이용, 가성비와 맛, 친절한 응대 전반에서 만족도가 높은 평입니다.",
+   "menus": [
+    "베이징덕"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "리뷰 원문이 아니라 플랫폼 요약문으로 보임('…만족도가 높은 평입니다')"
+  },
+  {
+   "rid": "R129",
+   "platform": "네이버지도",
+   "date": null,
+   "rating": null,
+   "quote_original": "소룡포의 묵직한 맛은 엄청 환상의 짝꿍이죠 (쇼마이와 함께 주문)",
+   "menus": [
+    "dimsum-3"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "중복 — R010(같은 리뷰 크롤링 원문)으로 합침"
+  },
+  {
+   "rid": "R130",
+   "platform": "네이버지도",
+   "date": null,
+   "rating": null,
+   "quote_original": "쇼마이의 탱탱함이 소룡포와 함께 환상의 짝꿍이죠",
+   "menus": [
+    "dimsum-6"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "중복 — R010(같은 리뷰 크롤링 원문)으로 합침"
+  },
+  {
+   "rid": "R139",
+   "platform": "카카오맵",
+   "date": "2024.10.21",
+   "rating": 4.0,
+   "quote_original": "딤섬 세트, 싱가포르식 이베리코 탕수육, ... 맛의 전체적인 평균이 ㄱㅊ함",
+   "menus": [
+    "pork-1"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "중복 — R066(같은 카카오 리뷰 전체 원문)으로 합침"
+  },
+  {
+   "rid": "R149",
+   "platform": "네이버지도",
+   "date": null,
+   "rating": null,
+   "quote_original": "탕수육은 완전 짝짝 고기튀김",
+   "menus": [
+    "탕수육"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "캡처 판독 불명확('완전 짝짝 고기튀김')"
+  },
+  {
+   "rid": "R155",
+   "platform": "네이버지도",
+   "date": null,
+   "rating": null,
+   "quote_original": "불맛 가득한 사천 짜장면과 걸쭉속하는 탕수육, 속 딤섬이 대표 메뉴입니다.",
+   "menus": [
+    "딤섬",
+    "탕수육"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "캡처 판독 불명확('걸쭉속하는 탕수육, 속 딤섬')"
+  },
+  {
+   "rid": "R162",
+   "platform": "다이닝코드",
+   "date": "1월 27일(연도 미상)",
+   "rating": 4.0,
+   "quote_original": "대부분의 중식이 가능하며 맛도 괜찮다... 간이 슴슴한 편이다",
+   "menus": [
+    "pork-3"
+   ],
+   "sources": [
+    "mine"
+   ],
+   "reason": "평가 없음 — 주문 확인만 되고 본문은 매장 전반 평(더 직접적인 고추잡채 리뷰 확보로 대체)"
+  }
+ ]
+}

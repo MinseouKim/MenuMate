@@ -283,7 +283,8 @@ function buildRecommendedSet(args: {
     matchedConditions.push("사장님이 추천하는 메뉴예요");
   }
 
-  const mainHaystack = [main.name, ...main.flavor_tags, ...main.keyword_tags, ...main.synonym_tags];
+  // 점수 계산(scoreItem)과 같은 기준으로 맞춘다 — kind(음식 종류)로 매칭된 메뉴에도 "요청하신 … 관련 메뉴"가 붙어야 한다.
+  const mainHaystack = [main.name, main.kind ?? "", ...main.flavor_tags, ...main.keyword_tags, ...main.synonym_tags];
   if (conditions.food_keywords.some((k) => mainHaystack.some((h) => h.includes(k)))) {
     matchedConditions.push(`요청하신 "${conditions.food_keywords.join(", ")}" 관련 메뉴`);
   }

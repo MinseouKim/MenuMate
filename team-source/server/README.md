@@ -64,15 +64,20 @@ npm run migrate   # sql/ 아래 *.sql을 파일명 순서대로 적용 (schema_m
 
 이미 과거에 `001`~`003`을 수동으로 적용해 둔 DB에 이 마이그레이션 추적 기능을 처음 도입하는 경우, 먼저 `npm run migrate:bootstrap`으로 "이미 적용됨"만 기록한 뒤(SQL을 다시 실행하지 않음) `npm run migrate`를 실행한다.
 
+MySQL Workbench에서 처음부터 한 번에 만들고 싶으면 `sql/manual/setup_all.sql`을 root로 실행해도 된다. DB·앱 계정 생성 + `001`~`005` + `schema_migrations` 기록까지 들어 있어서, 그 뒤에 `npm run migrate`를 돌려도 같은 SQL을 다시 실행하지 않는다(`migrate:bootstrap` 불필요). 파일 안의 `change-this-db-password`를 바꾸고 `.env`의 `DB_PASSWORD`도 같은 값으로 맞춘다. 상태 확인은 `sql/manual/check.sql`.
+
 ### 1-1. 실제 메뉴 데이터 넣기 (선택)
 
 키오스크 화면의 메뉴 데이터(`team-source/src/prototype/menu/menus.json`)를 관리자 DB로 가져오면, 관리자 화면에서 이름/가격/kind/맵기/품절/추천 여부를 고칠 때 키오스크가 `external_id`로 짝을 맞춰 그 값을 실시간으로 반영한다.
 
 ```bash
-npm run import:real-menu -- --slug ururu-headquarters
+npm run import:real-data                       # = import:real-menu + import:evidences
+npm run seed:admin -- --password <비밀번호>      # 점주 관리자 로그인 계정
 ```
 
-다시 실행하면 해당 매장의 기존 메뉴를 지우고 menus.json 내용으로 새로 채운다(메뉴판이 바뀌면 다시 실행). 점주 관리자 로그인 계정이 필요하면 `npm run seed:admin`도 실행한다.
+- `import:real-menu`: 해당 매장의 기존 메뉴를 지우고 menus.json 내용으로 새로 채운다(메뉴판이 바뀌면 다시 실행).
+- `import:evidences`: `ururu-menu/menu_reviews.json`(민재·팀원 리뷰 병합본)을 메뉴별 "공개 리뷰 집계" 한 줄씩 `menu_evidences`로 넣는다. 리뷰 원문·작성자는 DB에 넣지 않는다. 리뷰 근거가 없는 메뉴는 넣지 않아서 추천에서 "리뷰 근거 없음"으로 처리된다. 다시 실행해도 안전하다(같은 종류의 근거만 지우고 새로 넣음).
+- `import:real-menu`는 메뉴를 지우면서 리뷰 근거·추천 세트 구성·대표 메뉴 지정도 함께 지운다. 메뉴를 다시 넣었다면 `import:evidences`도 다시 실행하고, 관리자 화면의 점주 설정도 다시 해야 한다.
 
 `scripts/buildUruruSeed.ts`(`npm run seed:build`)는 더 단순한 과거 경로로 남겨 두었다 — `kind`/`external_id`/`is_featured`/`featured_rank`를 채우지 않으므로, 관리자 화면에서 메뉴를 고칠 계획이 없을 때만 쓴다.
 

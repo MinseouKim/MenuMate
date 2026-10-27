@@ -317,4 +317,12 @@ describe("recommendationService.recommend", () => {
     // 세트는 빠져도 예산 안에 드는 단일 메뉴(9,000원)는 그대로 추천된다.
     expect(result.map((r) => r.main.id)).toContain(1);
   });
+  it("음식 종류(kind)로만 매칭된 메뉴에도 '요청하신 … 관련 메뉴' 근거가 붙는다", () => {
+    const menu = [makeMain({ id: 1, name: "소룡포", kind: "딤섬" })];
+    const conditions = { ...emptyConditions(), food_keywords: ["딤섬"] };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    expect(result[0].matched_conditions).toContain('요청하신 "딤섬" 관련 메뉴');
+  });
 });
