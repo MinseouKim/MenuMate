@@ -232,26 +232,89 @@ describe("recommendationService.recommend", () => {
     expect(result[0].main.id).toBe(2);
   });
 
-  it("점주 지정(is_featured) 메뉴는 키워드/리뷰 근거가 없어도 일반 메뉴보다 항상 우선한다", () => {
+  it("사용자 키워드에 맞는 메뉴가 점주 지정 메뉴보다 먼저 추천된다", () => {
     const menu = [
-      makeMain({
-        id: 1,
-        name: "점주 추천 메뉴",
-        is_featured: true,
-        evidences: [],
-        keyword_tags: [],
-      }),
-      makeMain({
-        id: 2,
-        name: "짬뽕",
-        keyword_tags: ["짬뽕"], // 일반 메뉴인데 키워드+리뷰 근거까지 다 있어도
-      }),
+      makeMain({ id: 1, name: "점주 추천 메뉴", is_featured: true }),
+      makeMain({ id: 2, name: "짬뽕", keyword_tags: ["짬뽕"] }),
     ];
     const conditions = { ...emptyConditions(), food_keywords: ["짬뽕"] };
 
     const result = recommend({ conditions, vision: unavailableVision, menu });
 
-    expect(result[0].main.id).toBe(1);
-    expect(result[0].is_owner_pick).toBe(true);
+    expect(result[0].main.id).toBe(2);
+    // 점주 지정 메뉴도 결과에는 남고, "사장님 추천" 표시는 그대로 붙는다.
+    const ownerPick = result.find((r) => r.main.id === 1);
+    expect(ownerPick?.is_owner_pick).toBe(true);
+    expect(ownerPick?.matched_conditions).toContain("사장님이 추천하는 메뉴예요");
+  });
+
+  it("리뷰 근거가 있는 메뉴가 리뷰 근거 없는 점주 지정 메뉴보다 먼저 추천된다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "점주 추천(리뷰 없음)", is_featured: true, evidences: [] }),
+      makeMain({ id: 2, name: "리뷰 있는 메뉴" }),
+    ];
+
+    const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
+
+    expect(result.map((r) => r.main.id)).toEqual([2, 1]);
+  });
+
+  it("사용자가 말한 식감 선호가 점주 지정보다 우선한다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "점주 추천", is_featured: true, texture_tags: [] }),
+      makeMain({ id: 2, name: "바삭한 메뉴", texture_tags: ["바삭함"] }),
+    ];
+    const conditions = { ...emptyConditions(), preferred_textures: ["바삭함"] };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
+    expect(result[0].main.id).toBe(2);
+  });
+
+  it("사용자 조건과 리뷰 근거가 같으면 점주 지정 메뉴를 앞세운다", () => {
+    const menu = [
+      makeMain({ id: 1, name: "일반 메뉴" }),
+      makeMain({ id: 2, name: "점주 추천", is_featured: true }),
+    ];
+
+    const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
+
+    expect(result[0].main.id).toBe(2);
+  });
+
+  it("점주 추천 세트도 사용자 키워드에 맞는 일반 메뉴보다 앞서지 않는다", () => {
+    const setMain = makeMain({ id: 1, name: "세트 대표 메뉴" });
+    const menu = [setMain, makeMain({ id: 2, name: "짬뽕", keyword_tags: ["짬뽕"] })];
+    const conditions = { ...emptyConditions(), food_keywords: ["짬뽕"] };
+
+    const result = recommend({
+      conditions,
+      vision: unavailableVision,
+      menu,
+      featuredSets: [{ name: "사장님 세트", items: [{ menu: setMain, quantity: 1 }] }],
+    });
+
+    expect(result[0].main.id).toBe(2);
+    expect(result[1].owner_set_label).toBe("사장님 세트");
+  });
+
+  it("점주 추천 세트 합계가 예산(1인 예산 x 인원수)을 넘으면 세트를 추천하지 않는다", () => {
+    const setMain = makeMain({ id: 1, name: "세트 메인", price: 9000 });
+    const setSide = makeMain({ id: 2, name: "세트 사이드", price: 6000, category: "side" });
+    const menu = [setMain, setSide];
+    const conditions = { ...emptyConditions(), party_size: 1, budget_per_person: 10000 };
+
+    const result = recommend({
+      conditions,
+      vision: unavailableVision,
+      menu,
+      featuredSets: [
+        { name: "사장님 세트", items: [{ menu: setMain, quantity: 1 }, { menu: setSide, quantity: 1 }] },
+      ],
+    });
+
+    expect(result.every((r) => r.owner_set_label === null)).toBe(true);
+    // 세트는 빠져도 예산 안에 드는 단일 메뉴(9,000원)는 그대로 추천된다.
+    expect(result.map((r) => r.main.id)).toContain(1);
   });
 });

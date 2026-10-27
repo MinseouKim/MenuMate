@@ -18,18 +18,21 @@ export interface RecommendationInput {
 /**
  * 규칙/점수 기반 추천 엔진 (프론트엔드 src/services/recommendation/ruleBasedEngine.ts 포팅).
  *
- * 우선순위 (2026-10-27 수정):
- * 0. 점주 지정 "추천 세트" — 알레르기 등 안전 하드 필터를 통과하면 최우선으로 노출 (관리자 화면 기능)
+ * 우선순위 (2026-10-27 수정 — 점주 지정은 "사용자 요구사항 + 실제 리뷰 근거"보다 뒤로):
  * 1. 하드 필터: 품절, 제외 재료(확인된/메뉴명으로 유추된 것만 — unknown은 하드 필터 근거로 쓰지 않음),
- *    맵기 "못 먹음" 제약, 그리고 예산 초과 메뉴(예산은 더 이상 소프트 가점이 아니라 "무조건" 지켜야 하는
- *    하드 제약이다 — 예산을 넘는 메뉴는 점수 계산 전에 후보에서 완전히 제외한다).
- * 2. 소프트 점수화 — 아래 순서로 우선순위가 엄격히 적용되는 다단계(tiered) 비교다. 상위 티어가 같을 때만
- *    다음 티어로 내려가서 비교하므로, 하위 티어 점수가 아무리 높아도 상위 티어를 절대 뒤집지 못한다.
- *    1) 점주 지정(단일 메뉴, is_featured) — 일반 조건 매칭을 항상 압도
- *    2) 음식 키워드 매칭 (사용자가 가장 구체적으로 말한 내용)
- *    3) 리뷰/후기 근거가 있는 메뉴(menu_evidences 1건 이상) > 근거 없는 메뉴
- *    4) 그 외: 식감 선호 > 맵기 근접도 > 비전 보조 신호(최저 가중치)
- *    5) 위 전부가 같을 때만 마지막으로 점주가 지정한 순위(featured_rank, 작을수록 먼저)로 비교
+ *    맵기 "못 먹음" 제약, 예산 초과(예산은 "무조건" 지켜야 하는 하드 제약 — 단일 메뉴는 1인 예산,
+ *    점주 추천 세트는 세트 합계가 1인 예산 x 인원수를 넘으면 제외).
+ * 2. 다단계(tiered) 비교 — 상위 티어가 같을 때만 다음 티어로 내려가므로 하위 티어가 상위를 절대 못 뒤집는다.
+ *    1) 음식 키워드 매칭 (사용자가 가장 구체적으로 말한 내용)
+ *    2) 리뷰/후기 근거가 있는 메뉴(menu_evidences 1건 이상) > 근거 없는 메뉴
+ *    3) 사용자가 말한 나머지 선호: 식감 선호 + 맵기 근접도
+ *    4) 점주 지정(단일 메뉴 is_featured, 또는 점주 추천 세트) — 위 조건이 같을 때만 앞세운다
+ *    5) 비전 보조 신호(최저 가중치)
+ *    6) 위 전부가 같을 때만 featured_rank(작을수록 먼저, 미지정은 뒤)
+ *
+ * 점주 추천 세트도 더 이상 무조건 맨 앞 슬롯을 차지하지 않는다 — 일반 메뉴와 같은 기준으로 함께 순위를
+ * 매기고(세트는 대표 메뉴 기준, 키워드는 세트 안 메뉴 중 하나라도 맞으면 인정), 이미 추천에 쓰인 메뉴가
+ * 겹치는 후보는 건너뛴다. "사장님 추천" 표시(is_owner_pick/owner_set_label)는 그대로 내려준다.
  *
  * 알레르기 안전 원칙: 이 엔진은 어떤 메뉴도 "알레르기 안전"으로 단정하지 않는다. 응답에는 항상
  * ALLERGY_SAFETY_NOTICE(컨트롤러에서 부착)를 함께 내려보내 안전을 보장하지 않음을 명시한다.
@@ -42,60 +45,78 @@ export function recommend(input: RecommendationInput): RecommendedSet[] {
   const mains = candidates.filter((item) => item.category === "main");
   const sides = candidates.filter((item) => item.category === "side");
 
-  const result: RecommendedSet[] = [];
-  const usedMenuIds = new Set<number>();
+  type Candidate = { menuIds: number[]; tiered: TieredScore; build: (score: number) => RecommendedSet };
+  const pool: Candidate[] = [];
 
-  // 0. 점주 지정 추천 세트 우선 — 랭크 순(이미 repository에서 정렬됨). 세트 안의 메뉴 중 품절/하드필터
-  //    위반이 하나라도 있으면 이번 추천에서는 그 세트를 건너뛴다(부분적으로 보여주지 않음).
+  // 점주 추천 세트 후보 — 세트 안 메뉴 하나라도 품절/하드필터 위반이면 세트 전체를 뺀다(부분 노출 없음).
   for (const set of featuredSets) {
-    if (result.length >= 3) break;
+    if (set.items.length === 0) continue;
     const allPass = set.items.every(
       ({ menu: item }) => !item.sold_out && passesHardFilters(item, conditions),
     );
-    if (!allPass || set.items.length === 0) continue;
+    if (!allPass) continue;
+    if (!setFitsBudget(set, conditions)) continue;
 
     const [mainItem, ...sideItems] = set.items;
-    result.push(
-      buildRecommendedSet({
-        main: mainItem.menu,
-        score: toDisplayScore({ isOwnerPick: true, keywordScore: 0, hasEvidence: mainItem.menu.evidences.length > 0, restScore: 0, featuredRank: null }),
-        sides: sideItems.map((s) => s.menu),
-        conditions,
-        vision,
-        isOwnerPick: true,
-        ownerSetLabel: set.name,
-      }),
+    const mainTiered = scoreItem(mainItem.menu, conditions, vision);
+    const keywordScore = Math.max(
+      ...set.items.map(({ menu: item }) => scoreItem(item, conditions, vision).keywordScore),
     );
-    set.items.forEach(({ menu: item }) => usedMenuIds.add(item.id));
+    pool.push({
+      menuIds: set.items.map(({ menu: item }) => item.id),
+      tiered: { ...mainTiered, keywordScore, isOwnerPick: true, featuredRank: null },
+      build: (score) =>
+        buildRecommendedSet({
+          main: mainItem.menu,
+          score,
+          sides: sideItems.map((s) => s.menu),
+          conditions,
+          vision,
+          isOwnerPick: true,
+          ownerSetLabel: set.name,
+        }),
+    });
   }
 
-  // 1~2. 일반 추천 — 이미 세트로 노출된 메뉴는 중복되지 않게 제외한다.
-  const remainingSlots = 3 - result.length;
-  if (remainingSlots > 0) {
-    const hardFiltered = mains.filter(
-      (item) => !usedMenuIds.has(item.id) && passesHardFilters(item, conditions),
-    );
-
-    const scored = hardFiltered
-      .map((item) => ({ item, tiered: scoreItem(item, conditions, vision) }))
-      .sort((a, b) => compareTieredScores(a.tiered, b.tiered));
-
-    for (const { item: main, tiered } of scored.slice(0, remainingSlots)) {
-      result.push(
+  // 단일 메뉴 후보
+  for (const item of mains) {
+    if (!passesHardFilters(item, conditions)) continue;
+    pool.push({
+      menuIds: [item.id],
+      tiered: scoreItem(item, conditions, vision),
+      build: (score) =>
         buildRecommendedSet({
-          main,
-          score: toDisplayScore(tiered),
+          main: item,
+          score,
           sides,
           conditions,
           vision,
-          isOwnerPick: main.is_featured,
+          isOwnerPick: item.is_featured,
           ownerSetLabel: null,
         }),
-      );
-    }
+    });
+  }
+
+  // Array.prototype.sort는 안정 정렬이라, 모든 티어가 같으면 세트(repository 순위 순) → 단일 메뉴 순서가 유지된다.
+  pool.sort((a, b) => compareTieredScores(a.tiered, b.tiered));
+
+  const result: RecommendedSet[] = [];
+  const usedMenuIds = new Set<number>();
+  for (const candidate of pool) {
+    if (result.length >= 3) break;
+    if (candidate.menuIds.some((id) => usedMenuIds.has(id))) continue;
+    result.push(candidate.build(toDisplayScore(candidate.tiered)));
+    candidate.menuIds.forEach((id) => usedMenuIds.add(id));
   }
 
   return result;
+}
+
+/** 점주 추천 세트의 합계 금액이 (1인 예산 x 인원수)를 넘지 않는지. 예산 미지정이면 항상 통과. */
+function setFitsBudget(set: FeaturedSetForRecommendation, conditions: ExtractedConditions): boolean {
+  if (conditions.budget_per_person === null) return true;
+  const total = set.items.reduce((sum, { menu: item, quantity }) => sum + item.price * quantity, 0);
+  return total <= conditions.budget_per_person * Math.max(1, conditions.party_size);
 }
 
 /** 제외 재료 요청이 이 메뉴의 "확실한" 재료 정보와 겹치는지. unknown 노티스는 절대 하드 필터 근거로 쓰지 않는다. */
@@ -128,20 +149,21 @@ function passesHardFilters(item: MenuWithDetails, conditions: ExtractedCondition
 }
 
 /**
- * 비교에 쓰는 다단계 점수. 절대 하나의 숫자로 합산하지 않는다 — 합산하면 하위 티어 점수가 쌓여서
- * 상위 티어(점주 지정, 키워드 매칭, 리뷰 근거 유무)를 뒤집어버릴 수 있기 때문에, 반드시
- * compareTieredScores로 티어 순서대로만 비교한다.
+ * 비교에 쓰는 다단계 점수. 절대 하나의 숫자로 합산해서 비교하지 않는다 — 합산하면 하위 티어 점수가 쌓여서
+ * 상위 티어를 뒤집어버릴 수 있기 때문에, 반드시 compareTieredScores로 티어 순서대로만 비교한다.
  */
 interface TieredScore {
-  /** 1순위: 점주가 단일 메뉴로 지정했는지(is_featured) */
-  isOwnerPick: boolean;
-  /** 2순위: 음식 키워드 매칭 */
+  /** 1순위: 음식 키워드 매칭 */
   keywordScore: number;
-  /** 3순위: 리뷰/후기 근거(menu_evidences)가 1건이라도 있는지 */
+  /** 2순위: 리뷰/후기 근거(menu_evidences)가 1건이라도 있는지 */
   hasEvidence: boolean;
-  /** 4순위: 식감 선호 + 맵기 근접도 + 비전 보조 신호 */
-  restScore: number;
-  /** 최후 타이브레이커: 위 전부가 같을 때만 쓰는 점주 지정 순위(작을수록 먼저, null은 항상 뒤) */
+  /** 3순위: 사용자가 말한 나머지 선호(식감 + 맵기 근접도) */
+  preferenceScore: number;
+  /** 4순위: 점주 지정(단일 메뉴 is_featured 또는 점주 추천 세트) */
+  isOwnerPick: boolean;
+  /** 5순위: 비전 보조 신호 */
+  visionScore: number;
+  /** 최후 타이브레이커: 점주 지정 순위(작을수록 먼저, null은 항상 뒤) */
   featuredRank: number | null;
 }
 
@@ -151,7 +173,6 @@ function scoreItem(
   vision: VisionEstimate,
 ): TieredScore {
   let keywordScore = 0;
-
   const haystack = [
     item.name,
     item.category,
@@ -164,42 +185,40 @@ function scoreItem(
     if (haystack.includes(keyword)) keywordScore += 5;
   }
 
-  const hasEvidence = item.evidences.length > 0;
-
-  let restScore = 0;
-
+  let preferenceScore = 0;
   for (const texture of conditions.preferred_textures) {
-    if (item.texture_tags.includes(texture)) restScore += 3;
+    if (item.texture_tags.includes(texture)) preferenceScore += 3;
   }
-
   if (conditions.spicy_level !== null && item.spicy_level === conditions.spicy_level) {
-    restScore += 2;
+    preferenceScore += 2;
   }
 
+  let visionScore = 0;
   if (
     vision.status === "ok" &&
     conditions.spicy_level === null &&
     (vision.age_bracket === "senior" || vision.age_bracket === "child")
   ) {
-    if (item.spicy_level <= 1) restScore += 1;
+    if (item.spicy_level <= 1) visionScore += 1;
   }
 
   return {
-    isOwnerPick: item.is_featured,
     keywordScore,
-    hasEvidence,
-    restScore,
+    hasEvidence: item.evidences.length > 0,
+    preferenceScore,
+    isOwnerPick: item.is_featured,
+    visionScore,
     featuredRank: item.featured_rank,
   };
 }
 
-/** 티어 순서대로 비교: 점주 지정 → 키워드 매칭 → 리뷰 근거 유무 → 나머지 → (전부 같을 때만) featured_rank.
- *  상위 티어가 다르면 거기서 바로 끝난다. */
+/** 티어 순서대로 비교: 키워드 → 리뷰 근거 → 식감/맵기 → 점주 지정 → 비전 → featured_rank. */
 function compareTieredScores(a: TieredScore, b: TieredScore): number {
-  if (a.isOwnerPick !== b.isOwnerPick) return a.isOwnerPick ? -1 : 1;
   if (a.keywordScore !== b.keywordScore) return b.keywordScore - a.keywordScore;
   if (a.hasEvidence !== b.hasEvidence) return a.hasEvidence ? -1 : 1;
-  if (a.restScore !== b.restScore) return b.restScore - a.restScore;
+  if (a.preferenceScore !== b.preferenceScore) return b.preferenceScore - a.preferenceScore;
+  if (a.isOwnerPick !== b.isOwnerPick) return a.isOwnerPick ? -1 : 1;
+  if (a.visionScore !== b.visionScore) return b.visionScore - a.visionScore;
 
   const rankA = a.featuredRank;
   const rankB = b.featuredRank;
@@ -209,14 +228,15 @@ function compareTieredScores(a: TieredScore, b: TieredScore): number {
   return rankA - rankB;
 }
 
-/** RecommendedSet.score(단일 숫자)로 내려주기 위한 표시용 점수. 큰 자릿수 차이를 둬서 티어 우선순위가
- *  그대로 숫자 크기에도 반영되게 한다(상위 티어 1점 차이가 하위 티어 전체보다 항상 크다). */
-function toDisplayScore(tiered: TieredScore): number {
+/** RecommendedSet.score(단일 숫자)로 내려주기 위한 표시용 점수. 티어마다 자릿수를 크게 벌려서
+ *  숫자 크기 순서가 compareTieredScores 순서와 같게 한다. */
+function toDisplayScore(t: TieredScore): number {
   return (
-    (tiered.isOwnerPick ? 1 : 0) * 100_000_000 +
-    tiered.keywordScore * 1_000_000 +
-    (tiered.hasEvidence ? 1 : 0) * 10_000 +
-    tiered.restScore
+    t.keywordScore * 1e12 +
+    (t.hasEvidence ? 1 : 0) * 1e10 +
+    t.preferenceScore * 1e6 +
+    (t.isOwnerPick ? 1 : 0) * 1e5 +
+    t.visionScore * 10
   );
 }
 

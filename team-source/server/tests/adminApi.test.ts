@@ -172,7 +172,7 @@ describe("관리자 메뉴 API", () => {
 });
 
 describe("관리자 추천 세트 API", () => {
-  it("추천 세트를 만들고, 공개 추천 API에서 최우선으로 노출된다", async () => {
+  it("추천 세트를 만들면, 사용자 조건/리뷰 근거가 같을 때 공개 추천 API에서 먼저 노출된다", async () => {
     const { app } = buildTestApp();
     const token = await loginAndGetToken(app);
 
