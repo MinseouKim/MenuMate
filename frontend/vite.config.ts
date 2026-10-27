@@ -2,6 +2,7 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
+import { CHUNK_GROUPS } from './src/mocks/buildChunks.ts';
 import { assertNoMocksInProduction } from './src/mocks/buildGuard.ts';
 import { viteMockApi } from './src/mocks/viteMockApi.ts';
 
@@ -20,6 +21,10 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react(), mockApi && viteMockApi()],
     resolve: {
       alias: { '@menumate/ai': here(mockAi ? './src/mocks/ai.ts' : '../ai/src/index.ts') },
+    },
+    build: {
+      // 큰 묶음 나누기 (D79): React·MediaPipe·ONNX Runtime 을 따로. AI 묶음은 대기 화면이 뜬 뒤 동적으로 불러온다
+      rolldownOptions: { output: { codeSplitting: { groups: CHUNK_GROUPS } } },
     },
     server: {
       port: 5173,

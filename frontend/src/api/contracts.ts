@@ -3,8 +3,9 @@
 
 export type OrderType = 'dine_in' | 'takeout';
 export type Answer = 'yes' | 'no' | 'skip';
-export type Tag = 'spicy' | 'mild' | 'soup' | 'soft' | 'hearty';
-export type Reason = Tag | 'store_pick';
+export type Tag = 'spicy' | 'mild' | 'soup' | 'soft' | 'hearty' | 'light'; // light: 질문 v2 (D82)
+// age_fit, review_good: 리뷰 학습 엔진 기반 이유 (질문 v2, D82)
+export type Reason = Tag | 'store_pick' | 'age_fit' | 'review_good';
 
 export interface Category { id: string; name: string; sortOrder: number }
 export interface MenuItem {
@@ -19,6 +20,13 @@ export interface Order {
   orderId: string; orderType: OrderType; status: 'pending_payment' | 'paid';
   lines: OrderLine[]; totalAmount: number;
   orderNumber: string | null; paidAt: string | null;
+}
+
+/** POST /api/recommendations 응답 (api v2). byAgeBand 가 없으면 v1 서버 */
+export interface RecommendationsResponse {
+  items: Recommendation[];
+  byAgeBand?: Partial<Record<'under35' | '35to54' | '55plus', Recommendation[]>>;
+  engineVersion?: string;
 }
 
 export interface MenuResponse { storeName: string; categories: Category[]; items: MenuItem[] }

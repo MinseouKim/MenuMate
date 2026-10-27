@@ -1,21 +1,24 @@
-import { CAMERA_NOTICE } from '../kiosk/copy';
-import type { KioskController } from '../kiosk/useKiosk';
+import { CAMERA_NOTICE, TEXT } from '../kiosk/copy';
+import { useKioskContext } from '../kiosk/KioskContext';
+import { StartButtons } from './StartButtons';
 
-/** 인식 중: 확정 전까지 보여 준다. 누르면 바로 일반 메뉴판 */
-export function DetectingScreen({ k }: { k: KioskController }) {
+/** 인식 중: 확정 전까지 보여 준다. 시작 버튼으로 바로 시작할 수도 있다 */
+export function DetectingScreen() {
+  const k = useKioskContext();
   const p = k.detectProgress;
   return (
-    <div className="screen idle" onClick={k.commands.touchStart}>
+    <div className="screen idle">
       <div className="body center">
         <div className="ring" aria-hidden />
-        <p className="hero">반가워요</p>
-        <p className="lead">보기 편한 화면을 준비하고 있어요</p>
+        <p className="hero">{TEXT.detecting.title}</p>
+        <p className="lead">{TEXT.detecting.detail}</p>
         {p && (
           <div className="dots" aria-hidden>
             {Array.from({ length: p.required }, (_, i) => <i key={i} className={i < p.run ? 'on' : ''} />)}
           </div>
         )}
-        <p className="mute">기다리지 않으려면 화면을 눌러 주세요</p>
+        <p className="mute">{TEXT.detecting.skip}</p>
+        <StartButtons />
       </div>
       <div className="camera-notice">{CAMERA_NOTICE}</div>
     </div>

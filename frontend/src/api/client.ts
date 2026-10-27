@@ -1,6 +1,6 @@
 import { config } from '../config';
 import type {
-  AnswerInput, ApiErrorBody, MenuResponse, Order, OrderType, PaymentResponse, Question, Recommendation,
+  AnswerInput, ApiErrorBody, MenuResponse, Order, OrderType, PaymentResponse, Question, RecommendationsResponse,
 } from './contracts';
 
 const FALLBACK_MESSAGE = '잠시 문제가 생겼어요. 다시 시도해 주세요.';
@@ -42,8 +42,8 @@ export const api = {
   health: () => request<{ ok: boolean }>('/api/health'),
   menu: () => request<MenuResponse>('/api/menu'),
   questions: () => request<{ questions: Question[] }>('/api/questions').then(r => r.questions),
-  recommendations: (answers: AnswerInput[]) =>
-    post<{ items: Recommendation[] }>('/api/recommendations', { answers }).then(r => r.items),
+  // 요청에는 답만 보낸다. 연령대는 보내지 않는다 (D47, D73)
+  recommendations: (answers: AnswerInput[]) => post<RecommendationsResponse>('/api/recommendations', { answers }),
   createOrder: (orderType: OrderType, items: { menuId: string; quantity: number }[]) =>
     post<Order>('/api/orders', { orderType, items }),
   payOrder: (orderId: string, simulate?: 'success' | 'fail') =>

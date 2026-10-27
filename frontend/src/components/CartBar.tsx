@@ -1,5 +1,6 @@
 import type { MenuItem } from '../api/contracts';
-import { won } from '../kiosk/copy';
+import { TEXT, won } from '../kiosk/copy';
+import { glowIf } from './common';
 import type { CartLine } from '../kiosk/types';
 
 export function cartTotals(cart: CartLine[], items: MenuItem[]) {
@@ -14,19 +15,21 @@ export function cartTotals(cart: CartLine[], items: MenuItem[]) {
 }
 
 /** 메뉴판·추천 화면 하단: 담은 개수와 합계, 주문하기 */
-export function CartBar({ cart, items, onCheckout }: { cart: CartLine[]; items: MenuItem[]; onCheckout: () => void }) {
+export function CartBar({ cart, items, onCheckout, glow = false }: {
+  cart: CartLine[]; items: MenuItem[]; onCheckout: () => void; glow?: boolean;
+}) {
   const { count, amount } = cartTotals(cart, items);
   return (
     <footer className="cartbar">
       <div className="sum">
-        {count === 0 ? <span className="mute">메뉴를 누르면 담겨요</span> : (
+        {count === 0 ? <span className="mute">{TEXT.cartBar.empty}</span> : (
           <>
-            <span>담은 메뉴 {count}개</span>
+            <span>{TEXT.cartBar.count(count)}</span>
             <span className="price">{won(amount)}</span>
           </>
         )}
       </div>
-      <button className="btn btn-primary btn-lg" disabled={count === 0} onClick={onCheckout}>주문하기</button>
+      <button className={`btn btn-primary btn-lg${glowIf(glow && count > 0)}`} disabled={count === 0} onClick={onCheckout}>{TEXT.cartBar.checkout}</button>
     </footer>
   );
 }

@@ -1,15 +1,16 @@
 // 개발용 가짜 Backend. docs/contracts/api.md 와 questions.md 를 그대로 따른다.
 // VITE_MOCK_API=true 이면 Vite 개발 서버가 /api/* 를 여기로 보낸다 (viteMockApi.ts). 빌드 결과물에는 들어가지 않는다.
-// 질문 문구와 점수는 Backend 코드가 원본이다. 이 파일은 통합(10/26) 전까지만 쓰는 복사본이다.
+// 질문 문구와 점수는 Backend 코드가 원본이다 (질문 v2, D82: ai/docs/questions-v2.md). 개발용 복사본이다.
 import type { MenuItem, Order, OrderLine, Question, Reason, Tag } from '../api/contracts.ts';
 import { dummyMenu } from './menu.dummy.ts';
 
 type Score = Partial<Record<Tag, number>>;
 const QUESTIONS: (Question & { yes: Score; no: Score })[] = [
   { id: 'q_spicy', order: 1, text: '매운 음식도 괜찮으세요?', yes: { spicy: 2, mild: -1 }, no: { spicy: -3, mild: 1 } },
-  { id: 'q_soup', order: 2, text: '따뜻한 국물이 있는 음식이 좋으세요?', yes: { soup: 2 }, no: { soup: -1 } },
+  { id: 'q_soup', order: 2, text: '따뜻한 국물 요리가 좋으세요?', yes: { soup: 2 }, no: { soup: -1 } },
   { id: 'q_soft', order: 3, text: '부드럽게 드실 수 있는 음식이 좋으세요?', yes: { soft: 2 }, no: {} },
   { id: 'q_hearty', order: 4, text: '든든하게 드시고 싶으세요?', yes: { hearty: 2 }, no: { hearty: -1 } },
+  { id: 'q_light', order: 5, text: '담백한 맛이 좋으세요?', yes: { light: 2 }, no: { light: -1 } },
 ];
 
 export interface MockResponse { status: number; body: unknown }
@@ -24,7 +25,14 @@ const menuItems = (): MenuItem[] => dummyMenu.items.filter(i => i.isAvailable).m
   imageUrl: i.image ? `/static/${i.image}` : null, tags: i.tags, priority: i.priority, sortOrder: i.sortOrder,
 }));
 
-function recommend(answers: { questionId: string; answer: string }[]) {
+// 연령대 적합 가산점 (개발용 가짜 값). 진짜 값은 리뷰 학습 엔진이 만든다 (api v2, D74). 연령대별 결과가 달라 보이게만 둔다
+const AGE_BONUS: Record<'under35' | '35to54' | '55plus', Score> = {
+  under35: { spicy: 3, hearty: 1 },
+  '35to54': { hearty: 2, soup: 1 },
+  '55plus': { soft: 3, mild: 2 },
+};
+
+function recommend(answers: { questionId: string; answer: string }[], ageBonus: Score = {}) {
   const prefs: Score = {};
   for (const a of answers) {
     const q = QUESTIONS.find(x => x.id === a.questionId);
@@ -33,8 +41,10 @@ function recommend(answers: { questionId: string; answer: string }[]) {
   }
   return menuItems()
     .map(menu => {
-      const score = menu.tags.reduce((s, t) => s + (prefs[t] ?? 0), 0) + menu.priority * 1.5;
+      const score = menu.tags.reduce((s, t) => s + (prefs[t] ?? 0) + (ageBonus[t] ?? 0), 0) + menu.priority * 1.5;
       const reasons: Reason[] = menu.tags.filter(t => (prefs[t] ?? 0) > 0).sort((a, b) => (prefs[b] ?? 0) - (prefs[a] ?? 0));
+      // 개발용: 연령대 가산점을 받은 메뉴에 age_fit (진짜 조건은 엔진의 ageFitBasis, 질문 v2 4장)
+      if (menu.tags.some(t => (ageBonus[t] ?? 0) > 0)) reasons.push('age_fit');
       if (menu.priority > 0) reasons.push('store_pick');
       return { menu, score, reasons };
     })
@@ -69,7 +79,12 @@ export function createMockBackend({ payDelayMs = 1500 }: { payDelayMs?: number }
       if (method === 'POST' && path === '/api/recommendations') {
         const answers = b.answers;
         if (!Array.isArray(answers) || new Set(answers.map(a => a?.questionId)).size !== answers.length) return invalid();
-        return ok({ items: recommend(answers) });
+        // api v2: 연령대 없이 계산한 items + 세 연령대 결과를 한 번에. 서버는 손님 연령대를 모른다 (D73)
+        return ok({
+          items: recommend(answers),
+          byAgeBand: Object.fromEntries(Object.entries(AGE_BONUS).map(([band, bonus]) => [band, recommend(answers, bonus)])),
+          engineVersion: 'mock',
+        });
       }
       if (method === 'POST' && path === '/api/orders') {
         if (!['dine_in', 'takeout'].includes(b.orderType) || !Array.isArray(b.items)

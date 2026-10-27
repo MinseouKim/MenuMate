@@ -9,10 +9,10 @@ const recommend = async (answers: unknown[]) =>
   (await api.handle('POST', '/api/recommendations', { answers })).body as { items: Recommendation[] };
 
 describe('가짜 Backend (api.md, questions.md)', () => {
-  it('질문 4개를 order 순으로 준다', async () => {
+  it('질문 5개를 order 순으로 준다 (질문 v2)', async () => {
     const res = await api.handle('GET', '/api/questions', null);
     expect((res.body as { questions: { id: string }[] }).questions.map(q => q.id))
-      .toEqual(['q_spicy', 'q_soup', 'q_soft', 'q_hearty']);
+      .toEqual(['q_spicy', 'q_soup', 'q_soft', 'q_hearty', 'q_light']);
   });
 
   it('답이 없으면 priority 순으로 3개, store_pick 이유', async () => {

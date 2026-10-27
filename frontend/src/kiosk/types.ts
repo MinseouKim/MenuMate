@@ -1,20 +1,21 @@
 // docs/contracts/kiosk-flow.md 1장의 상태와 같은 모양
 import type { Answer, OrderType, Recommendation } from '../api/contracts';
-import type { AgeGateUpdate } from '../ai/types';
+import type { AgeBand, AgeGateUpdate } from '../ai/types';
 
 export type Screen =
   | 'idle' | 'detecting' | 'survey' | 'recommend' | 'menu'
   | 'order_type' | 'cart' | 'paying' | 'pay_failed' | 'done';
 
 export type Mode = 'easy' | 'normal';
-export type AgeGroup = 'senior' | 'non_senior' | 'undecided';
+/** 손님 연령대 (kiosk-flow v1.3). unknown = 판정 안 됨 (타임아웃, 카메라 없음, 버튼으로 시작) */
+export type CustomerAgeBand = AgeBand | 'unknown';
 
 export interface CartLine { menuId: string; quantity: number }
 
 export interface KioskState {
   screen: Screen;
   mode: Mode | null;
-  ageGroup: AgeGroup | null;          // 세션 메모리에만 둔다. 서버로 보내지 않는다 (D2, D47)
+  ageBand: CustomerAgeBand | null;    // 세션 메모리에만 둔다. 서버로 보내지 않는다 (D2, D47, D73)
   surveyIndex: number;
   answers: { questionId: string; answer: Answer }[];
   recommendations: Recommendation[];
@@ -28,13 +29,14 @@ export interface KioskState {
 /** now: 사람이 한 동작이면 lastInteractionAt을 갱신하는 시각 (ms) */
 export type KioskAction =
   | { type: 'AI_UPDATE'; update: AgeGateUpdate; now: number }
-  | { type: 'TOUCH_START'; now: number }
+  | { type: 'START_EASY'; now: number }    // 대기 화면 "큰 글씨로 주문" (v1.2)
+  | { type: 'START_NORMAL'; now: number }  // 대기 화면 "바로 주문" (v1.2)
   | { type: 'INTERACT'; now: number }
   | { type: 'TOGGLE_MODE'; now: number }
   | { type: 'OPEN_CHAT'; now: number }
   | { type: 'ANSWER'; questionId: string; answer: Answer; questionCount: number; now: number }
   | { type: 'EXIT_SURVEY'; now: number }
-  | { type: 'RECS_LOADED'; items: Recommendation[] }
+  | { type: 'RECS_LOADED'; items: Recommendation[]; byAgeBand?: Partial<Record<AgeBand, Recommendation[]>> }
   | { type: 'RECS_FAILED' }
   | { type: 'ADD_TO_CART'; menuId: string; now: number }
   | { type: 'GO_MENU'; now: number }

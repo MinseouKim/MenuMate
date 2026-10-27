@@ -12,7 +12,15 @@ export interface AiLoad {
  * @menumate/ai 를 불러와 판정기와 음성을 만든다. 무엇이 실패해도 reject하지 않는다.
  * 실패는 개발자 콘솔에만 남기고 화면에는 띄우지 않는다 (kiosk-flow 3장).
  */
+let loading: AiLoad | null = null;
+
+/** 앱이 살아 있는 동안 한 번만 불러온다. 개발 모드(StrictMode)에서 effect 가 두 번 돌아도 큰 모델을 두 번 받지 않는다 */
 export function loadAi(): AiLoad {
+  loading ??= startLoading();
+  return loading;
+}
+
+function startLoading(): AiLoad {
   const mod = (import('@menumate/ai') as Promise<AiModule>).catch((e: unknown) => {
     console.error('[ai] 모듈을 불러오지 못했습니다', e);
     return null;

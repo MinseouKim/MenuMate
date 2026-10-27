@@ -38,10 +38,25 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const sessionRef = useRef(0);           // 초기화할 때마다 올린다. 이전 세션의 늦은 응답은 버린다
   const forceFailNextRef = useRef(false); // Shift+F
 
-  const speak = useCallback((text: string) => {
-    aiRef.current.speaker.speak(text).catch(() => {});
+  // 음성: 새 문장을 읽으면 읽던 것은 끊긴다 (Speaker 계약). speaking 은 질문 화면 "읽어 드리는 중…" 표시용
+  const [speaking, setSpeaking] = useState(false);
+  const speakTokenRef = useRef(0);
+  const speak = useCallback((text: string, opts?: { track?: boolean }) => {
+    const token = ++speakTokenRef.current;
+    setSpeaking(Boolean(opts?.track) && aiRef.current.speaker.available);
+    aiRef.current.speaker.speak(text).catch(() => {}).finally(() => {
+      if (token === speakTokenRef.current) setSpeaking(false);
+    });
   }, []);
-  const stopSpeaking = useCallback(() => aiRef.current.speaker.cancel(), []);
+  const stopSpeaking = useCallback(() => {
+    speakTokenRef.current += 1;
+    setSpeaking(false);
+    aiRef.current.speaker.cancel();
+  }, []);
+  /** 큰 글씨 화면에서만 읽는 안내 (담기·빼기 확인 등, 사용성 점검 U8) */
+  const speakEasy = useCallback((text: string) => {
+    if (stateRef.current.mode === 'easy') speak(text);
+  }, [speak]);
 
   // ---------- 메뉴·질문 ----------
   const loadCatalog = useCallback(async () => {
@@ -164,8 +179,10 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const onKey = (e: KeyboardEvent) => {
       if (!e.shiftKey || e.repeat) return;
       switch (e.code) {
-        case 'KeyS': aiRef.current.ageGate.force('senior'); break;
-        case 'KeyN': aiRef.current.ageGate.force('non_senior'); break;
+        // 연령대 강제 판정 (ai-output v2): S 55세 이상, N 35~54세, Y 35세 미만
+        case 'KeyS': aiRef.current.ageGate.force('55plus'); break;
+        case 'KeyN': aiRef.current.ageGate.force('35to54'); break;
+        case 'KeyY': aiRef.current.ageGate.force('under35'); break;
         case 'KeyF': forceFailNextRef.current = true; break;
         case 'KeyR': reset(); break;
         default: return;
@@ -184,7 +201,7 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const s = stateRef.current;
     const q = questions?.[s.surveyIndex];
     if (!q) return;
-    speak(s.surveyIndex === 0 && s.answers.length === 0 ? `${SPEECH.greeting} ${q.text}` : q.text);
+    speak(s.surveyIndex === 0 ? `${SPEECH.greeting} ${q.text}` : q.text, { track: true });
   }, [questions, speak]);
 
   useEffect(() => {
@@ -195,6 +212,7 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
     const easy = state.mode === 'easy';
     switch (state.screen) {
       case 'recommend': speak(SPEECH.recommend); break;
+      case 'menu': if (easy) speak(SPEECH.menuEasy); break;
       case 'order_type': if (easy) speak(SPEECH.orderType); break;
       case 'cart': if (easy) speak(SPEECH.cart); break;
       case 'paying': if (easy) speak(SPEECH.paying); break;
@@ -211,12 +229,15 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
   // ---------- 명령 ----------
   const commands = useMemo(() => {
     const now = () => Date.now();
+    const menuName = (menuId: string) =>
+      (catalog.menu?.items ?? stateRef.current.recommendations.map(r => r.menu)).find(i => i.id === menuId)?.name ?? null;
     return {
       reset,
       readQuestion,
       dismissNotice: () => setNotice(null),
       retryLoad: () => { setCatalog(c => ({ ...c, loadError: null })); loadCatalog(); },
-      touchStart: () => dispatch({ type: 'TOUCH_START', now: now() }),
+      startEasy: () => dispatch({ type: 'START_EASY', now: now() }),
+      startNormal: () => dispatch({ type: 'START_NORMAL', now: now() }),
       toggleMode: () => dispatch({ type: 'TOGGLE_MODE', now: now() }),
       openChat: () => { setNotice(null); dispatch({ type: 'OPEN_CHAT', now: now() }); },
       exitSurvey: () => { stopSpeaking(); dispatch({ type: 'EXIT_SURVEY', now: now() }); },
@@ -234,8 +255,8 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         const session = sessionRef.current;
         const answers = [...s.answers.slice(0, s.surveyIndex), { questionId: q.id, answer }];
         try {
-          const items = await api.recommendations(answers);
-          if (session === sessionRef.current) dispatch({ type: 'RECS_LOADED', items });
+          const { items, byAgeBand } = await api.recommendations(answers);
+          if (session === sessionRef.current) dispatch({ type: 'RECS_LOADED', items, byAgeBand });
         } catch (e) {
           if (session !== sessionRef.current) return;
           setNotice(errorMessage(e));
@@ -243,7 +264,32 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         }
       },
 
-      addToCart: (menuId: string) => dispatch({ type: 'ADD_TO_CART', menuId, now: now() }),
+      // 큰 글씨 화면은 이미 담은 메뉴를 다시 눌러도 늘리지 않고 음성으로만 알린다 (사용성 점검 U1).
+      // 수량은 장바구니에서만 바꾼다. 리듀서 계약은 그대로 (ADD 를 보내지 않을 뿐)
+      addToCart: (menuId: string) => {
+        const s = stateRef.current;
+        const easy = s.mode === 'easy';
+        if (easy && s.cart.some(l => l.menuId === menuId)) {
+          speak(SPEECH.addAgain);
+          return;
+        }
+        dispatch({ type: 'ADD_TO_CART', menuId, now: now() });
+        const name = menuName(menuId);
+        if (easy && name) speak(SPEECH.added(name));
+      },
+      /** 수량 1에서 [빼기]를 누름: 화면이 확인을 띄우고, 큰 글씨 화면이면 읽어 준다 (U4) */
+      askRemove: (menuId: string) => {
+        const name = menuName(menuId);
+        if (name) speakEasy(SPEECH.removeConfirm(name));
+      },
+      /** 확인 뒤 줄 삭제 */
+      removeLine: (menuId: string) => {
+        const line = stateRef.current.cart.find(l => l.menuId === menuId);
+        if (!line) return;
+        dispatch({ type: 'CHANGE_QTY', menuId, delta: -line.quantity, now: now() });
+        const name = menuName(menuId);
+        if (name) speakEasy(SPEECH.removed(name));
+      },
       goMenu: () => dispatch({ type: 'GO_MENU', now: now() }),
       checkout: () => dispatch({ type: 'CHECKOUT', now: now() }),
       chooseOrderType: (orderType: OrderType) => dispatch({ type: 'CHOOSE_ORDER_TYPE', orderType, now: now() }),
@@ -281,10 +327,10 @@ export function useKiosk(videoRef: React.RefObject<HTMLVideoElement | null>) {
         }
       },
     };
-  }, [reset, readQuestion, loadCatalog, questions, stopSpeaking]);
+  }, [reset, readQuestion, loadCatalog, questions, stopSpeaking, speak, speakEasy, catalog.menu]);
 
   return {
-    state, catalog, serverDown, notice, payFailReason, detectProgress, speakerAvailable, currentQuestion, commands,
+    state, catalog, serverDown, notice, payFailReason, detectProgress, speakerAvailable, speaking, currentQuestion, commands,
   };
 }
 

@@ -1,9 +1,15 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
+import { Fragment, useLayoutEffect, useState, type ReactNode } from 'react';
 import type { Category, MenuItem } from '../api/contracts';
+import { TEXT } from '../kiosk/copy';
+import { useKioskContext } from '../kiosk/KioskContext';
+import { canToggleMode } from '../kiosk/reducer';
 import type { Mode } from '../kiosk/types';
 
 const W = 1080;
 const H = 1920;
+const TINT_COUNT = 6; // tokens.css 의 --tint-1 ~ --tint-6
+const PHOTO_W = 800; // 메뉴 사진 자리 4:3 (menu-schema: 가로 800px 이상 권장)
+const PHOTO_H = 600;
 
 /** 세로 1080x1920 캔버스. 창 크기에 맞게 줄이고 가운데에 둔다 (D25) */
 export function KioskFrame({ mode, children }: { mode: Mode | null; children: ReactNode }) {
@@ -23,35 +29,50 @@ export function KioskFrame({ mode, children }: { mode: Mode | null; children: Re
   );
 }
 
-/** 판정 후 모든 화면 상단: 이전 버튼, 매장 이름, 모드 전환 버튼 */
-export function TopBar({ mode, storeName, onToggleMode, onBack }: {
-  mode: Mode | null; storeName?: string; onToggleMode: () => void; onBack?: () => void;
-}) {
+/** 판정 후 화면 상단: 이전 버튼, 매장 이름, 모드 전환 버튼 (결제 중·주문번호 화면은 모드 전환 없음, v1.2) */
+export function TopBar({ onBack }: { onBack?: () => void }) {
+  const { state, catalog, commands } = useKioskContext();
   return (
     <header className="topbar">
-      {onBack && <button className="btn" onClick={onBack}><ChevronLeft />이전</button>}
-      <span className="store">{storeName ?? 'MenuMate'}</span>
+      {onBack && <button className="btn" onClick={onBack}><ChevronLeft />{TEXT.common.back}</button>}
+      <span className="store">{catalog.menu?.storeName ?? TEXT.common.appName}</span>
       <span className="spacer" />
-      {mode && (
-        <button className="btn" onClick={onToggleMode}>
-          {mode === 'easy' ? '일반 화면으로 보기' : '쉬운 화면으로 보기'}
+      {canToggleMode(state) && (
+        <button className="btn" onClick={commands.toggleMode}>
+          {state.mode === 'easy' ? TEXT.common.toNormal : TEXT.common.toEasy}
         </button>
       )}
     </header>
   );
 }
 
-// 사진이 없을 때 카테고리 색 카드 (D40). 오방색을 옅게 한 색을 카테고리 순서대로 쓴다 (이름을 코드에 박지 않음)
-const CARD_COLORS = ['#cddcf2', '#f5d0cd', '#f8e4a6', '#d3e8d6', '#e2e2dc', '#e4d6ee'];
+/**
+ * 55+ 빛 테두리 (D78): 큰 글씨 화면에서 지금 눌러야 할 버튼 1~2개에만 붙인다.
+ * 주기·밝기는 tokens.css (--glow-*), "동작 줄이기" 설정이면 global.css 에서 멈춘다
+ */
+export const glowIf = (on: boolean) => (on ? ' glow' : '');
 
+/** 여러 줄 문구 (copy.ts 의 배열). 줄 사이에 <br> */
+export function Lines({ lines }: { lines: readonly string[] }) {
+  return lines.map((line, i) => (
+    <Fragment key={i}>{i > 0 && <br />}{line}{i < lines.length - 1 && ' '}</Fragment>
+  ));
+}
+
+/**
+ * 메뉴 사진 (D77). 카드 폭을 꽉 채워 크게 보여 준다. width/height 로 4:3 자리를 미리 잡아 사진이 늦게 와도 화면이 흔들리지 않는다.
+ * 사진이 없거나 못 불러오면 카테고리 색 카드 + 메뉴명 (D40). 색은 카테고리 순서대로 --tint-n
+ */
 export function MenuThumb({ item, categories }: { item: MenuItem; categories: Category[] }) {
-  const [broken, setBroken] = useState(false);
-  useEffect(() => setBroken(false), [item.imageUrl]);
-  if (item.imageUrl && !broken) {
-    return <img className="thumb" src={item.imageUrl} alt="" onError={() => setBroken(true)} draggable={false} />;
+  const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
+  if (item.imageUrl && item.imageUrl !== brokenUrl) {
+    return (
+      <img className="thumb" src={item.imageUrl} alt="" width={PHOTO_W} height={PHOTO_H} decoding="async"
+        onError={() => setBrokenUrl(item.imageUrl)} draggable={false} />
+    );
   }
-  const idx = Math.max(0, [...categories].sort((a, b) => a.sortOrder - b.sortOrder).findIndex(c => c.id === item.categoryId));
-  return <div className="thumb" style={{ background: CARD_COLORS[idx % CARD_COLORS.length] }}>{item.name}</div>;
+  const idx = Math.max(0, categories.toSorted((a, b) => a.sortOrder - b.sortOrder).findIndex(c => c.id === item.categoryId));
+  return <div className="thumb" data-tint={(idx % TINT_COUNT) + 1}>{item.name}</div>;
 }
 
 export function Notice({ message, actionLabel, onAction }: { message: string; actionLabel: string; onAction: () => void }) {
@@ -80,5 +101,41 @@ export const SpeakerIcon = () => (
 export const ChatIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round">
     <path d="M4 5h16v11H9l-5 4z" />
+  </svg>
+);
+
+export const CheckIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 12.5 9.5 18 20 6" />
+  </svg>
+);
+
+export const PlusIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+/** 질문 답 기호 (U2: 색이 아니라 기호로 구분) */
+export const YesIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6"><circle cx="12" cy="12" r="8.5" /></svg>
+);
+
+export const NoIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+    <path d="M5.5 5.5l13 13M18.5 5.5l-13 13" />
+  </svg>
+);
+
+/** 매장/포장 그림 (U2) */
+export const BowlIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 11h19a9.5 9.5 0 0 1-19 0z" /><path d="M8 21h8M9 2.5c-1 1.5 1 2.5 0 4.5M15 2.5c-1 1.5 1 2.5 0 4.5" />
+  </svg>
+);
+
+export const BagIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.5 8h15l-1 13h-13z" /><path d="M8.5 11V6a3.5 3.5 0 0 1 7 0v5" />
   </svg>
 );
