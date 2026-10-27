@@ -5,6 +5,7 @@ export { ageGateReducer, initialAgeGateState } from './ageGateReducer';
 export { AgeGateError, DEFAULT_RULES, DEFAULT_FPS } from './types';
 export type {
   AgeGate,
+  AgeBand,
   AgeGateConfig,
   AgeGateErrorCode,
   AgeGateRules,

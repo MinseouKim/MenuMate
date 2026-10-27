@@ -1,6 +1,6 @@
 # AI 파이프라인 입출력 명세
 
-- 작성: AI / 상태: v1.1 (2026-10-24, PM 승인 사항 반영)
+- 작성: AI / 상태: v2 (2026-10-27, 연령대 3단계 ageBand 추가, D72)
 - 공개 API는 [`docs/contracts/ai-output.md`](../../docs/contracts/ai-output.md)가 기준이다. 이 문서는 그 안에서 일어나는 일을 적는다.
 - 관련 결정: D2, D3, D16, D18, D22, D27, D35
 
@@ -68,6 +68,7 @@ tensor = Float32 [1, 3, inputSize, inputSize] (NCHW)
 
 ```
 frameGroup = age >= seniorAge(55) ? 'senior' : 'non_senior'
+ageBand    = senior ? '55plus' : (median(확정 프레임 나이) < bandEdges[0](35) ? 'under35' : '35to54')   // v2, 확정 때 한 번
 confidence = detectionScore × min(1, 얼굴 폭 px / 80)
 ```
 
@@ -83,7 +84,7 @@ stateDiagram-v2
   idle --> detecting: 얼굴 보임 (detecting)
   detecting --> detecting: 프레임마다 (detecting: run/required, elapsedMs)
   detecting --> idle: 얼굴 사라짐, 유예 초과 (no_face, 연속·타이머 초기화)
-  detecting --> decided: 같은 연령대 연속 stableFrames (decided)
+  detecting --> decided: 같은 연령대 연속 stableFrames (decided + ageBand)
   detecting --> timeout: 처음 보인 뒤 decideTimeoutMs (timeout)
   decided --> idle: reset()
   timeout --> idle: reset()
@@ -102,7 +103,9 @@ stateDiagram-v2
 | no_face | 얼굴이 있다가 없어지면 1번. 대기 중 계속 없으면 이벤트 없음 |
 | 깜빡임 유예 | `noFaceGraceMs`(기본 0). 얼굴이 마지막으로 보인 뒤 이 시간 안의 빈 프레임은 무시하고(이벤트 없음) 연속 기록을 유지한다. 타임아웃 시간은 계속 흐른다. 0이면 계약 v1과 같이 한 프레임만 빠져도 no_face. 실측 후 값을 정한다 |
 | 고정 | `decided`·`timeout` 뒤에는 `reset()` 전까지 모든 프레임 무시 (D18) |
-| force | 언제든 즉시 `decided(source: 'forced', confidence: 1)` |
+| force | 언제든 즉시 `decided(source: 'forced', confidence: 1)`. v2: `force('55plus' \| '35to54' \| 'under35')`, v1 값 `'senior'`→55plus, `'non_senior'`→35to54. 단축키 Shift+S/N/Y (v2-changes 2장) |
+| ageBand (v2) | `group`이 senior면 항상 `55plus`. non_senior면 **확정에 쓴 연속 프레임들의 추정 나이 중앙값**이 `bandEdges[0]`(35) 미만이면 `under35`, 아니면 `35to54`. 그래서 `group === 'senior'` ⇔ `ageBand === '55plus'`가 항상 성립한다 (무작위 300회 테스트로 고정) |
+| bandEdges (v2) | 기본 `[35, 55]`. `seniorAge`를 따로 주지 않으면 `bandEdges[1]`이 55세 기준이다. 순서가 틀리거나 숫자가 아니면 기본값을 쓴다 |
 | error | 추론 예외가 연속되는 동안 첫 번째만 `error(inference_failed)`. 루프는 계속. 프론트는 판정 전 error를 timeout과 같이 처리 (kiosk-flow v1.1) |
 
 ## 7. 지연 시간
@@ -119,3 +122,7 @@ WASM(CPU) 1스레드에서 ViT는 프레임당 약 1.2초라 6fps가 나오지 �
 ## 8. 개인정보 (D2)
 - 프레임은 크롭용 캔버스 1개에 그렸다가 추론 직후 `clearRect`, 입력 버퍼는 0으로 덮는다.
 - 저장, `console.log`, 서버 전송 없음. 데모 페이지도 나이 숫자를 보여 주지 않는다.
+
+## 9. 연령대 3단계의 정확도 한계 (v2, D72)
+- 35세 경계는 확정 규칙(연속 프레임)과 별도로, 이미 non_senior로 확정된 프레임들의 중앙값으로만 나눈다. 35세 근처에서는 under35와 35to54가 섞여 나올 수 있다.
+- 후보 B의 AgeDB 오차(MAE) 7.7세를 보면, 30~40세 손님의 연령대는 자주 틀릴 수 있다. 연령대는 추천 순서에만 조금 쓰이고(W_age, questions-v2.md), 화면 모드(쉬운/일반)는 지금처럼 55세 기준 `group`으로 정한다.

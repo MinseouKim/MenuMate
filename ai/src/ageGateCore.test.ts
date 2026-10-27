@@ -56,7 +56,7 @@ describe('createAgeGateCore', () => {
     await advance(1000);
     expect(detect).toHaveBeenCalledTimes(5);
     expect(updates.map((u) => u.type)).toEqual(['detecting', 'detecting', 'detecting', 'detecting', 'decided']);
-    expect(updates[4]).toEqual({ type: 'decided', group: 'senior', confidence: 0.95, source: 'model' });
+    expect(updates[4]).toEqual({ type: 'decided', group: 'senior', ageBand: '55plus', confidence: 0.95, source: 'model' });
   });
 
   it('확정 뒤에는 reset 전까지 추론하지 않는다', async () => {
@@ -108,7 +108,7 @@ describe('createAgeGateCore', () => {
     gate.start(video);
     await advance(200);
     gate.force('senior');
-    expect(updates.at(-1)).toEqual({ type: 'decided', group: 'senior', confidence: 1, source: 'forced' });
+    expect(updates.at(-1)).toEqual({ type: 'decided', group: 'senior', ageBand: '55plus', confidence: 1, source: 'forced' });
     const calls = detect.mock.calls.length;
     await advance(2000);
     expect(detect.mock.calls.length).toBe(calls);

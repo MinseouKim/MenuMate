@@ -2,12 +2,16 @@
 
 export type AgeGroup = 'senior' | 'non_senior';
 
+/** 연령대 3단계 (ai-output v2, D72). group === 'senior' ⇔ ageBand === '55plus' */
+export type AgeBand = 'under35' | '35to54' | '55plus';
+
 export interface AgeGateConfig {
   faceModelUrl: string;      // 예: "/models/face/blaze_face_short_range.tflite"
   ageModelUrl: string;       // 예: "/models/age/age_estimator.onnx"
   mediapipeWasmUrl: string;  // 예: "/models/mediapipe-wasm"
   ortWasmUrl: string;        // 예: "/models/ort-wasm/"
-  seniorAge?: number;        // 기본 55 (D3)
+  seniorAge?: number;        // 기본 bandEdges[1] = 55 (D3)
+  bandEdges?: [number, number]; // 기본 [35, 55] (v2, D72). [0]으로 under35/35to54를 나눈다
   stableFrames?: number;     // 기본 5
   minConfidence?: number;    // 기본 0.7
   decideTimeoutMs?: number;  // 기본 8000 (D16)
@@ -23,6 +27,8 @@ export interface AgeGateRules {
   decideTimeoutMs: number;
   /** 없으면 0 (계약 v1과 같은 동작: 한 프레임만 빠져도 no_face) */
   noFaceGraceMs?: number;
+  /** 없으면 [35, seniorAge] */
+  bandEdges?: [number, number];
 }
 
 export const DEFAULT_RULES: Readonly<Required<AgeGateRules>> = Object.freeze({
@@ -31,6 +37,7 @@ export const DEFAULT_RULES: Readonly<Required<AgeGateRules>> = Object.freeze({
   minConfidence: 0.7,
   decideTimeoutMs: 8000,
   noFaceGraceMs: 0,
+  bandEdges: [35, 55] as [number, number],
 });
 
 export const DEFAULT_FPS = 6;
@@ -39,7 +46,8 @@ export interface AgeGate {
   start(video: HTMLVideoElement): void;
   stop(): void;
   reset(): void;
-  force(group: AgeGroup): void;
+  /** 시연용 강제 판정. v2: ageBand도 받는다 ('non_senior'는 '35to54'로) */
+  force(target: AgeGroup | AgeBand): void;
   onUpdate(cb: (u: AgeGateUpdate) => void): () => void;
   readonly backend: 'webgpu' | 'wasm';
 }
@@ -53,7 +61,7 @@ export type AgeGateUpdate =
       required: number;
       elapsedMs: number;
     }
-  | { type: 'decided'; group: AgeGroup; confidence: number; source: 'model' | 'forced' }
+  | { type: 'decided'; group: AgeGroup; ageBand: AgeBand; confidence: number; source: 'model' | 'forced' }
   | { type: 'timeout' }
   | { type: 'error'; code: 'inference_failed'; message: string };
 
@@ -88,6 +96,8 @@ export interface AgeGateState {
   run: number;
   /** 연속 판정 프레임들의 신뢰도 합. 확정 시 평균을 낸다. */
   runConfidenceSum: number;
+  /** 연속 판정 프레임들의 추정 나이 (모듈 내부 전용, ageBand 중앙값 계산용. 이벤트로 나가지 않는다) */
+  runAges: number[];
   /** 얼굴이 처음 보인 시각. 타임아웃 기준 (D16) */
   firstSeenAt: number | null;
   /** 얼굴이 마지막으로 보인 시각. 깜빡임 유예(noFaceGraceMs) 기준 */

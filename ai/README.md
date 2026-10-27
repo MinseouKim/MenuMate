@@ -40,7 +40,8 @@ const gate = await createAgeGate({
 
 const off = gate.onUpdate((u) => dispatch({ type: 'AI', update: u }));
 gate.start(videoElement); // 카메라는 프론트가 연다 (getUserMedia)
-// 초기화 때: gate.reset()   시연 단축키: gate.force('senior')
+// 초기화 때: gate.reset()   시연 단축키: gate.force('55plus' | '35to54' | 'under35')  (Shift+S / N / Y)
+// decided 이벤트: { group: 'senior' | 'non_senior', ageBand: 'under35' | '35to54' | '55plus', confidence, source }
 
 const speaker = await createSpeaker({ rate: Number(import.meta.env.VITE_TTS_RATE) });
 if (speaker.available) await speaker.speak(question.text);

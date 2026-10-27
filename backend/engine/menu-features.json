@@ -1,0 +1,788 @@
+{
+  "engineVersion": "2026-10-27-v1",
+  "generatedAt": "2026-10-27T03:14:40+09:00",
+  "weights": {
+    "ageFit": 3,
+    "reputation": 1.5
+  },
+  "sources": [
+    {
+      "name": "KR3: Korean Restaurant Reviews with Ratings",
+      "url": "https://huggingface.co/datasets/leey4n/KR3",
+      "license": "CC BY-NC-SA 4.0"
+    },
+    {
+      "name": "Bias-Free Dataset of Food Delivery App Reviews with Data Poisoning Attacks (v2, Korean)",
+      "url": "https://data.mendeley.com/datasets/rnyrpzyw3h/2",
+      "license": "CC BY 4.0"
+    },
+    {
+      "name": "한국보건산업진흥원_국민영양통계 다빈도음식의 식품섭취량",
+      "url": "https://www.data.go.kr/data/15160119/fileData.do",
+      "license": "공공데이터 이용허락범위 제한 없음"
+    }
+  ],
+  "note": "리뷰 원문은 담지 않는다. 메뉴별 통계값만 담는다. 계산: ai/docs/engine.md",
+  "menus": [
+    {
+      "menuId": "m001",
+      "menuName": "된장찌개",
+      "features": {
+        "spicy": 0.301,
+        "mild": 0.646,
+        "soup": 0.443,
+        "soft": 0.5,
+        "hearty": 0.346,
+        "light": 0.26
+      },
+      "ageFit": {
+        "under35": 0.286,
+        "35to54": 0.537,
+        "55plus": 0.624
+      },
+      "reputation": 0.644,
+      "reviewCount": 3723,
+      "adFilteredCount": 3,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 4723,
+        "ratedReviews": 2927,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "된장찌개"
+        ],
+        "statCells": 33
+      }
+    },
+    {
+      "menuId": "m002",
+      "menuName": "김치찌개",
+      "features": {
+        "spicy": 0.571,
+        "mild": 0.379,
+        "soup": 0.495,
+        "soft": 0.194,
+        "hearty": 0.596,
+        "light": 0.38
+      },
+      "ageFit": {
+        "under35": 0.427,
+        "35to54": 0.514,
+        "55plus": 0.538
+      },
+      "reputation": 0.616,
+      "reviewCount": 3223,
+      "adFilteredCount": 13,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 4208,
+        "ratedReviews": 1989,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "김치찌개"
+        ],
+        "statCells": 33
+      }
+    },
+    {
+      "menuId": "m003",
+      "menuName": "순두부찌개",
+      "features": {
+        "spicy": 0.899,
+        "mild": 0.101,
+        "soup": 0.693,
+        "soft": 0.899,
+        "hearty": 0.188,
+        "light": 0.679
+      },
+      "ageFit": {
+        "under35": 0.514,
+        "35to54": 0.5,
+        "55plus": 0.531
+      },
+      "reputation": 0.504,
+      "reviewCount": 3522,
+      "adFilteredCount": 4,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 6153,
+        "ratedReviews": 2652,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "순두부찌개"
+        ],
+        "statCells": 4
+      }
+    },
+    {
+      "menuId": "m004",
+      "menuName": "부대찌개",
+      "features": {
+        "spicy": 0.565,
+        "mild": 0.431,
+        "soup": 0.635,
+        "soft": 0.111,
+        "hearty": 0.792,
+        "light": 0.502
+      },
+      "ageFit": {
+        "under35": 0.596,
+        "35to54": 0.5,
+        "55plus": 0.408
+      },
+      "reputation": 0.668,
+      "reviewCount": 1891,
+      "adFilteredCount": 11,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 3082,
+        "ratedReviews": 1142,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "부대찌개"
+        ],
+        "statCells": 3
+      }
+    },
+    {
+      "menuId": "m005",
+      "menuName": "갈비탕",
+      "features": {
+        "spicy": 0.146,
+        "mild": 0.825,
+        "soup": 0.834,
+        "soft": 0.381,
+        "hearty": 0.802,
+        "light": 0.746
+      },
+      "ageFit": {
+        "under35": 0.425,
+        "35to54": 0.5,
+        "55plus": 0.65
+      },
+      "reputation": 0.318,
+      "reviewCount": 1977,
+      "adFilteredCount": 1,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 2587,
+        "ratedReviews": 1409,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "갈비탕"
+        ],
+        "statCells": 2
+      }
+    },
+    {
+      "menuId": "m006",
+      "menuName": "육개장",
+      "features": {
+        "spicy": 0.898,
+        "mild": 0.123,
+        "soup": 0.885,
+        "soft": 0.398,
+        "hearty": 0.577,
+        "light": 0.63
+      },
+      "ageFit": {
+        "under35": 0.613,
+        "35to54": 0.5,
+        "55plus": 0.437
+      },
+      "reputation": 0.721,
+      "reviewCount": 1549,
+      "adFilteredCount": 12,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 2034,
+        "ratedReviews": 1066,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "육개장· 쇠고기"
+        ],
+        "statCells": 5
+      }
+    },
+    {
+      "menuId": "m007",
+      "menuName": "돼지국밥",
+      "features": {
+        "spicy": 0.146,
+        "mild": 0.803,
+        "soup": 0.898,
+        "soft": 0.23,
+        "hearty": 0.594,
+        "light": 0.745
+      },
+      "ageFit": {
+        "under35": 0.408,
+        "35to54": 0.5,
+        "55plus": 0.636
+      },
+      "reputation": 0.648,
+      "reviewCount": 1148,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 1832,
+        "ratedReviews": 921,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m008",
+      "menuName": "순대국밥",
+      "features": {
+        "spicy": 0.256,
+        "mild": 0.383,
+        "soup": 0.711,
+        "soft": 0.143,
+        "hearty": 0.9,
+        "light": 0.675
+      },
+      "ageFit": {
+        "under35": 0.539,
+        "35to54": 0.5,
+        "55plus": 0.486
+      },
+      "reputation": 0.64,
+      "reviewCount": 5685,
+      "adFilteredCount": 72,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 8883,
+        "ratedReviews": 3278,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "순대국"
+        ],
+        "statCells": 3
+      }
+    },
+    {
+      "menuId": "m009",
+      "menuName": "콩나물국밥",
+      "features": {
+        "spicy": 0.406,
+        "mild": 0.567,
+        "soup": 0.896,
+        "soft": 0.417,
+        "hearty": 0.104,
+        "light": 0.685
+      },
+      "ageFit": {
+        "under35": 0.272,
+        "35to54": 0.543,
+        "55plus": 0.651
+      },
+      "reputation": 0.725,
+      "reviewCount": 664,
+      "adFilteredCount": 0,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 899,
+        "ratedReviews": 432,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "콩나물국"
+        ],
+        "statCells": 28
+      }
+    },
+    {
+      "menuId": "m010",
+      "menuName": "전복죽",
+      "features": {
+        "spicy": 0.11,
+        "mild": 0.867,
+        "soup": 0.106,
+        "soft": 0.654,
+        "hearty": 0.474,
+        "light": 0.48
+      },
+      "ageFit": {
+        "under35": 0.387,
+        "35to54": 0.5,
+        "55plus": 0.584
+      },
+      "reputation": 0.673,
+      "reviewCount": 671,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 925,
+        "ratedReviews": 541,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m011",
+      "menuName": "호박죽",
+      "features": {
+        "spicy": 0.121,
+        "mild": 0.855,
+        "soup": 0.148,
+        "soft": 0.741,
+        "hearty": 0.193,
+        "light": 0.649
+      },
+      "ageFit": {
+        "under35": 0.329,
+        "35to54": 0.5,
+        "55plus": 0.643
+      },
+      "reputation": 0.64,
+      "reviewCount": 130,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 147,
+        "ratedReviews": 97,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m012",
+      "menuName": "비빔밥",
+      "features": {
+        "spicy": 0.188,
+        "mild": 0.799,
+        "soup": 0.128,
+        "soft": 0.153,
+        "hearty": 0.646,
+        "light": 0.464
+      },
+      "ageFit": {
+        "under35": 0.484,
+        "35to54": 0.495,
+        "55plus": 0.5
+      },
+      "reputation": 0.531,
+      "reviewCount": 5203,
+      "adFilteredCount": 5,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 7349,
+        "ratedReviews": 3789,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "비빔밥"
+        ],
+        "statCells": 31
+      }
+    },
+    {
+      "menuId": "m013",
+      "menuName": "돌솥비빔밥",
+      "features": {
+        "spicy": 0.12,
+        "mild": 0.518,
+        "soup": 0.127,
+        "soft": 0.12,
+        "hearty": 0.857,
+        "light": 0.452
+      },
+      "ageFit": {
+        "under35": 0.499,
+        "35to54": 0.495,
+        "55plus": 0.485
+      },
+      "reputation": 0.453,
+      "reviewCount": 138,
+      "adFilteredCount": 0,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 156,
+        "ratedReviews": 92,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "비빔밥"
+        ],
+        "statCells": 31
+      }
+    },
+    {
+      "menuId": "m014",
+      "menuName": "제육덮밥",
+      "features": {
+        "spicy": 0.579,
+        "mild": 0.407,
+        "soup": 0.106,
+        "soft": 0.38,
+        "hearty": 0.734,
+        "light": 0.38
+      },
+      "ageFit": {
+        "under35": 0.508,
+        "35to54": 0.552,
+        "55plus": 0.441
+      },
+      "reputation": 0.655,
+      "reviewCount": 2756,
+      "adFilteredCount": 38,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 3867,
+        "ratedReviews": 1888,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "불고기· 돼지고기"
+        ],
+        "statCells": 6
+      }
+    },
+    {
+      "menuId": "m015",
+      "menuName": "불고기덮밥",
+      "features": {
+        "spicy": 0.277,
+        "mild": 0.697,
+        "soup": 0.128,
+        "soft": 0.568,
+        "hearty": 0.484,
+        "light": 0.326
+      },
+      "ageFit": {
+        "under35": 0.448,
+        "35to54": 0.595,
+        "55plus": 0.464
+      },
+      "reputation": 0.555,
+      "reviewCount": 5503,
+      "adFilteredCount": 53,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 7784,
+        "ratedReviews": 3340,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "불고기"
+        ],
+        "statCells": 28
+      }
+    },
+    {
+      "menuId": "m016",
+      "menuName": "오징어덮밥",
+      "features": {
+        "spicy": 0.892,
+        "mild": 0.108,
+        "soup": 0.108,
+        "soft": 0.316,
+        "hearty": 0.108,
+        "light": 0.27
+      },
+      "ageFit": {
+        "under35": 0.608,
+        "35to54": 0.5,
+        "55plus": 0.272
+      },
+      "reputation": 0.775,
+      "reviewCount": 356,
+      "adFilteredCount": 3,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 466,
+        "ratedReviews": 236,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m017",
+      "menuName": "계란말이밥",
+      "features": {
+        "spicy": 0.175,
+        "mild": 0.761,
+        "soup": 0.113,
+        "soft": 0.898,
+        "hearty": 0.591,
+        "light": 0.255
+      },
+      "ageFit": {
+        "under35": 0.414,
+        "35to54": 0.5,
+        "55plus": 0.568
+      },
+      "reputation": 0.645,
+      "reviewCount": 1312,
+      "adFilteredCount": 10,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 1783,
+        "ratedReviews": 823,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m018",
+      "menuName": "잔치국수",
+      "features": {
+        "spicy": 0.237,
+        "mild": 0.717,
+        "soup": 0.875,
+        "soft": 0.44,
+        "hearty": 0.548,
+        "light": 0.526
+      },
+      "ageFit": {
+        "under35": 0.34,
+        "35to54": 0.52,
+        "55plus": 0.631
+      },
+      "reputation": 0.592,
+      "reviewCount": 773,
+      "adFilteredCount": 0,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 970,
+        "ratedReviews": 534,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "국수"
+        ],
+        "statCells": 11
+      }
+    },
+    {
+      "menuId": "m019",
+      "menuName": "칼국수",
+      "features": {
+        "spicy": 0.473,
+        "mild": 0.493,
+        "soup": 0.9,
+        "soft": 0.291,
+        "hearty": 0.496,
+        "light": 0.554
+      },
+      "ageFit": {
+        "under35": 0.534,
+        "35to54": 0.496,
+        "55plus": 0.472
+      },
+      "reputation": 0.636,
+      "reviewCount": 10276,
+      "adFilteredCount": 2,
+      "ageFitBasis": "stats",
+      "evidence": {
+        "sentences": 16747,
+        "ratedReviews": 7529,
+        "ageFitSource": "stats+rule",
+        "statFoods": [
+          "칼국수"
+        ],
+        "statCells": 12
+      }
+    },
+    {
+      "menuId": "m020",
+      "menuName": "비빔국수",
+      "features": {
+        "spicy": 0.868,
+        "mild": 0.195,
+        "soup": 0.257,
+        "soft": 0.206,
+        "hearty": 0.377,
+        "light": 0.342
+      },
+      "ageFit": {
+        "under35": 0.635,
+        "35to54": 0.5,
+        "55plus": 0.286
+      },
+      "reputation": 0.701,
+      "reviewCount": 2395,
+      "adFilteredCount": 4,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 3283,
+        "ratedReviews": 1823,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m021",
+      "menuName": "물냉면",
+      "features": {
+        "spicy": 0.223,
+        "mild": 0.884,
+        "soup": 0.742,
+        "soft": 0.165,
+        "hearty": 0.147,
+        "light": 0.746
+      },
+      "ageFit": {
+        "under35": 0.362,
+        "35to54": 0.5,
+        "55plus": 0.623
+      },
+      "reputation": 0.502,
+      "reviewCount": 12443,
+      "adFilteredCount": 11,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 22801,
+        "ratedReviews": 9284,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "물냉면"
+        ],
+        "statCells": 1
+      }
+    },
+    {
+      "menuId": "m022",
+      "menuName": "수제비",
+      "features": {
+        "spicy": 0.548,
+        "mild": 0.405,
+        "soup": 0.854,
+        "soft": 0.706,
+        "hearty": 0.488,
+        "light": 0.476
+      },
+      "ageFit": {
+        "under35": 0.48,
+        "35to54": 0.5,
+        "55plus": 0.57
+      },
+      "reputation": 0.729,
+      "reviewCount": 2220,
+      "adFilteredCount": 4,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 3309,
+        "ratedReviews": 1536,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m023",
+      "menuName": "LA갈비",
+      "features": {
+        "spicy": 0.118,
+        "mild": 0.53,
+        "soup": 0.118,
+        "soft": 0.118,
+        "hearty": 0.47,
+        "light": 0.294
+      },
+      "ageFit": {
+        "under35": 0.484,
+        "35to54": 0.5,
+        "55plus": 0.399
+      },
+      "reputation": 0.648,
+      "reviewCount": 158,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 187,
+        "ratedReviews": 133,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m024",
+      "menuName": "해물파전",
+      "features": {
+        "spicy": 0.172,
+        "mild": 0.446,
+        "soup": 0.102,
+        "soft": 0.383,
+        "hearty": 0.796,
+        "light": 0.255
+      },
+      "ageFit": {
+        "under35": 0.528,
+        "35to54": 0.5,
+        "55plus": 0.406
+      },
+      "reputation": 0.634,
+      "reviewCount": 1631,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 2348,
+        "ratedReviews": 1203,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m025",
+      "menuName": "김치전",
+      "features": {
+        "spicy": 0.663,
+        "mild": 0.278,
+        "soup": 0.129,
+        "soft": 0.331,
+        "hearty": 0.324,
+        "light": 0.282
+      },
+      "ageFit": {
+        "under35": 0.575,
+        "35to54": 0.5,
+        "55plus": 0.329
+      },
+      "reputation": 0.692,
+      "reviewCount": 266,
+      "adFilteredCount": 1,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 308,
+        "ratedReviews": 179,
+        "ageFitSource": "rule",
+        "statFoods": [],
+        "statCells": 0
+      }
+    },
+    {
+      "menuId": "m026",
+      "menuName": "두부부침",
+      "features": {
+        "spicy": 0.123,
+        "mild": 0.878,
+        "soup": 0.149,
+        "soft": 0.878,
+        "hearty": 0.129,
+        "light": 0.696
+      },
+      "ageFit": {
+        "under35": 0.301,
+        "35to54": 0.5,
+        "55plus": 0.684
+      },
+      "reputation": 0.758,
+      "reviewCount": 107,
+      "adFilteredCount": 0,
+      "ageFitBasis": "rule",
+      "evidence": {
+        "sentences": 145,
+        "ratedReviews": 86,
+        "ageFitSource": "rule",
+        "statFoods": [
+          "두부부침/전"
+        ],
+        "statCells": 5
+      }
+    }
+  ]
+}

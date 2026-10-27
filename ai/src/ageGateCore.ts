@@ -3,7 +3,16 @@
 
 import { ageGateReducer, initialAgeGateState } from './ageGateReducer';
 import { frameConfidence, type Box } from './ageModels';
-import type { AgeGate, AgeGateRules, AgeGateUpdate, AgeGroup, FaceObservation } from './types';
+import type { AgeBand, AgeGate, AgeGateRules, AgeGateUpdate, AgeGroup, FaceObservation } from './types';
+
+/** force() 대상 → (group, ageBand). v1의 'non_senior'는 35to54로 본다 (Shift+N, v2-changes 2장) */
+const FORCE_TARGETS: Record<AgeGroup | AgeBand, { group: AgeGroup; ageBand: AgeBand }> = {
+  senior: { group: 'senior', ageBand: '55plus' },
+  '55plus': { group: 'senior', ageBand: '55plus' },
+  non_senior: { group: 'non_senior', ageBand: '35to54' },
+  '35to54': { group: 'non_senior', ageBand: '35to54' },
+  under35: { group: 'non_senior', ageBand: 'under35' },
+};
 
 export interface FaceDetection {
   box: Box;      // 영상 픽셀 좌표
@@ -146,11 +155,13 @@ export function createAgeGateCore(
       state = initialAgeGateState();
       failing = false;
     },
-    force(group: AgeGroup) {
+    force(target: AgeGroup | AgeBand) {
       // 시연용 (D24). 언제든 즉시 확정하고, reset() 전까지 모델 판정은 멈춘다.
+      const t = FORCE_TARGETS[target];
+      if (!t) return;
       generation++;
-      state = { ...initialAgeGateState(), phase: 'decided', runGroup: group };
-      emit({ type: 'decided', group, confidence: 1, source: 'forced' });
+      state = { ...initialAgeGateState(), phase: 'decided', runGroup: t.group };
+      emit({ type: 'decided', group: t.group, ageBand: t.ageBand, confidence: 1, source: 'forced' });
     },
     onUpdate(cb) {
       listeners.add(cb);
