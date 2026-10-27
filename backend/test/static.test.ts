@@ -100,6 +100,19 @@ describe('프론트 빌드 (FRONTEND_DIST)', () => {
   });
 });
 
+describe('프론트 빌드 없이 사진·모델 폴더만 있을 때 (개발 중 기본 상태)', () => {
+  it('사진과 모델 파일을 그대로 보낸다', async () => {
+    const noFront = await makeApp({ config: testConfig({ MODEL_DIR: dirs.models, MENU_IMAGE_DIR: dirs.images }) });
+    const img = await noFront.inject('/static/menu-images/m001.jpg');
+    expect(img.statusCode).toBe(200);
+    expect(img.headers['content-type']).toBe('image/jpeg');
+    const wasm = await noFront.inject('/models/ort-wasm/ort-wasm-simd.wasm');
+    expect(wasm.statusCode).toBe(200);
+    expect(wasm.headers['content-type']).toBe('application/wasm');
+    await noFront.close();
+  });
+});
+
 describe('폴더가 없을 때', () => {
   it('서버는 뜨고, 정적 경로는 JSON 404', async () => {
     const bare = await makeApp(); // testConfig 기본값은 없는 폴더를 가리킨다

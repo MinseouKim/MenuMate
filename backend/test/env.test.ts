@@ -27,7 +27,7 @@ describe('loadConfig', () => {
     expect(c.host).toBe('127.0.0.1');
     expect(c.databaseUrl).toBe(`file:${slash(path.join(base, 'data', 'menumate.db'))}`);
     expect(c.menuSeedFile).toBe(path.join(base, 'seed', 'menu.dummy.json'));
-    expect(c.menuImageDir).toBe(path.join(base, 'data', 'menu-images'));
+    expect(c.menuImageDir).toBe(path.join(base, 'seed', 'menu-images'));
     expect(c.modelDir).toBe(path.resolve(base, '..', 'ai', 'models'));
     expect(c.frontendDist).toBe(path.resolve(base, '..', 'frontend', 'dist'));
     expect(c.paymentMode).toBe('simulate');

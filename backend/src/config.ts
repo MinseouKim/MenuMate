@@ -41,7 +41,7 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
     host: env.HOST || '127.0.0.1',
     databaseUrl: resolveDatabaseUrl(env.DATABASE_URL || 'file:./data/menumate.db', baseDir),
     menuSeedFile: dir('MENU_SEED_FILE', './seed/menu.dummy.json'),
-    menuImageDir: dir('MENU_IMAGE_DIR', './data/menu-images'),
+    menuImageDir: dir('MENU_IMAGE_DIR', './seed/menu-images'),
     modelDir: dir('MODEL_DIR', '../ai/models'),
     frontendDist: dir('FRONTEND_DIST', '../frontend/dist'),
     paymentMode: oneOf(env, 'PAYMENT_MODE', ['simulate'] as const, 'simulate'),

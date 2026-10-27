@@ -8,6 +8,18 @@ import { dummyMenuPath, fixtureMenu, resetDb, seedFixture, testPrisma } from './
 
 const TAGS = ['spicy', 'mild', 'soup', 'soft', 'hearty'];
 
+/** JPEG SOF 마커에서 가로 픽셀 수를 읽는다 */
+function jpegWidth(buf: Buffer): number {
+  let i = 2;
+  while (i < buf.length) {
+    const marker = buf[i + 1];
+    const len = buf.readUInt16BE(i + 2);
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) return buf.readUInt16BE(i + 7);
+    i += 2 + len;
+  }
+  throw new Error('JPEG 크기를 찾지 못함');
+}
+
 function errorsOf(mutate: (f: any) => void): string[] {
   const f: any = fixtureMenu();
   mutate(f);
@@ -76,12 +88,45 @@ describe('더미 메뉴 (seed/menu.dummy.json)', () => {
     expect(r.ok ? [] : r.errors).toEqual([]);
   });
 
-  it('한식 20~30개, 카테고리 4~6개, image는 모두 null', () => {
+  it('한식 20~30개, 카테고리 4~6개', () => {
     expect(dummy.items.length).toBeGreaterThanOrEqual(20);
     expect(dummy.items.length).toBeLessThanOrEqual(30);
     expect(dummy.categories.length).toBeGreaterThanOrEqual(4);
     expect(dummy.categories.length).toBeLessThanOrEqual(6);
-    expect(dummy.items.every((i: any) => i.image === null)).toBe(true);
+  });
+
+  describe('예시 사진 (D77)', () => {
+    const imageDir = path.join(path.dirname(dummyMenuPath), 'menu-images');
+    const withImage = dummy.items.filter((i: any) => i.image !== null);
+    const credits = fs.readFileSync(path.join(imageDir, 'CREDITS.md'), 'utf8');
+
+    it('사진이 있는 메뉴는 seed/menu-images/ 안의 실제 JPEG 파일을 가리킨다', () => {
+      expect(withImage.length).toBeGreaterThan(0);
+      for (const item of withImage) {
+        const file = path.join(imageDir, item.image.replace(/^menu-images\//, ''));
+        expect(fs.existsSync(file), `${item.id} ${item.image}`).toBe(true);
+        expect(fs.readFileSync(file).subarray(0, 3).toString('hex'), item.id).toBe('ffd8ff');
+      }
+    });
+
+    it('사진마다 CREDITS.md에 출처 URL과 라이선스가 있다', () => {
+      for (const item of withImage) {
+        const name = path.basename(item.image);
+        const row = credits.split('\n').find((l) => l.includes(`| ${name} |`));
+        expect(row, `${name} 행 없음`).toBeDefined();
+        expect(row).toMatch(/https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
+        expect(row).toMatch(/CC0|Public domain|CC BY \d/);
+        expect(row).not.toMatch(/BY-SA/);
+      }
+    });
+
+    it('사진 하나는 300KB 이하, 가로 800px 이하', () => {
+      for (const item of withImage) {
+        const buf = fs.readFileSync(path.join(imageDir, path.basename(item.image)));
+        expect(buf.length, item.id).toBeLessThanOrEqual(300 * 1024);
+        expect(jpegWidth(buf), item.id).toBeLessThanOrEqual(800);
+      }
+    });
   });
 
   it('태그 5개가 골고루 쓰이고 priority≥1 메뉴가 2~3개', () => {

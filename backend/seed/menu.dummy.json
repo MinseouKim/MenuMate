@@ -1,6 +1,6 @@
 {
   "storeName": "우루루 본점",
-  "version": "2026-10-24-dummy",
+  "version": "2026-10-27-dummy-photos",
   "categories": [
     {
       "id": "stew",
@@ -35,7 +35,7 @@
       "price": 9000,
       "categoryId": "stew",
       "description": "구수한 집된장으로 끓인 찌개",
-      "image": null,
+      "image": "menu-images/m001.jpg",
       "tags": [
         "soup",
         "mild",
@@ -51,7 +51,7 @@
       "price": 9000,
       "categoryId": "stew",
       "description": "잘 익은 김치와 돼지고기를 넣은 찌개",
-      "image": null,
+      "image": "menu-images/m002.jpg",
       "tags": [
         "soup",
         "spicy"
@@ -66,7 +66,7 @@
       "price": 9500,
       "categoryId": "stew",
       "description": "몽글몽글한 순두부를 얼큰하게 끓인 찌개",
-      "image": null,
+      "image": "menu-images/m003.jpg",
       "tags": [
         "soup",
         "spicy",
@@ -82,7 +82,7 @@
       "price": 11000,
       "categoryId": "stew",
       "description": "햄과 소시지, 라면사리를 넣은 푸짐한 찌개",
-      "image": null,
+      "image": "menu-images/m004.jpg",
       "tags": [
         "soup",
         "spicy",
@@ -98,7 +98,7 @@
       "price": 13000,
       "categoryId": "stew",
       "description": "소갈비를 오래 고아 낸 맑은 탕",
-      "image": null,
+      "image": "menu-images/m005.jpg",
       "tags": [
         "soup",
         "mild",
@@ -114,7 +114,7 @@
       "price": 11000,
       "categoryId": "stew",
       "description": "고사리와 소고기를 넣은 얼큰한 국",
-      "image": null,
+      "image": "menu-images/m006.jpg",
       "tags": [
         "soup",
         "spicy",
@@ -130,7 +130,7 @@
       "price": 9500,
       "categoryId": "gukbap",
       "description": "뽀얀 돼지뼈 국물에 밥을 말아 먹는 국밥",
-      "image": null,
+      "image": "menu-images/m007.jpg",
       "tags": [
         "soup",
         "mild",
@@ -146,7 +146,7 @@
       "price": 9500,
       "categoryId": "gukbap",
       "description": "순대와 머리고기를 듬뿍 넣은 국밥",
-      "image": null,
+      "image": "menu-images/m008.jpg",
       "tags": [
         "soup",
         "hearty"
@@ -161,7 +161,7 @@
       "price": 8000,
       "categoryId": "gukbap",
       "description": "시원한 콩나물 국물에 수란을 곁들인 국밥",
-      "image": null,
+      "image": "menu-images/m009.jpg",
       "tags": [
         "soup",
         "mild",
@@ -177,7 +177,7 @@
       "price": 12000,
       "categoryId": "gukbap",
       "description": "전복을 곱게 갈아 넣은 고소한 죽",
-      "image": null,
+      "image": "menu-images/m010.jpg",
       "tags": [
         "mild",
         "soft"
@@ -192,7 +192,7 @@
       "price": 8000,
       "categoryId": "gukbap",
       "description": "달큰한 늙은 호박으로 쑨 죽",
-      "image": null,
+      "image": "menu-images/m011.jpg",
       "tags": [
         "mild",
         "soft"
@@ -207,7 +207,7 @@
       "price": 10000,
       "categoryId": "rice",
       "description": "제철 나물과 고추장을 비벼 먹는 밥",
-      "image": null,
+      "image": "menu-images/m012.jpg",
       "tags": [
         "mild",
         "hearty"
@@ -222,7 +222,7 @@
       "price": 11000,
       "categoryId": "rice",
       "description": "뜨거운 돌솥에 누룽지까지 즐기는 비빔밥",
-      "image": null,
+      "image": "menu-images/m013.jpg",
       "tags": [
         "hearty"
       ],
@@ -236,7 +236,7 @@
       "price": 10000,
       "categoryId": "rice",
       "description": "매콤하게 볶은 돼지고기 덮밥",
-      "image": null,
+      "image": "menu-images/m014.jpg",
       "tags": [
         "spicy",
         "hearty"
@@ -251,7 +251,7 @@
       "price": 11000,
       "categoryId": "rice",
       "description": "달콤한 간장 불고기를 올린 덮밥",
-      "image": null,
+      "image": "menu-images/m015.jpg",
       "tags": [
         "mild",
         "hearty",
@@ -267,7 +267,7 @@
       "price": 10500,
       "categoryId": "rice",
       "description": "오징어를 매콤하게 볶아 올린 덮밥",
-      "image": null,
+      "image": "menu-images/m016.jpg",
       "tags": [
         "spicy"
       ],
@@ -281,7 +281,7 @@
       "price": 8500,
       "categoryId": "rice",
       "description": "폭신한 계란말이와 따뜻한 밥",
-      "image": null,
+      "image": "menu-images/m017.jpg",
       "tags": [
         "mild",
         "soft"
@@ -296,7 +296,7 @@
       "price": 7000,
       "categoryId": "noodle",
       "description": "멸치 국물에 말아 낸 잔치국수",
-      "image": null,
+      "image": "menu-images/m018.jpg",
       "tags": [
         "soup",
         "mild",
@@ -312,7 +312,7 @@
       "price": 9000,
       "categoryId": "noodle",
       "description": "바지락으로 국물을 낸 손칼국수",
-      "image": null,
+      "image": "menu-images/m019.jpg",
       "tags": [
         "soup",
         "mild"
@@ -327,7 +327,7 @@
       "price": 8000,
       "categoryId": "noodle",
       "description": "새콤달콤 매콤한 비빔국수",
-      "image": null,
+      "image": "menu-images/m020.jpg",
       "tags": [
         "spicy"
       ],
@@ -341,7 +341,7 @@
       "price": 10000,
       "categoryId": "noodle",
       "description": "시원한 육수의 물냉면",
-      "image": null,
+      "image": "menu-images/m021.jpg",
       "tags": [
         "soup",
         "mild"
@@ -356,7 +356,7 @@
       "price": 8500,
       "categoryId": "noodle",
       "description": "얇게 뜬 반죽을 맑은 국물에 끓인 수제비",
-      "image": null,
+      "image": "menu-images/m022.jpg",
       "tags": [
         "soup",
         "mild",
@@ -372,7 +372,7 @@
       "price": 18000,
       "categoryId": "grill",
       "description": "달콤한 양념에 재운 소갈비 구이",
-      "image": null,
+      "image": "menu-images/m023.jpg",
       "tags": [
         "hearty"
       ],
@@ -386,7 +386,7 @@
       "price": 14000,
       "categoryId": "grill",
       "description": "오징어와 새우를 듬뿍 넣은 파전",
-      "image": null,
+      "image": "menu-images/m024.jpg",
       "tags": [
         "hearty"
       ],
@@ -400,7 +400,7 @@
       "price": 11000,
       "categoryId": "grill",
       "description": "잘 익은 김치로 부친 바삭한 전",
-      "image": null,
+      "image": "menu-images/m025.jpg",
       "tags": [
         "spicy"
       ],
@@ -414,7 +414,7 @@
       "price": 9000,
       "categoryId": "grill",
       "description": "노릇하게 부친 두부에 양념장을 곁들임",
-      "image": null,
+      "image": "menu-images/m026.jpg",
       "tags": [
         "mild",
         "soft"
