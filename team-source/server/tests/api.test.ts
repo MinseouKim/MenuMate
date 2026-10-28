@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { inspect } from "node:util";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { createInMemoryRepositories } from "./fakes/inMemoryRepositories.js";
@@ -100,6 +101,26 @@ describe("POST /api/condition-extraction", () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("깨진 JSON은 400으로 답하고, 손님 발화를 서버 로그에 남기지 않는다", async () => {
+    const app = buildTestApp();
+    const logs: unknown[][] = [];
+    const spies = (["error", "warn", "log", "info"] as const).map((k) =>
+      vi.spyOn(console, k).mockImplementation((...args: unknown[]) => { logs.push(args); }),
+    );
+    try {
+      const res = await request(app)
+        .post("/api/condition-extraction")
+        .set("Content-Type", "application/json")
+        .send('{"utterance":"저 새우 알레르기 있어요"');
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
+      expect(inspect(logs, { depth: 5 })).not.toContain("알레르기");
+    } finally {
+      spies.forEach((s) => s.mockRestore());
+    }
   });
 });
 

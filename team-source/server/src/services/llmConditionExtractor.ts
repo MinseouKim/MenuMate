@@ -54,7 +54,13 @@ export async function extractConditionsWithLlm(utterance: string): Promise<Extra
     throw new Error("LLM 응답에 content가 없습니다.");
   }
 
-  const parsed: unknown = JSON.parse(content);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    // JSON.parse 에러 메시지에는 응답(발화가 섞일 수 있음) 일부가 들어가므로 새 메시지로 바꾼다.
+    throw new Error("LLM 응답을 JSON으로 읽지 못했습니다.");
+  }
   if (typeof parsed !== "object" || parsed === null) {
     throw new Error("LLM 응답이 JSON 객체가 아닙니다.");
   }

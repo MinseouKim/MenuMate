@@ -2,6 +2,7 @@ import type { ExtractedConditions } from "../types/order.js";
 import { llmConfigured } from "../config/env.js";
 import { extractConditionsRuleBased } from "./ruleBasedConditionExtractor.js";
 import { extractConditionsWithLlm } from "./llmConditionExtractor.js";
+import { safeErrorLog } from "../utils/safeErrorLog.js";
 
 /**
  * 조건 추출 서비스. LLM 설정이 있으면 LLM을 우선 시도하고, 실패하거나 설정이 없으면
@@ -15,7 +16,7 @@ export async function extractConditions(utterance: string): Promise<ExtractedCon
   try {
     return await extractConditionsWithLlm(utterance);
   } catch (err) {
-    console.warn("[conditionExtractionService] LLM 추출 실패, 규칙 기반으로 폴백:", err);
+    console.warn("[conditionExtractionService] LLM 추출 실패, 규칙 기반으로 폴백:", safeErrorLog(err));
     return extractConditionsRuleBased(utterance);
   }
 }
@@ -33,7 +34,7 @@ export async function extractConditionsWithSource(
   try {
     return { conditions: await extractConditionsWithLlm(utterance), source: "llm" };
   } catch (err) {
-    console.warn("[conditionExtractionService] LLM 추출 실패, 규칙 기반으로 폴백:", err);
+    console.warn("[conditionExtractionService] LLM 추출 실패, 규칙 기반으로 폴백:", safeErrorLog(err));
     return { conditions: extractConditionsRuleBased(utterance), source: "rules" };
   }
 }
