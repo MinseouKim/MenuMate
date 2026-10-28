@@ -38,6 +38,22 @@
 .menu-info-dialog .info-heading button{flex-shrink:0;font-size:clamp(16px,2.6cqw,28px);min-height:clamp(44px,7cqw,72px);min-width:clamp(56px,10cqw,110px)}
 .menu-info-dialog .primary,.menu-info-dialog .secondary{display:block;width:100%;margin-top:clamp(8px,1.4cqw,14px);min-height:clamp(56px,9cqw,96px);font-size:clamp(18px,3cqw,32px)}
 .menu-info-dialog .info-photo{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;margin-bottom:clamp(12px,2cqw,20px)}
+/* 설명 팝업: 메뉴 설명 | 메뉴 리뷰 탭 */
+.menu-info-dialog .info-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;margin-bottom:clamp(12px,2cqw,20px);background:#eef3ed;border-radius:10px}
+.menu-info-dialog .info-tabs button{min-height:clamp(48px,7.5cqw,80px);border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:700;font-size:clamp(17px,2.8cqw,30px)}
+.menu-info-dialog .info-tabs button[aria-selected="true"]{background:#fff;color:var(--green);box-shadow:0 1px 3px rgb(0 0 0/.12)}
+.menu-info-dialog .info-reviews{border-top:0;padding-top:0}
+.menu-info-dialog .info-reviews li{display:grid;gap:6px;margin-bottom:10px}
+.menu-info-dialog .info-reviews q{quotes:none;line-height:1.6;word-break:keep-all}
+.menu-info-dialog .review-meta,.menu-info-dialog .review-scope{font-size:clamp(14px,2.2cqw,24px);color:var(--muted)}
+.menu-info-dialog .review-meta span{color:#c98a12;letter-spacing:1px}
+.menu-info-dialog .review-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;color:var(--muted);font-size:clamp(15px,2.4cqw,26px)}
+.menu-info-dialog .review-updated{flex-shrink:0}
+.menu-info-dialog .review-keywords{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;margin-left:auto}
+.menu-info-dialog .review-keyword{display:inline-block;padding:2px 10px;border-radius:999px;background:#eef3ed;color:var(--green);font-weight:700}
+.menu-info-dialog .review-summary-text{margin:0;line-height:1.6;word-break:keep-all;font-size:inherit}
+.menu-info-dialog .review-summary-label{display:inline-block;margin-right:8px;padding:0 8px;border-radius:4px;background:var(--green);color:#fff;font-size:.8em;font-weight:700;vertical-align:.1em}
+.menu-info-dialog .info-reviews .review-toggle{justify-self:start;min-height:44px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--green);font-weight:700;font-size:clamp(14px,2.2cqw,24px)}
 .large-dialog{font-size:clamp(21px,3.5cqw,38px)}
 .large-dialog h2,.large-dialog .info-price{font-size:clamp(27px,5cqw,55px)}
 .large-dialog p,.large-dialog .info-description,.large-dialog .info-reviews li{font-size:clamp(21px,3.5cqw,38px)}

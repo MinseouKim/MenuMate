@@ -5,6 +5,8 @@ import App from '../App';
 import menuData from './menu/menus.json';
 import type { Menu } from './types';
 import { MenuCard } from './MenuCard';
+import { ReviewItem } from './ReviewItem';
+import { menuReviews } from './menuReviews';
 import { addLines, lineKey, suggestions, withDefaultOption } from './cart';
 import { chosung, matchesChosung } from './hangul';
 
@@ -38,6 +40,15 @@ describe('kiosk parity features', () => {
     const onSelect = vi.fn();
     render(<MenuCard menu={{ ...menus[0], soldOut: true }} quantity={0} onSelect={onSelect} onInfo={vi.fn()}/>);
     expect(screen.getByRole('button',{name:/품절/})).toBeDisabled();
+  });
+  it('shows a summary for long reviews and expands to the full review', async () => {
+    const review = menuReviews('dimsum-3')!.reviews.find(r => r.summary)!;
+    render(<ul><ReviewItem review={review}/></ul>);
+    expect(screen.getByText(review.summary!)).toBeInTheDocument();
+    expect(screen.queryByText(review.quote)).toBeNull();
+    await userEvent.click(screen.getByRole('button',{name:'전체 리뷰 보기'}));
+    expect(screen.getByText(review.quote)).toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'요약 보기'})).toHaveAttribute('aria-expanded','true');
   });
   it('asks for an option before adding a menu that has one', async () => {
     const user=userEvent.setup();render(<App/>);
