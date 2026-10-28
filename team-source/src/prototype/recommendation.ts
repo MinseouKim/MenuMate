@@ -27,10 +27,10 @@ export const KioskAI = {
   const said=stripNegated(c.raw).replace(/\s/g,'');
   const fit=(m: Menu)=>{
    let score=0;const reasons: string[]=[];
-   // 점주가 관리자 화면에서 "추천 메뉴"로 지정한 메뉴(menuLive.ts가 서버에서 겹쳐 쓴 값)에는
-   // 조건 매칭 점수(최대 약 10+8+4+3=25)에 맞먹는 가점을 줍니다 — 보통 이기지만 조건이 잘 맞는
-   // 다른 메뉴를 완전히 밀어내지는 않습니다. 서버가 없으면 isFeatured가 항상 비어 있어 영향 없음.
-   if(m.isFeatured){score+=12;reasons.push('사장님이 추천하는 메뉴예요')}
+   // 점주가 관리자 화면에서 "추천 메뉴"로 지정한 메뉴(menuLive.ts가 서버에서 겹쳐 쓴 값)는
+   // 서버 추천과 같은 규칙으로, 손님 조건(키워드·종류·맵기·식감)이 같을 때만 앞서는 작은 가점(0.5)만 줍니다.
+   // 메뉴판에서 앞에 보여 주는 것과 추천 순위는 별개입니다. 서버가 없으면 isFeatured가 비어 있어 영향 없음.
+   if(m.isFeatured){score+=0.5;reasons.push('사장님이 추천하는 메뉴예요')}
    const kw=m.keywords?.find(k=>said.includes(k));if(kw){score+=10;reasons.push(`말씀하신 ‘${kw}’ 메뉴예요`)}if(c.kind!=='상관없음'&&m.kind.includes(c.kind)){score+=8;reasons.push(`${c.kind} 메뉴를 원하셨어요`)}
    // 맵기 0은 '안 매움'과 '아직 모름'이 섞여 있어, 매장에서 확인한 메뉴(spicyChecked)만 안 맵다고 말합니다.
    if(c.spicy!==null&&m.spicy===c.spicy){if(c.spicy===0&&!m.spicyChecked){score+=2;reasons.push('맵다는 표시가 없는 메뉴예요')}else{score+=4;reasons.push(c.spicy===0?'안 매운 메뉴예요':'원하신 맵기와 맞아요')}}

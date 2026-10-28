@@ -17,6 +17,7 @@
     "import:evidences": "tsx src/db/importMenuEvidences.ts",
     "import:real-data": "npm run import:real-menu && npm run import:evidences",
     "cloud:setup": "tsx --env-file=.env.aiven src/db/runMigrations.ts && tsx --env-file=.env.aiven src/db/importRealMenu.ts && tsx --env-file=.env.aiven src/db/importMenuEvidences.ts",
+    "cloud:evidences": "tsx --env-file=.env.aiven src/db/importMenuEvidences.ts",
     "cloud:seed-admin": "tsx --env-file=.env.aiven src/db/seedAdmin.ts",
     "seed:build": "tsx scripts/buildUruruSeed.ts",
     "seed:admin": "tsx src/db/seedAdmin.ts",

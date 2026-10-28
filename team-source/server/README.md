@@ -81,6 +81,19 @@ npm run seed:admin -- --password <비밀번호>      # 점주 관리자 로그�
 
 `scripts/buildUruruSeed.ts`(`npm run seed:build`)는 더 단순한 과거 경로로 남겨 두었다 — `kind`/`external_id`/`is_featured`/`featured_rank`를 채우지 않으므로, 관리자 화면에서 메뉴를 고칠 계획이 없을 때만 쓴다.
 
+### 1-1-1. 리뷰를 고쳤을 때 (메뉴는 그대로, 리뷰만 다시 넣기)
+
+리뷰 원본은 `ururu-menu/menu_reviews.json` 하나다. 키오스크 리뷰 탭과 서버 추천 근거가 모두 여기서 나오므로, 리뷰를 추가·삭제했다면 아래를 순서대로 한다.
+
+1. `ururu-menu/menu_reviews.json` 수정 — 부정적인 리뷰, `ㅋㅋ`·`ㅎㅎ`만 있는 글, 어느 메뉴인지 모르는 글은 넣지 않는다. 메뉴 전체를 칭찬한 글(예: "딤섬 다 맛있어요")은 `[딤섬 전체 언급]`처럼 앞에 붙여 공통 근거로 둔다.
+2. 긴 리뷰(80자 넘음)를 새로 넣었다면 `team-source/src/prototype/menu/review/review_summaries.json`에 요약을 적는다.
+3. 키오스크용 파일 다시 만들기 (저장소 루트에서): `node team-source/scripts/buildMenuReviews.mjs`
+4. 로컬 DB에 리뷰 근거 다시 넣기 (이 폴더에서): `npm run import:evidences`
+5. 클라우드 DB에도: `npm run cloud:evidences` — 메뉴를 다시 넣지 않으므로 점주 설정(추천 메뉴·세트)이 지워지지 않는다.
+6. 커밋·푸시 → 키오스크(Vercel)는 자동 재배포, 서버(Render)는 코드가 안 바뀌었으면 재배포할 필요 없다.
+
+`menus.json`(메뉴판)이 바뀐 경우에는 `npm run import:real-data` / `npm run cloud:setup`으로 메뉴부터 다시 넣는다. 이때는 점주 설정이 지워지므로 관리자 화면에서 다시 지정한다.
+
 ### 1-2. 클라우드 배포 (Render 서버 + Aiven MySQL, 둘 다 무료)
 
 저장소 루트의 `render.yaml`이 배포 설정이다. 순서:
@@ -88,7 +101,7 @@ npm run seed:admin -- --password <비밀번호>      # 점주 관리자 로그�
 1. **Aiven** (https://aiven.io) — MySQL 서비스를 Free plan으로 만든다. 서비스 화면의 Connection information에서 Host/Port/User/Password/Database와 **CA certificate**를 받는다.
 2. **클라우드 DB에 데이터 넣기 (내 PC에서)** — CA 인증서를 `certs/aiven-ca.pem`으로 저장하고, `.env.aiven.example`을 `.env.aiven`으로 복사해서 채운 뒤:
    ```bash
-   npm run cloud:setup                              # 테이블 + 메뉴 80개 + 리뷰 근거
+   npm run cloud:setup                              # 테이블 + 메뉴 80개 + 리뷰 근거 (리뷰만 바꿀 땐 cloud:evidences)
    npm run cloud:seed-admin -- --password <점주 비밀번호>
    ```
    `.env.aiven`, `certs/`는 커밋되지 않는다. 로컬 `.env`는 그대로 두고 로컬 개발에 계속 쓴다.
@@ -143,7 +156,7 @@ npm test
 | GET | `/api/stores/:slug` | 매장 단건 |
 | GET | `/api/stores/:slug/menus` | 매장의 메뉴(+태그/페어링/재료 노티스/근거) 목록 |
 | POST | `/api/condition-extraction` | `{ utterance }` → 구조화된 조건(JSON) 추출. LLM 미설정 시 규칙 기반 |
-| POST | `/api/stores/:slug/recommendations` | `{ conditions, vision? }` → 추천 결과 + `allergy_safety_notice` |
+| POST | `/api/stores/:slug/recommendations` | `{ conditions, vision? }` → 추천 결과 + `allergy_safety_notice`. 조건에 `kind`(음식 종류), `total_budget`(총예산, 1인 예산 x 인원보다 우선)을 줄 수 있다. 결과마다 `set_type`(single/with_side/split/light/full_set/owner_set), `lines`(메뉴+수량), `total_price` |
 | POST | `/api/stores/:slug/menus/:menuId/evidences` | 메뉴 근거 추가 (관리용, `manual_public_review_aggregate` 제약 검증) |
 | POST | `/api/stores/:slug/orders` | 결제 완료 주문 저장(매출 집계·영수증 재발급용). 키오스크가 손님 응대 중 호출하는 공개 API라 로그인 없음. 1분당 요청 수 제한 없음(관리자 로그인과 달리 브루트포스 대상이 아님) |
 
