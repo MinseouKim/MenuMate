@@ -17,7 +17,7 @@ export interface MenuTag {
 
 /**
  * 알레르기 "안전 여부 보장" 테이블이 아니다 — 확인된/유추된/불명 재료 정보만 기록한다.
- * status가 'unknown'인 행은 추천 하드 필터(제외 재료)에 근거로 쓰지 않는다.
+ * 제외 재료 요청과 이름이 겹치면 status와 상관없이 추천에서 뺀다(recommendationService.violatesExclusion).
  */
 export type IngredientNoticeStatus = "confirmed" | "inferred_from_menu_name" | "unknown";
 export type IngredientNoticeSourceType = "official_menu" | "owner_verified" | "menu_name";

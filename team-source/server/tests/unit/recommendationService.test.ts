@@ -51,7 +51,13 @@ describe("recommendationService.recommend", () => {
           { ingredient_name: "갑각류", status: "confirmed", source_type: "owner_verified", verified_at: "2026-10-01" },
         ],
       }),
-      makeMain({ id: 2, name: "짜장면" }),
+      makeMain({
+        id: 2,
+        name: "짜장면",
+        ingredient_notices: [
+          { ingredient_name: "밀", status: "confirmed", source_type: "official_menu", verified_at: "2026-10-01" },
+        ],
+      }),
     ];
     const conditions = { ...emptyConditions(), excluded_ingredients: ["갑각류"] };
 
@@ -61,7 +67,7 @@ describe("recommendationService.recommend", () => {
     expect(result.map((r) => r.main.id)).toContain(2);
   });
 
-  it("unknown 상태의 재료 노티스는 하드 필터 근거로 쓰지 않는다 (알레르기 안전 미보장 원칙)", () => {
+  it("제외 재료와 겹치는 노티스는 unknown 상태여도 추천에서 뺀다 (화면과 같은 안전 규칙)", () => {
     const menu = [
       makeMain({
         id: 1,
@@ -75,10 +81,57 @@ describe("recommendationService.recommend", () => {
 
     const result = recommend({ conditions, vision: unavailableVision, menu });
 
-    // unknown은 제외 근거로 쓰지 않으므로 하드필터로 제거되지 않고 그대로 추천된다 —
-    // 대신 cautions에 "확인 불가"로 노출되어 사용자가 매장에 직접 확인하도록 유도한다.
+    expect(result.map((r) => r.main.id)).not.toContain(1);
+  });
+
+  it("제외 요청과 겹치지 않는 unknown 노티스는 추천하되 '확인 불가' 주의 문구를 붙인다", () => {
+    const menu = [
+      makeMain({
+        id: 1,
+        name: "마라짬뽕",
+        ingredient_notices: [
+          { ingredient_name: "갑각류", status: "unknown", source_type: "menu_name", verified_at: null },
+        ],
+      }),
+    ];
+    const conditions = { ...emptyConditions(), excluded_ingredients: ["돼지고기"] };
+
+    const result = recommend({ conditions, vision: unavailableVision, menu });
+
     expect(result.map((r) => r.main.id)).toContain(1);
     expect(result[0].cautions.some((c) => c.includes("확인 불가"))).toBe(true);
+  });
+
+  it("재료 정보가 없는 메뉴는 무엇이든 빼 달라는 요청이 있으면 추천하지 않는다", () => {
+    const withInfo = makeMain({
+      id: 1, name: "짜장면",
+      ingredient_notices: [{ ingredient_name: "밀", status: "confirmed", source_type: "official_menu", verified_at: null }],
+    });
+    const noInfo = makeMain({ id: 2, name: "재료 정보 없는 메뉴", ingredient_notices: [] });
+
+    const excluded = recommend({
+      conditions: { ...emptyConditions(), excluded_ingredients: ["새우"] }, vision: unavailableVision, menu: [withInfo, noInfo],
+    });
+    const notExcluded = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu: [withInfo, noInfo] });
+
+    expect(excluded.map((r) => r.main.id)).toEqual([1]);
+    expect(notExcluded.map((r) => r.main.id).sort()).toEqual([1, 2]);
+  });
+
+  it("'해산물'을 빼면 새우·게 같은 해산물 메뉴도, 새우만 빼면 재료가 '해산물'로만 적힌 메뉴도 뺀다", () => {
+    const notice = (name: string) => [{ ingredient_name: name, status: "confirmed" as const, source_type: "official_menu" as const, verified_at: null }];
+    const menu = [
+      makeMain({ id: 1, name: "새우요리", ingredient_notices: notice("새우") }),
+      makeMain({ id: 2, name: "해물요리", ingredient_notices: notice("해산물") }),
+      makeMain({ id: 3, name: "게요리", ingredient_notices: notice("게") }),
+      makeMain({ id: 4, name: "돼지요리", ingredient_notices: notice("돼지고기") }),
+    ];
+
+    const noSeafood = recommend({ conditions: { ...emptyConditions(), excluded_ingredients: ["해산물"] }, vision: unavailableVision, menu });
+    const noShrimp = recommend({ conditions: { ...emptyConditions(), excluded_ingredients: ["새우"] }, vision: unavailableVision, menu });
+
+    expect(noSeafood.map((r) => r.main.id)).toEqual([4]);
+    expect(noShrimp.map((r) => r.main.id).sort()).toEqual([3, 4]);
   });
 
   it("안 매운맛을 요청하면 매운 메뉴를 하드 필터로 제거한다", () => {

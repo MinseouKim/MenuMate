@@ -19,7 +19,7 @@ export interface RecommendationInput {
  * 규칙/점수 기반 추천 엔진 (프론트엔드 src/services/recommendation/ruleBasedEngine.ts 포팅).
  *
  * 우선순위 (2026-10-27 수정 — 점주 지정은 "사용자 요구사항 + 실제 리뷰 근거"보다 뒤로):
- * 1. 하드 필터: 품절, 제외 재료(확인된/메뉴명으로 유추된 것만 — unknown은 하드 필터 근거로 쓰지 않음),
+ * 1. 하드 필터: 품절, 제외 재료(키오스크 화면 prototype/recommendation.ts와 같은 규칙 — 아래 violatesExclusion),
  *    맵기 "못 먹음" 제약, 예산 초과(예산은 "무조건" 지켜야 하는 하드 제약 — 단일 메뉴는 1인 예산,
  *    점주 추천 세트는 세트 합계가 1인 예산 x 인원수를 넘으면 제외).
  * 2. 다단계(tiered) 비교 — 상위 티어가 같을 때만 다음 티어로 내려가므로 하위 티어가 상위를 절대 못 뒤집는다.
@@ -120,19 +120,41 @@ function setFitsBudget(set: FeaturedSetForRecommendation, conditions: ExtractedC
   return total <= conditions.budget_per_person * Math.max(1, conditions.party_size);
 }
 
-/** 제외 재료 요청이 이 메뉴의 "확실한" 재료 정보와 겹치는지. unknown 노티스는 절대 하드 필터 근거로 쓰지 않는다. */
-function hasConfidentExcludedIngredient(item: MenuWithDetails, excluded: string[]): boolean {
+/**
+ * 제외 재료 규칙 — 키오스크 화면(prototype/recommendation.ts)과 똑같이 맞춘다 (2026-10-28).
+ * - "해산물"을 빼 달라고 하면 새우·생선·게·해삼·전복·관자·굴·오징어·조개도 함께 뺀다.
+ * - 새우처럼 해산물 하나만 빼 달라고 해도, 재료가 "해산물"로만 적힌 메뉴는 무엇이 들었는지 모르므로 함께 뺀다.
+ */
+const SEAFOOD_GROUP = ["해산물", "새우", "생선", "게", "해삼", "전복", "관자", "굴", "오징어", "조개"];
+
+export function expandExclusions(excluded: string[]): string[] {
+  const out = new Set<string>();
+  for (const raw of excluded) {
+    const e = raw.trim();
+    if (!e) continue;
+    if (e === "해산물") SEAFOOD_GROUP.forEach((x) => out.add(x));
+    else out.add(e);
+  }
+  if ([...out].some((e) => SEAFOOD_GROUP.includes(e))) out.add("해산물");
+  return [...out];
+}
+
+/**
+ * 이 메뉴가 (확장된) 제외 재료 요청에 걸리는지.
+ * - 재료 정보가 하나도 없으면 "안 들어감"이 아니라 "아직 모름"이다 → 무엇이든 빼 달라는 요청이 있으면 추천하지 않는다.
+ * - 재료 노티스는 상태(confirmed / inferred_from_menu_name / unknown)와 상관없이 이름이 겹치면 뺀다
+ *   — 알레르기 쪽은 덜 추천하는 쪽이 안전하다. (안전을 보장한다는 뜻은 아니며 응답에는 항상 안내문구가 붙는다.)
+ */
+function violatesExclusion(item: MenuWithDetails, excluded: string[]): boolean {
   if (excluded.length === 0) return false;
-  return item.ingredient_notices.some((notice) => {
-    if (notice.status === "unknown") return false; // confirmed / inferred_from_menu_name 만 근거로 인정
-    return excluded.some(
-      (ex) => notice.ingredient_name.includes(ex) || ex.includes(notice.ingredient_name),
-    );
-  });
+  if (item.ingredient_notices.length === 0) return true;
+  return item.ingredient_notices.some((notice) =>
+    excluded.some((ex) => notice.ingredient_name.includes(ex) || ex.includes(notice.ingredient_name)),
+  );
 }
 
 function passesHardFilters(item: MenuWithDetails, conditions: ExtractedConditions): boolean {
-  if (hasConfidentExcludedIngredient(item, conditions.excluded_ingredients)) return false;
+  if (violatesExclusion(item, expandExclusions(conditions.excluded_ingredients))) return false;
 
   if (conditions.spicy_level === 0 && item.spicy_level > 0) return false;
   if (conditions.spicy_level !== null && conditions.spicy_level > 0 && item.spicy_level === 0) {
@@ -300,7 +322,7 @@ function buildRecommendedSet(args: {
           (s) =>
             main.pairing_menu_ids.includes(s.id) &&
             !s.sold_out &&
-            !hasConfidentExcludedIngredient(s, conditions.excluded_ingredients),
+            !violatesExclusion(s, expandExclusions(conditions.excluded_ingredients)),
         ) ?? null);
   const resolvedSides = ownerSetLabel !== null ? sides : pairedSide ? [pairedSide] : [];
 
