@@ -73,6 +73,8 @@ export function createInMemoryRepositories(options: {
         external_id: null,
         spicy_level: input.spicy_level,
         serving_size: input.serving_size ?? null,
+        serving_people: null,
+        serving_min: null,
         sold_out: input.sold_out ?? false,
         is_featured: false,
         featured_rank: null,

@@ -17,6 +17,8 @@ function makeMain(overrides: Partial<MenuWithDetails>): MenuWithDetails {
     sold_out: false,
     is_featured: false,
     featured_rank: null,
+    serving_people: 1,
+    serving_min: 1,
     flavor_tags: [],
     texture_tags: [],
     keyword_tags: [],
@@ -146,7 +148,7 @@ describe("recommendationService.recommend", () => {
     expect(result.map((r) => r.main.id)).toEqual([2]);
   });
 
-  it("매운맛을 요청하면 안 매운 메뉴를 제거한다", () => {
+  it("매운맛을 요청하면 맵기가 맞는 메뉴를 먼저 추천한다 (안 매운 메뉴를 빼지는 않음 — 화면과 같음)", () => {
     const menu = [
       makeMain({ id: 1, name: "마라탕", spicy_level: 3 }),
       makeMain({ id: 2, name: "짜장면", spicy_level: 0 }),
@@ -155,7 +157,8 @@ describe("recommendationService.recommend", () => {
 
     const result = recommend({ conditions, vision: unavailableVision, menu });
 
-    expect(result.map((r) => r.main.id)).toEqual([1]);
+    expect(result[0].main.id).toBe(1);
+    expect(result.map((r) => r.main.id)).toContain(2);
   });
 
   it("품절 메뉴는 추천하지 않는다", () => {
@@ -208,7 +211,7 @@ describe("recommendationService.recommend", () => {
       vision: seniorVision,
       menu,
     });
-    expect(withSpicyPreference.map((r) => r.main.id)).toEqual([2]);
+    expect(withSpicyPreference[0].main.id).toBe(2);
   });
 
   it("대표 메뉴끼리 점수가 같으면 featured_rank가 작은 메뉴를 먼저 추천한다", () => {
@@ -370,13 +373,13 @@ describe("recommendationService.recommend", () => {
     // 세트는 빠져도 예산 안에 드는 단일 메뉴(9,000원)는 그대로 추천된다.
     expect(result.map((r) => r.main.id)).toContain(1);
   });
-  it("음식 종류(kind)로만 매칭된 메뉴에도 '요청하신 … 관련 메뉴' 근거가 붙는다", () => {
+  it("음식 종류(kind)로만 매칭된 메뉴에도 '○○ 메뉴를 원하셨어요' 이유가 붙는다", () => {
     const menu = [makeMain({ id: 1, name: "소룡포", kind: "딤섬" })];
     const conditions = { ...emptyConditions(), food_keywords: ["딤섬"] };
 
     const result = recommend({ conditions, vision: unavailableVision, menu });
 
-    expect(result[0].matched_conditions).toContain('요청하신 "딤섬" 관련 메뉴');
+    expect(result[0].matched_conditions).toContain("딤섬 메뉴를 원하셨어요");
   });
   it("직접 언급 리뷰가 있는 메뉴가 공통 근거('딤섬' 전체 칭찬)만 있는 메뉴보다 먼저 추천된다", () => {
     const aggregate = (mention: number) => [{
@@ -412,5 +415,58 @@ describe("recommendationService.recommend", () => {
     const result = recommend({ conditions: emptyConditions(), vision: unavailableVision, menu });
 
     expect(result.map((r) => r.main.id)).toEqual([2, 1]);
+  });
+  describe("조합 추천 (화면 키오스크와 같은 구성)", () => {
+    const aggregate = (mention: number) => [{
+      field_name: "overall", source_type: "manual_public_review_aggregate" as const,
+      source_summary: "공개 리뷰 집계", sample_size: 20 + mention, mention_count: mention,
+      collected_at: "2026-10-27", verified_at: null,
+    }];
+    const tableMenu = () => [
+      makeMain({ id: 1, name: "탕수육", kind: "돼지고기", price: 25000, serving_people: 2, serving_min: 2, keyword_tags: ["탕수육"], evidences: [] }),
+      makeMain({ id: 2, name: "짜장면", kind: "면", price: 7000, keyword_tags: ["짜장"], evidences: [] }),
+      makeMain({ id: 3, name: "짬뽕", kind: "면", price: 8000, keyword_tags: ["짬뽕"], evidences: [] }),
+      makeMain({ id: 4, name: "볶음밥", kind: "밥", price: 8000, keyword_tags: ["볶음밥"], evidences: [] }),
+      makeMain({ id: 5, name: "군만두", kind: "딤섬", price: 5000, category: "side", evidences: [] }),
+    ];
+
+    it("3명이면 요리·식사·곁들임을 묶은 중식 한상을 예산 안에서 추천한다", () => {
+      const conditions = { ...emptyConditions(), party_size: 3, budget_per_person: 20000 };
+
+      const result = recommend({ conditions, vision: unavailableVision, menu: tableMenu() });
+
+      const full = result.find((r) => r.set_type === "full_set");
+      expect(full).toBeDefined();
+      expect(full!.lines.length).toBeGreaterThanOrEqual(4);
+      expect(full!.total_price).toBeLessThanOrEqual(60000);
+      expect(result.every((r) => r.total_price <= 60000)).toBe(true);
+    });
+
+    it("총예산(total_budget)이 있으면 1인 예산 x 인원보다 우선해서 지킨다", () => {
+      const conditions = { ...emptyConditions(), party_size: 3, budget_per_person: 20000, total_budget: 30000 };
+
+      const result = recommend({ conditions, vision: unavailableVision, menu: tableMenu() });
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((r) => r.total_price <= 30000)).toBe(true);
+      expect(result.some((r) => r.set_type === "full_set")).toBe(false);
+    });
+
+    it("리뷰 많은 비싼 곁들임 때문에 한상이 예산을 넘으면, 리뷰를 뺀 기준으로 다시 골라 한상을 살린다", () => {
+      const menu = [
+        ...tableMenu(),
+        ...[11, 12, 13, 14].map((id) =>
+          makeMain({ id, name: `리뷰 많은 딤섬 ${id}`, kind: "딤섬", price: 20000, category: "side", evidences: aggregate(3) }),
+        ),
+      ];
+      const conditions = { ...emptyConditions(), party_size: 3, total_budget: 55000 };
+
+      const result = recommend({ conditions, vision: unavailableVision, menu });
+
+      const full = result.find((r) => r.set_type === "full_set");
+      expect(full).toBeDefined();
+      expect(full!.lines.map((l) => l.menu.id)).toContain(5);
+      expect(full!.total_price).toBeLessThanOrEqual(55000);
+    });
   });
 });

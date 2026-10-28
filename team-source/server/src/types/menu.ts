@@ -67,6 +67,10 @@ export interface MenuRow {
   external_id: string | null;
   spicy_level: 0 | 1 | 2 | 3;
   serving_size: string | null;
+  /** 1개가 몇 명 분량인지 (조합 추천의 수량 계산용, 006 마이그레이션). 없으면 1인분으로 본다. */
+  serving_people: number | null;
+  /** 최소 몇 명 분량인지. 없으면 serving_people과 같다고 본다. */
+  serving_min: number | null;
   sold_out: boolean;
   /** 점주가 "추천 메뉴"로 지정했는지. 추천 엔진에서 가점 대상이 된다 (안전 하드 필터는 그대로 적용). */
   is_featured: boolean;

@@ -19,6 +19,8 @@ function menu(overrides: Partial<MenuWithDetails>): MenuWithDetails {
     sold_out: false,
     is_featured: false,
     featured_rank: null,
+    serving_people: 1,
+    serving_min: 1,
     flavor_tags: [],
     texture_tags: [],
     keyword_tags: [],

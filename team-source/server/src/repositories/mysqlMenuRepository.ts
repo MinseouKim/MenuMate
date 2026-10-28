@@ -40,6 +40,8 @@ function toMenuRow(row: MenuQueryRow): MenuRow {
     external_id: row.external_id,
     spicy_level: row.spicy_level,
     serving_size: row.serving_size,
+    serving_people: row.serving_people ?? null,
+    serving_min: row.serving_min ?? null,
     sold_out: Boolean(row.sold_out),
     is_featured: Boolean(row.is_featured),
     featured_rank: row.featured_rank,
@@ -47,7 +49,7 @@ function toMenuRow(row: MenuQueryRow): MenuRow {
 }
 
 const MENU_SELECT_COLUMNS =
-  "id, store_id, name, price, category, kind, external_id, spicy_level, serving_size, sold_out, is_featured, featured_rank";
+  "id, store_id, name, price, category, kind, external_id, spicy_level, serving_size, serving_people, serving_min, sold_out, is_featured, featured_rank";
 
 /** 여러 메뉴 id에 대해 태그/페어링/노티스/근거를 한 번씩만 조회한 뒤 메뉴별로 묶어 MenuWithDetails[]를 만든다. */
 async function attachDetails(pool: Pool, menuRows: MenuQueryRow[]): Promise<MenuWithDetails[]> {
@@ -56,7 +58,8 @@ async function attachDetails(pool: Pool, menuRows: MenuQueryRow[]): Promise<Menu
   const placeholders = menuIds.map(() => "?").join(",");
 
   const [tagRows] = await pool.query<MenuTagRow[]>(
-    `SELECT menu_id, tag_type, tag FROM menu_tags WHERE menu_id IN (${placeholders})`,
+    // 넣은 순서(id) 그대로 — 키워드 순서가 메뉴 종류(짜장·탕면 등) 판단에 쓰여 화면 데이터(menus.json)와 같아야 한다.
+    `SELECT menu_id, tag_type, tag FROM menu_tags WHERE menu_id IN (${placeholders}) ORDER BY id`,
     menuIds,
   );
   const [pairingRows] = await pool.query<MenuPairingRow[]>(

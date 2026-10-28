@@ -1,9 +1,9 @@
 -- ============================================================================
 -- menumate DB 처음부터 한 번에 설정 (MySQL Workbench에서 root로 이 파일 전체 실행)
 -- ============================================================================
--- sql/001~005 마이그레이션을 순서대로 합치고, 마지막에 schema_migrations에 "적용됨"으로 기록한다.
+-- sql/001~006 마이그레이션을 순서대로 합치고, 마지막에 schema_migrations에 "적용됨"으로 기록한다.
 -- 그래서 이 파일을 실행한 뒤 npm run migrate 를 돌려도 같은 SQL을 다시 실행하지 않는다
--- (새 마이그레이션 006_ 이후만 적용된다). migrate:bootstrap 은 필요 없다.
+-- (새 마이그레이션 007_ 이후만 적용된다). migrate:bootstrap 은 필요 없다.
 --
 -- 이 파일은 sql/manual/ 안에 있어서 npm run migrate 가 자동으로 실행하지 않는다.
 -- sql/0xx 파일을 고치면 이 파일도 다시 만들어야 한다 (내용은 그 파일들을 그대로 복사한 것).
@@ -20,7 +20,7 @@
 SET NAMES utf8mb4;  -- 한글(매장명·메뉴명)이 깨지지 않게 접속 문자셋을 맞춘다
 
 -- 0) 데이터베이스 + 앱 전용 계정 ------------------------------------------------
-DROP DATABASE IF EXISTS kiosk_dev;   -- 처음부터 다시 만들 때만 주석 해제
+-- DROP DATABASE IF EXISTS kiosk_dev;   -- 처음부터 다시 만들 때만 주석 해제
 
 CREATE DATABASE IF NOT EXISTS kiosk_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -492,7 +492,23 @@ CREATE TABLE IF NOT EXISTS order_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
--- 마이그레이션 기록 — npm run migrate 가 001~005를 다시 실행하지 않게 한다
+-- 006_serving_counts.sql
+-- ============================================================================
+-- 006_serving_counts.sql
+-- 인원수 맞춤 조합 추천(키오스크 화면 prototype/recommendation.ts를 서버로 옮김)에 필요한 숫자 정보.
+-- serving_size는 "2~3인 기준", "8개입 · 2~3인"처럼 사람이 읽는 글자라 수량 계산에 쓸 수 없어서,
+-- menus.json의 servingPeople / servingMin을 숫자로 따로 둔다. 비어 있으면 1인분으로 본다.
+--   serving_people: 이 메뉴 1개가 몇 명 분량인지 (수량 = 인원 ÷ serving_people 올림)
+--   serving_min   : 최소 몇 명 분량인지 (인원보다 너무 많은 양인지 판단할 때 사용)
+
+SET NAMES utf8mb4;
+
+ALTER TABLE menus
+  ADD COLUMN serving_people TINYINT UNSIGNED NULL AFTER serving_size,
+  ADD COLUMN serving_min    TINYINT UNSIGNED NULL AFTER serving_people;
+
+-- ============================================================================
+-- 마이그레이션 기록 — npm run migrate 가 001~006을 다시 실행하지 않게 한다
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS schema_migrations (
   filename   VARCHAR(255) NOT NULL PRIMARY KEY,
@@ -503,6 +519,7 @@ INSERT IGNORE INTO schema_migrations (filename) VALUES
   ('002_seed_placeholder.sql'),
   ('003_admin.sql'),
   ('004_kind_and_external_id.sql'),
-  ('005_orders.sql');
+  ('005_orders.sql'),
+  ('006_serving_counts.sql');
 
 -- 끝. 이어서 터미널에서: npm run import:real-data → npm run seed:admin -- --password <비밀번호>

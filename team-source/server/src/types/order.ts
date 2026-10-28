@@ -13,6 +13,10 @@ export interface ExtractedConditions {
   excluded_ingredients: string[];
   food_keywords: string[];
   raw_utterance: string;
+  /** 음식 종류(키오스크 KIND_OPTIONS 값, 예: "딤섬"). 없거나 "상관없음"이면 서버가 발화/키워드에서 찾는다. */
+  kind?: string | null;
+  /** 총예산(원). 있으면 1인 예산 x 인원수 대신 이 금액을 조합 합계의 상한으로 쓴다. */
+  total_budget?: number | null;
 }
 
 export function emptyConditions(rawUtterance = ""): ExtractedConditions {
@@ -39,9 +43,29 @@ export type VisionEstimate =
       confidence: number;
     };
 
+/** 추천 한 건의 구성 방식 — 키오스크 화면(prototype/recommendation.ts)의 구성과 같다. */
+export type RecommendationSetType =
+  | "single" // 메뉴 하나 (인원에 맞춰 수량 계산)
+  | "with_side" // 메뉴 + 함께 먹기 좋은 곁들임(페어링) 1개
+  | "split" // 서로 다른 메뉴 2개로 인원을 나눠 채움
+  | "light" // 가벼운 구성: 식사 + 딤섬·스프 같은 곁들임
+  | "full_set" // 중식 한상: 요리 + 식사 + (곁들임)
+  | "owner_set"; // 점주가 관리자 화면에서 지정한 추천 세트
+
+export interface RecommendationLine {
+  menu: MenuWithDetails;
+  quantity: number;
+}
+
 export interface RecommendedSet {
   main: MenuWithDetails;
+  /** main을 뺀 나머지 구성 메뉴 (예전 응답과의 호환용 — 수량은 lines에 있다). */
   sides: MenuWithDetails[];
+  /** 구성 전체와 수량. 합계는 total_price. */
+  lines: RecommendationLine[];
+  total_price: number;
+  set_type: RecommendationSetType;
+  /** 화면에 보여 줄 추천 이유 (키오스크 화면과 같은 문장). */
   matched_conditions: string[];
   matched_attributes: string[];
   /** 확인된/유추된 재료 주의사항 — "안전 보장"이 아니라 참고용 표시임을 응답 레벨 안내문구와 함께 전달한다. */

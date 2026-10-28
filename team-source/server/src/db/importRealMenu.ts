@@ -32,6 +32,8 @@ interface RealMenuItem {
   servingMin?: number;
   servingPeople: number;
   pairings: string[];
+  keywords?: string[];
+  aliases?: string[];
   description?: string;
   reviews?: string[];
 }
@@ -75,9 +77,12 @@ async function main() {
     for (const item of items) {
       const [result] = await connection.query<ResultSetHeader>(
         `INSERT INTO menus
-           (store_id, name, price, category, kind, external_id, spicy_level, serving_size, sold_out, is_featured)
-         VALUES (?, ?, ?, 'main', ?, ?, ?, ?, FALSE, ?)`,
-        [storeId, item.name, item.price, item.kind, item.id, item.spicy, servingSizeFor(item), item.badge === "대표"],
+           (store_id, name, price, category, kind, external_id, spicy_level, serving_size, serving_people, serving_min, sold_out, is_featured)
+         VALUES (?, ?, ?, 'main', ?, ?, ?, ?, ?, ?, FALSE, ?)`,
+        [
+          storeId, item.name, item.price, item.kind, item.id, item.spicy, servingSizeFor(item),
+          item.servingPeople ?? null, item.servingMin ?? item.servingPeople ?? null, item.badge === "대표",
+        ],
       );
       const menuId = result.insertId;
       idMap.set(item.id, menuId);
@@ -91,6 +96,20 @@ async function main() {
       for (const tag of item.flavor ?? []) {
         await connection.query(
           "INSERT IGNORE INTO menu_tags (menu_id, tag_type, tag) VALUES (?, 'flavor', ?)",
+          [menuId, tag],
+        );
+      }
+      // 손님이 말한 메뉴 이름을 찾을 때 쓰는 키워드(예: 짬뽕, 간짜장)와 다른 이름(예: 샤오롱바오) —
+      // 키오스크 화면 추천이 쓰는 것과 같은 값이라야 서버 추천 결과가 화면과 같아진다.
+      for (const tag of item.keywords ?? []) {
+        await connection.query(
+          "INSERT IGNORE INTO menu_tags (menu_id, tag_type, tag) VALUES (?, 'keyword', ?)",
+          [menuId, tag],
+        );
+      }
+      for (const tag of item.aliases ?? []) {
+        await connection.query(
+          "INSERT IGNORE INTO menu_tags (menu_id, tag_type, tag) VALUES (?, 'synonym', ?)",
           [menuId, tag],
         );
       }

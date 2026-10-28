@@ -8,6 +8,10 @@ export const extractedConditionsSchema = z.object({
   excluded_ingredients: z.array(z.string().min(1)).max(20),
   food_keywords: z.array(z.string().min(1)).max(20),
   raw_utterance: z.string(),
+  // 선택: 키오스크 화면이 이미 알아들은 음식 종류(예: "딤섬", "면")와 총예산("총 5만원"). 없으면 서버가
+  // food_keywords / raw_utterance에서 종류를 찾고, 예산은 1인 예산 x 인원수로 본다.
+  kind: z.string().min(1).max(30).nullable().optional(),
+  total_budget: z.number().int().positive().nullable().optional(),
 });
 
 export const utteranceRequestSchema = z.object({
