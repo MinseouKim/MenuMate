@@ -68,8 +68,11 @@ export function createApiRouter({
   router.get("/stores", stores.list);
   router.get("/stores/:slug", stores.getBySlug);
   router.get("/stores/:slug/menus", menus.listByStore);
+  // 근거(리뷰 집계 등) 추가는 점주 로그인이 필요하다 — 손님이 부르는 공개 API가 아니고,
+  // 열어 두면 누구나 추천 점수에 영향을 주는 근거를 넣을 수 있다.
   router.post(
     "/stores/:slug/menus/:menuId/evidences",
+    requireStoreOwner,
     validateBody(menuEvidenceInputSchema),
     menus.addEvidence,
   );

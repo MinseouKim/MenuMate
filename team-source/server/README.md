@@ -157,7 +157,7 @@ npm test
 | GET | `/api/stores/:slug/menus` | 매장의 메뉴(+태그/페어링/재료 노티스/근거) 목록 |
 | POST | `/api/condition-extraction` | `{ utterance }` → 구조화된 조건(JSON) 추출. LLM 미설정 시 규칙 기반 |
 | POST | `/api/stores/:slug/recommendations` | `{ conditions, vision? }` → 추천 결과 + `allergy_safety_notice`. 조건에 `kind`(음식 종류), `total_budget`(총예산, 1인 예산 x 인원보다 우선)을 줄 수 있다. 결과마다 `set_type`(single/with_side/split/light/full_set/owner_set), `lines`(메뉴+수량), `total_price` |
-| POST | `/api/stores/:slug/menus/:menuId/evidences` | 메뉴 근거 추가 (관리용, `manual_public_review_aggregate` 제약 검증) |
+| POST | `/api/stores/:slug/menus/:menuId/evidences` | 메뉴 근거 추가. **점주 로그인 필요**(`Authorization: Bearer <token>`, 다른 매장 점주·다른 매장 메뉴는 거부). `manual_public_review_aggregate` 제약 검증 |
 | POST | `/api/stores/:slug/orders` | 결제 완료 주문 저장(매출 집계·영수증 재발급용). 키오스크가 손님 응대 중 호출하는 공개 API라 로그인 없음. 1분당 요청 수 제한 없음(관리자 로그인과 달리 브루트포스 대상이 아님) |
 
 ### 점주 관리자 API (로그인 필요, `Authorization: Bearer <token>`)
@@ -172,7 +172,7 @@ npm test
 | GET/POST | `/api/admin/stores/:slug/featured-sets` | 추천 세트 목록/생성 |
 | PATCH/DELETE | `/api/admin/stores/:slug/featured-sets/:setId` | 추천 세트 수정/삭제 |
 
-`is_featured`/`featured_rank`로 지정한 메뉴와 추천 세트는 `recommendationService.ts`의 점수 계산에서 가점(`OWNER_FEATURED_BONUS`)을 받지만, 품절·제외 재료 등 안전 하드 필터는 그대로 적용된다. 점주 관리자 화면은 별도 패키지 `admin-app/`(React + Vite)에 있다 — `npm --prefix admin-app install && npm --prefix admin-app run dev`로 실행하고 `admin-app/.env`의 `VITE_API_BASE`가 이 서버를 가리키게 한다.
+`is_featured`/`featured_rank`로 지정한 메뉴와 추천 세트는 `recommendationService.ts`의 점수 계산에서 작은 가점(0.5점 — 손님 조건·리뷰 근거보다 앞서지 않음)을 받지만, 품절·제외 재료 등 안전 하드 필터는 그대로 적용된다. 점주 관리자 화면은 별도 패키지 `admin-app/`(React + Vite)에 있다 — `npm --prefix admin-app install && npm --prefix admin-app run dev`로 실행하고 `admin-app/.env`의 `VITE_API_BASE`가 이 서버를 가리키게 한다.
 
 ## 키오스크 ↔ 서버 실시간 연동
 

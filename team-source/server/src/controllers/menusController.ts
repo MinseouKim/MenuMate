@@ -4,6 +4,7 @@ import { asyncHandler } from "../middleware/validate.js";
 import { resolveStoreOrThrow } from "./storesController.js";
 import type { MenuEvidenceInput } from "../schemas/menuEvidence.schema.js";
 import { ApiError } from "../types/api.js";
+import { ensureOwnerMatchesStore } from "../middleware/auth.js";
 
 export function createMenusController(
   storeRepository: StoreRepository,
@@ -17,8 +18,9 @@ export function createMenusController(
     }),
 
     addEvidence: asyncHandler(async (req: Request, res: Response) => {
-      // 매장 존재 여부도 함께 확인해, 엉뚱한 slug로 다른 매장의 메뉴에 근거를 붙이는 실수를 막는다.
-      await resolveStoreOrThrow(storeRepository, req.params.slug);
+      // 로그인한 점주의 매장과 요청 매장이 같아야 한다 (다른 매장 점주가 근거를 넣지 못하게).
+      const store = await resolveStoreOrThrow(storeRepository, req.params.slug);
+      ensureOwnerMatchesStore(req, store.id);
 
       const menuId = Number(req.params.menuId);
       if (!Number.isInteger(menuId) || menuId <= 0) {
@@ -26,7 +28,8 @@ export function createMenusController(
       }
 
       const menu = await menuRepository.findById(menuId);
-      if (!menu) {
+      // 다른 매장의 메뉴 id를 넣어도 이 매장 메뉴처럼 처리되지 않게 매장 소속까지 확인한다.
+      if (!menu || menu.store_id !== store.id) {
         throw ApiError.notFound(`메뉴를 찾을 수 없습니다: ${menuId}`);
       }
 

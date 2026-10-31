@@ -8,6 +8,7 @@ import { createMysqlStoreOwnerRepository } from "../../src/repositories/mysqlSto
 import { createMysqlFeaturedSetRepository } from "../../src/repositories/mysqlFeaturedSetRepository.js";
 import { createMysqlOrderRepository } from "../../src/repositories/mysqlOrderRepository.js";
 import { ALLERGY_SAFETY_NOTICE } from "../../src/types/order.js";
+import { signStoreOwnerToken } from "../../src/middleware/auth.js";
 
 // 실제 MySQL/MariaDB(kiosk_test)에 시드된 "우루루 본점" 데이터로 API 전체 흐름을 검증한다.
 
@@ -24,6 +25,12 @@ describe("API 통합 테스트 (실제 DB, 우루루 본점 시드 데이터)", 
   afterAll(async () => {
     await closePool();
   });
+
+  // 근거 추가는 점주 로그인이 필요하다. 테스트 DB에는 점주 계정이 없으니 같은 비밀값으로 토큰을 직접 만든다.
+  async function ownerToken() {
+    const store = await request(app).get("/api/stores/ururu-headquarters");
+    return signStoreOwnerToken({ id: 1, store_id: store.body.store.id, username: "test-owner" });
+  }
 
   it("GET /api/stores/ururu-headquarters/menus 가 시드된 메뉴를 반환한다", async () => {
     const res = await request(app).get("/api/stores/ururu-headquarters/menus");
@@ -79,6 +86,7 @@ describe("API 통합 테스트 (실제 DB, 우루루 본점 시드 데이터)", 
 
     const res = await request(app)
       .post(`/api/stores/ururu-headquarters/menus/${menuId}/evidences`)
+      .set("Authorization", `Bearer ${await ownerToken()}`)
       .send({
         field_name: "price_trend",
         source_type: "manual_public_review_aggregate",
@@ -97,6 +105,7 @@ describe("API 통합 테스트 (실제 DB, 우루루 본점 시드 데이터)", 
 
     const res = await request(app)
       .post(`/api/stores/ururu-headquarters/menus/${menuId}/evidences`)
+      .set("Authorization", `Bearer ${await ownerToken()}`)
       .send({
         field_name: "texture_profile:바삭함",
         source_type: "manual_public_review_aggregate",

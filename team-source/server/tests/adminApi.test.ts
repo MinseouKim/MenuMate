@@ -268,3 +268,63 @@ describe("관리자 추천 세트 API", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("POST /api/stores/:slug/menus/:menuId/evidences (점주 로그인 필요)", () => {
+  const evidence = {
+    field_name: "texture_profile:바삭함",
+    source_type: "manual_public_review_aggregate",
+    source_summary: "[테스트] 공개 리뷰 집계",
+    sample_size: 10,
+    mention_count: 6,
+  };
+
+  it("로그인 없이는 근거를 추가할 수 없다", async () => {
+    const { app, repos } = buildTestApp();
+    const res = await request(app).post("/api/stores/test-store/menus/1/evidences").send(evidence);
+
+    expect(res.status).toBe(401);
+    expect((await repos.menuRepository.findById(1))!.evidences).toHaveLength(0);
+  });
+
+  it("점주가 로그인하면 근거를 추가할 수 있다", async () => {
+    const { app, repos } = buildTestApp();
+    const token = await loginAndGetToken(app);
+    const res = await request(app)
+      .post("/api/stores/test-store/menus/1/evidences")
+      .set("Authorization", `Bearer ${token}`)
+      .send(evidence);
+
+    expect(res.status).toBe(201);
+    expect((await repos.menuRepository.findById(1))!.evidences).toHaveLength(1);
+  });
+
+  it("다른 매장 점주는 이 매장 메뉴에 근거를 추가할 수 없다", async () => {
+    const repos = createInMemoryRepositories({
+      stores: [
+        { id: 1, slug: "test-store", name: "테스트 매장", dataset_as_of: null },
+        { id: 2, slug: "other-store", name: "다른 매장", dataset_as_of: null },
+      ],
+      menus: [menu({ id: 1, store_id: 1 }), menu({ id: 9, store_id: 2, name: "[테스트] 다른 매장 메뉴" })],
+      storeOwners: [
+        { id: 1, store_id: 1, username: "owner", password_hash: bcrypt.hashSync("test-password-1234", 4), display_name: "테스트 사장님" },
+      ],
+    });
+    const app = createApp(repos);
+    const token = await loginAndGetToken(app);
+
+    // 다른 매장 slug로 호출
+    const wrongStore = await request(app)
+      .post("/api/stores/other-store/menus/9/evidences")
+      .set("Authorization", `Bearer ${token}`)
+      .send(evidence);
+    expect(wrongStore.status).toBe(401);
+
+    // 내 매장 slug에 다른 매장의 메뉴 id를 섞어 호출
+    const mixed = await request(app)
+      .post("/api/stores/test-store/menus/9/evidences")
+      .set("Authorization", `Bearer ${token}`)
+      .send(evidence);
+    expect(mixed.status).toBe(404);
+    expect((await repos.menuRepository.findById(9))!.evidences).toHaveLength(0);
+  });
+});
