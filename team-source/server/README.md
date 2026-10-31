@@ -109,6 +109,16 @@ npm run seed:admin -- --password <비밀번호>      # 점주 관리자 로그�
    - Blueprint 화면에 저장소가 안 보이면(저장소 연결 권한 문제) New → Web Service → Public Git Repository에 저장소 주소를 넣고 `render.yaml`과 같은 값(Root Directory `team-source/server`, Build `npm ci --include=dev && npm run build`, Start `npm start`, Health Check `/health`, 환경변수)을 직접 입력한다.
 4. **키오스크(Vercel)** — 환경변수 `VITE_API_BASE_URL=https://<Render 서비스 주소>`를 넣고 다시 배포한다. 키오스크 주소가 바뀌면 Render의 `CORS_ORIGIN`도 같이 바꾼다.
 
+5. **점주 관리자 화면(`admin-app/`)** — 키오스크와 따로 올리는 별도 사이트다. 저장소 루트에서:
+   ```bash
+   cd admin-app
+   npx vercel deploy --prod --yes     # 처음이면 질문이 나온다: 프로젝트 이름은 menumate-admin 같은 새 이름
+   ```
+   - Vercel 프로젝트 설정 → Environment Variables에 `VITE_API_BASE=https://<Render 서비스 주소>`를 넣은 뒤 다시 배포한다(값이 빌드 때 들어가므로 넣은 다음에 배포해야 한다). `VITE_STORE_SLUG`는 기본값(`ururu-headquarters`)이면 필요 없다.
+   - 배포된 관리자 주소를 Render의 `CORS_ORIGIN`에 쉼표로 추가한다. 예: `https://menumate-dl.vercel.app,https://menumate-admin.vercel.app` (저장하면 Render가 다시 시작된다).
+   - 확인: 배포 주소를 열어 `npm run cloud:seed-admin`으로 만든 점주 계정으로 로그인 → 메뉴 목록이 보이면 성공. 로그인이 "네트워크 오류"면 `CORS_ORIGIN`이나 `VITE_API_BASE`가 틀린 것이다.
+   - 관리자 주소는 점주만 알면 되지만 로그인 화면은 공개되므로, 점주 비밀번호는 길고 고유하게 정한다.
+
 무료 플랜이라 Render 서버는 15분간 요청이 없으면 잠들고 다음 요청 때 1분쯤 걸려 깨어난다 — 시연 직전에 `/health`를 한 번 열어 두면 된다. Aiven 무료 DB도 오래 쓰지 않으면 꺼질 수 있는데, Aiven 콘솔에서 다시 켜면 된다.
 
 ### 2. 서버 실행

@@ -152,8 +152,9 @@ export function FeaturedSetManager({
         <button className="primary" onClick={() => setCreating(true)}>+ 새 세트</button>
       </div>
       <p className="muted">
-        추천 세트는 손님의 "말로 추천받기" 결과에서 일반 추천보다 먼저 보여져요. 단, 세트 안에 품절된
-        메뉴나 손님이 제외 요청한 재료와 겹치는 메뉴가 있으면 안전을 위해 그 세트는 자동으로 숨겨져요.
+        추천 세트는 손님의 "말로 추천받기" 결과 후보에 들어가요. 손님이 말한 조건과 리뷰 근거가 더 잘 맞는
+        메뉴가 있으면 그쪽이 먼저 나오고, 예산을 넘는 세트는 나오지 않아요. 세트 안에 품절된 메뉴나 손님이
+        제외 요청한 재료와 겹치는 메뉴가 있으면 안전을 위해 그 세트는 자동으로 숨겨져요.
       </p>
       {error && <p className="error-text">{error}</p>}
 
