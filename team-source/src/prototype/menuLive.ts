@@ -54,11 +54,20 @@ export async function fetchMenuOverrides(): Promise<Map<string, Partial<MenuOver
   }
 }
 
-/** base(menus.json)에 override를 겹쳐 쓴 새 배열을 돌려준다. override가 없으면 base를 그대로 돌려준다. */
+/**
+ * base(menus.json)에 override를 겹쳐 쓴 배열을 돌려준다. override가 없거나 이미 같은 값이면 base를 "그대로"(같은 참조로)
+ * 돌려준다 — 키오스크가 60초마다 서버를 다시 부르는데, 내용이 같을 때 새 배열을 만들면 React가 매번 화면을 다시 그리기 때문이다.
+ */
 export function applyMenuOverrides(base: Menu[], overrides: Map<string, Partial<MenuOverride>> | null): Menu[] {
   if (!overrides || overrides.size === 0) return base;
-  return base.map((m) => {
+  let changed = false;
+  const next = base.map((m) => {
     const patch = overrides.get(m.id);
-    return patch ? { ...m, ...patch } : m;
+    if (!patch) return m;
+    const differs = (Object.keys(patch) as (keyof MenuOverride)[]).some((key) => m[key] !== patch[key]);
+    if (!differs) return m;
+    changed = true;
+    return { ...m, ...patch };
   });
+  return changed ? next : base;
 }
