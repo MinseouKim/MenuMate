@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MenuMate 흐름 프로토타입 (PROTOTYPE)</title>
+<style>
+  :root { --bg:#faf8f5; --ink:#1d1b19; --mute:#6b655e; --line:#e4ded6; --accent:#c2410c; --card:#fff; --ok:#15803d; --bad:#b91c1c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+  main { max-width:1080px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:15px; letter-spacing:.04em; color:var(--mute); margin:32px 0 10px; text-transform:none; }
+  .banner { background:#fff3e8; border:1px solid #f5d0b0; border-radius:8px; padding:12px 16px; margin:12px 0 0; font-size:14px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  dl { margin:0; display:grid; grid-template-columns:130px 1fr; gap:6px 12px; }
+  dt { color:var(--mute); font-size:14px; }
+  dd { margin:0; font-weight:600; word-break:keep-all; }
+  .changed { background:#fff3e8; border-radius:4px; padding:0 4px; }
+  .just { margin-top:12px; padding:10px 12px; border-left:3px solid var(--accent); background:#fbf6f1; font-size:14px; }
+  .just.bad { border-color:var(--bad); background:#fdf2f2; }
+  .group { margin-bottom:14px; }
+  .group b { display:block; font-size:13px; color:var(--mute); margin-bottom:6px; font-weight:600; }
+  button { font:inherit; font-size:14px; padding:7px 12px; margin:0 6px 6px 0; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button:disabled { opacity:.4; cursor:default; }
+  .tabs { display:flex; flex-wrap:wrap; gap:4px; border-bottom:1px solid var(--line); margin-bottom:14px; }
+  .tab { border:0; border-bottom:2px solid transparent; border-radius:0; background:none; margin:0; padding:8px 12px; }
+  .tab.on { border-bottom-color:var(--accent); color:var(--accent); font-weight:700; }
+  ol.steps { padding-left:20px; margin:10px 0 0; }
+  ol.steps li { margin-bottom:6px; color:var(--mute); }
+  ol.steps li.now { color:var(--ink); font-weight:600; }
+  ol.steps li.done { text-decoration:line-through; }
+  .log { font-size:13px; color:var(--mute); max-height:180px; overflow:auto; margin:0; padding-left:18px; }
+  .rec { display:flex; justify-content:space-between; border-bottom:1px dashed var(--line); padding:4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>MenuMate 키오스크 흐름 프로토타입</h1>
+  <div>인식 → 음성 안내 → 추천 → 장바구니 → 결제</div>
+  <div class="banner">
+    <b>PROTOTYPE · 버려질 코드입니다.</b>
+    확인하려는 질문: <b>"나이 추정이 흔들리거나 틀려도, 화면 모드와 흐름이 사용자를 막다른 길에 두지 않고 결제까지 이어지는가?"</b>
+    카메라·음성·결제는 모두 버튼으로 흉내냅니다. 데이터는 메모리에만 있고 새로고침하면 사라집니다.
+  </div>
+
+  <h2>지금 상태</h2>
+  <div class="grid">
+    <div class="card" id="state"></div>
+    <div class="card">
+      <b style="font-size:14px;color:var(--mute)">추천 결과 (규칙 기반 점수)</b>
+      <div id="recs" style="margin-top:8px"></div>
+      <b style="font-size:14px;color:var(--mute);display:block;margin-top:14px">최근 기록</b>
+      <ol class="log" id="log" reversed></ol>
+    </div>
+  </div>
+
+  <h2>자유롭게 눌러보기</h2>
+  <div class="card" id="free"></div>
+
+  <h2>따라 해보기 (시나리오)</h2>
+  <div class="card">
+    <div class="tabs" id="tabs"></div>
+    <div id="scenario"></div>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+ * 순수 로직 모듈 (DOM 없음). 검증되면 그대로 frontend 코드로 옮긴다.
+ * 모든 값은 docs/00_pm_decisions.md 의 결정(D2,D3,D9,D13,D14)에서 왔다.
+ * ============================================================ */
+const Kiosk = (() => {
+  const CONFIG = {
+    SENIOR_AGE: 55,      // D3
+    STABLE_FRAMES: 5,    // 같은 판정이 연속 N프레임이어야 확정 (AI 개발자가 조정할 값)
+    MIN_CONF: 0.7,       // 이 미만 프레임은 판정에 쓰지 않고 카운트를 끊는다
+  };
+
+  // 더미 메뉴. 실제 우루루 JSON이 오면 같은 모양으로 교체 (D12)
+  const MENU = [
+    { id:'m1', name:'된장찌개',   price:9000,  tags:['soup','mild','soft'],  priority:0 },
+    { id:'m2', name:'김치찌개',   price:9000,  tags:['soup','spicy'],        priority:0 },
+    { id:'m3', name:'순두부찌개', price:9500,  tags:['soup','soft','spicy'], priority:0 },
+    { id:'m4', name:'갈비탕',     price:13000, tags:['soup','mild','hearty'],priority:0 },
+    { id:'m5', name:'제육볶음',   price:11000, tags:['spicy','hearty'],      priority:0 },
+    { id:'m6', name:'불고기정식', price:12000, tags:['mild','hearty'],       priority:1 }, // 관리자 우선 추천 자리 (D6)
+    { id:'m7', name:'계란찜 정식',price:8500,  tags:['mild','soft'],         priority:0 },
+    { id:'m8', name:'비빔밥',     price:9500,  tags:['mild'],                priority:0 },
+  ];
+  const byId = Object.fromEntries(MENU.map(m => [m.id, m]));
+
+  // 취향 질문 (D14: 정해진 질문 → 태그 점수)
+  const QUESTIONS = [
+    { text:'매운 음식도 괜찮으세요?',      yes:{spicy:+2, mild:-1}, no:{spicy:-3, mild:+1} },
+    { text:'따뜻한 국물이 있는 음식이 좋으세요?', yes:{soup:+2},      no:{soup:-1} },
+    { text:'부드럽게 드실 수 있는 음식이 좋으세요?', yes:{soft:+2},   no:{} },
+    { text:'든든하게 드시고 싶으세요?',      yes:{hearty:+2},         no:{hearty:-1} },
+  ];
+
+  const initial = () => ({
+    screen:'IDLE',           // IDLE 대기 | DETECTING 인식중 | SURVEY 음성질문 | HOME 일반메뉴 | RECOMMEND 추천 | CART 장바구니 | PAID 결제완료 | PAY_FAILED 결제실패
+    mode:'-',                // - | easy(쉬운 화면) | normal(일반 화면)
+    ageGroup:'미확정',        // 미확정 | 55세 이상 | 55세 미만
+    seniorRun:0, juniorRun:0,
+    qIndex:0, prefs:{}, recs:[], cart:[],
+    log:[], last:null,       // last = {text, bad}
+  });
+
+  const note = (s, text, bad=false) => ({ ...s, last:{text, bad}, log:[...s.log, (bad?'⛔ ':'') + text].slice(-30) });
+  const reject = (s, text) => note(s, '할 수 없는 동작: ' + text, true);
+
+  function score(s) {
+    const senior = s.ageGroup === '55세 이상';
+    return MENU.map(m => ({
+      ...m,
+      score: m.tags.reduce((a,t) => a + (s.prefs[t]||0), 0) + m.priority * 1.5 + (senior && m.tags.includes('soft') ? 0.5 : 0),
+    })).sort((a,b) => b.score - a.score).slice(0,3);
+  }
+
+  function reduce(s, a) {
+    switch (a.type) {
+      case 'FRAME': {                        // 카메라 한 프레임: {face, age, conf}
+        if (!['IDLE','DETECTING'].includes(s.screen)) return reject(s, '이미 인식이 끝난 뒤의 프레임은 무시합니다');
+        if (!a.face) return note({ ...s, screen:'IDLE', seniorRun:0, juniorRun:0 }, '얼굴이 사라져 처음으로 돌아갑니다');
+        if (a.conf < CONFIG.MIN_CONF) return note({ ...s, screen:'DETECTING', seniorRun:0, juniorRun:0 }, `신뢰도 ${Math.round(a.conf*100)}%가 낮아 이 프레임은 버리고 연속 기록을 끊습니다`);
+        const isSenior = a.age >= CONFIG.SENIOR_AGE;
+        let n = { ...s, screen:'DETECTING',
+          seniorRun: isSenior ? s.seniorRun+1 : 0,
+          juniorRun: isSenior ? 0 : s.juniorRun+1 };
+        if (n.seniorRun >= CONFIG.STABLE_FRAMES)
+          return note({ ...n, screen:'SURVEY', mode:'easy', ageGroup:'55세 이상', qIndex:0, prefs:{} }, '55세 이상으로 확정: 쉬운 화면으로 바꾸고 음성 질문을 시작합니다');
+        if (n.juniorRun >= CONFIG.STABLE_FRAMES)
+          return note({ ...n, screen:'HOME', mode:'normal', ageGroup:'55세 미만' }, '55세 미만으로 확정: 일반 화면을 보여줍니다');
+        return note(n, `추정 ${a.age}세 → ${isSenior?'55+':'55 미만'} 연속 ${isSenior?n.seniorRun:n.juniorRun}/${CONFIG.STABLE_FRAMES}`);
+      }
+      case 'OPEN_CHAT':
+        if (s.screen !== 'HOME') return reject(s, '일반 화면에서만 "AI와 대화하기"를 누를 수 있습니다');
+        return note({ ...s, screen:'SURVEY', qIndex:0, prefs:{} }, '"AI와 대화하기": 음성 질문을 시작합니다');
+      case 'ANSWER': {
+        if (s.screen !== 'SURVEY') return reject(s, '질문 중이 아닙니다');
+        const q = QUESTIONS[s.qIndex];
+        const delta = a.value === 'skip' ? {} : q[a.value];
+        const prefs = { ...s.prefs };
+        for (const [t,v] of Object.entries(delta)) prefs[t] = (prefs[t]||0) + v;
+        const qIndex = s.qIndex + 1;
+        if (qIndex >= QUESTIONS.length) {
+          const n = { ...s, prefs, qIndex };
+          return note({ ...n, screen:'RECOMMEND', recs:score(n) }, '질문이 끝나 추천 메뉴를 만들었습니다');
+        }
+        return note({ ...s, prefs, qIndex }, `"${q.text}" → ${a.value==='yes'?'네':a.value==='no'?'아니요':'건너뜀'}`);
+      }
+      case 'TOGGLE_MODE':                    // 오추정 보완: 수동 전환 (D9)
+        if (s.mode === '-') return reject(s, '아직 인식 전이라 화면 전환 대상이 없습니다');
+        return note({ ...s, mode: s.mode==='easy' ? 'normal' : 'easy' }, `화면을 ${s.mode==='easy'?'일반':'쉬운'} 화면으로 수동 전환했습니다`);
+      case 'ADD': {
+        if (!['HOME','RECOMMEND','CART'].includes(s.screen)) return reject(s, '메뉴를 담을 수 없는 화면입니다');
+        const item = byId[a.id];
+        return note({ ...s, cart:[...s.cart, item.id], screen: s.screen==='CART' ? 'CART' : s.screen }, `${item.name}을(를) 담았습니다`);
+      }
+      case 'GO_CART':
+        if (!['HOME','RECOMMEND'].includes(s.screen)) return reject(s, '장바구니로 갈 수 없는 화면입니다');
+        return note({ ...s, screen:'CART' }, '장바구니 화면으로 이동합니다');
+      case 'PAY': {
+        if (s.screen !== 'CART') return reject(s, '장바구니 화면에서만 결제할 수 있습니다');
+        if (s.cart.length === 0) return reject(s, '장바구니가 비어 있어 결제할 수 없습니다');
+        return a.result === 'success'
+          ? note({ ...s, screen:'PAID' }, '결제 성공 (시뮬레이션)')
+          : note({ ...s, screen:'PAY_FAILED' }, '결제 실패 (시뮬레이션): 장바구니는 그대로 유지됩니다', true);
+      }
+      case 'RETRY':
+        if (s.screen !== 'PAY_FAILED') return reject(s, '결제 실패 화면이 아닙니다');
+        return note({ ...s, screen:'CART' }, '장바구니로 돌아가 다시 결제할 수 있습니다');
+      case 'RESET':                          // 주문 완료 후 또는 무입력 타임아웃. 얼굴·나이 정보 폐기 (D2)
+        return note(initial(), '처음 화면으로 돌아갑니다. 연령·취향·장바구니를 모두 지웠습니다');
+      default: return s;
+    }
+  }
+  const total = s => s.cart.reduce((a,id) => a + byId[id].price, 0);
+  return { CONFIG, MENU, QUESTIONS, byId, initial, reduce, total };
+})();
+
+/* ============================================================
+ * 아래는 페이지(껍데기). 버려도 되는 부분.
+ * ============================================================ */
+let state = Kiosk.initial(), prev = state;
+const $ = id => document.getElementById(id);
+const won = n => n.toLocaleString('ko-KR') + '원';
+const SCREEN_NAME = { IDLE:'대기 (카메라 기다림)', DETECTING:'인식 중', SURVEY:'음성 질문 중', HOME:'일반 메뉴판', RECOMMEND:'추천 메뉴', CART:'장바구니', PAID:'결제 완료', PAY_FAILED:'결제 실패' };
+const MODE_NAME = { '-':'아직 정해지지 않음', easy:'쉬운 화면 (큰 글씨)', normal:'일반 화면' };
+
+function send(a) { prev = state; state = Kiosk.reduce(state, a); render(); }
+function sendAll(list) { list.forEach(a => { prev = state; state = Kiosk.reduce(state, a); }); render(); }
+
+function render() {
+  const s = state, p = prev;
+  const q = Kiosk.QUESTIONS[s.qIndex];
+  const rows = [
+    ['지금 화면', SCREEN_NAME[s.screen], s.screen!==p.screen],
+    ['화면 모드', MODE_NAME[s.mode], s.mode!==p.mode],
+    ['연령 판정', s.ageGroup, s.ageGroup!==p.ageGroup],
+    ['연속 판정', `55+ ${s.seniorRun}회 / 55 미만 ${s.juniorRun}회 (확정 기준 ${Kiosk.CONFIG.STABLE_FRAMES}회)`, s.seniorRun!==p.seniorRun||s.juniorRun!==p.juniorRun],
+    ['음성 질문', s.screen==='SURVEY' && q ? `${s.qIndex+1}/${Kiosk.QUESTIONS.length}  ${q.text}` : '-', s.qIndex!==p.qIndex||s.screen!==p.screen],
+    ['취향 점수', Object.keys(s.prefs).length ? Object.entries(s.prefs).map(([k,v])=>`${k} ${v>0?'+':''}${v}`).join(', ') : '-', JSON.stringify(s.prefs)!==JSON.stringify(p.prefs)],
+    ['장바구니', s.cart.length ? s.cart.map(id=>Kiosk.byId[id].name).join(', ') + ` (${won(Kiosk.total(s))})` : '비어 있음', s.cart.length!==p.cart.length],
+  ];
+  $('state').innerHTML = '<dl>' + rows.map(([k,v,c]) => `<dt>${k}</dt><dd>${c?`<span class="changed">${v}</span>`:v}</dd>`).join('') + '</dl>'
+    + (s.last ? `<div class="just ${s.last.bad?'bad':''}">${s.last.text}</div>` : '');
+  $('recs').innerHTML = s.recs.length
+    ? s.recs.map((r,i)=>`<div class="rec"><span>${i+1}. ${r.name}${r.priority?' ★관리자 추천':''}</span><span>점수 ${r.score.toFixed(1)}</span></div>`).join('')
+    : '<span style="color:var(--mute)">질문이 끝나면 여기에 나옵니다</span>';
+  $('log').innerHTML = [...s.log].reverse().map(l=>`<li>${l}</li>`).join('');
+  renderScenario();
+}
+
+/* 자유 버튼 */
+function buildFree() {
+  const f = (age,conf=0.9) => ({type:'FRAME', face:true, age, conf});
+  const groups = [
+    ['카메라 (프레임 1장씩)', [
+      ['62세로 보임', ()=>send(f(62))], ['58세로 보임', ()=>send(f(58))], ['54세로 보임', ()=>send(f(54))], ['30세로 보임', ()=>send(f(30))],
+      ['흐릿함(신뢰도 40%)', ()=>send(f(60,0.4))], ['얼굴 없음', ()=>send({type:'FRAME',face:false})],
+    ]],
+    ['카메라 (프레임 5장 한꺼번에)', [
+      ['62세 ×5', ()=>sendAll(Array(5).fill(f(62)))], ['30세 ×5', ()=>sendAll(Array(5).fill(f(30)))],
+    ]],
+    ['음성 대답', [
+      ['네', ()=>send({type:'ANSWER',value:'yes'})], ['아니요', ()=>send({type:'ANSWER',value:'no'})], ['건너뛰기', ()=>send({type:'ANSWER',value:'skip'})],
+      ['"AI와 대화하기" 누름', ()=>send({type:'OPEN_CHAT'})],
+    ]],
+    ['화면과 주문', [
+      ['화면 모드 수동 전환', ()=>send({type:'TOGGLE_MODE'})],
+      ...Kiosk.MENU.slice(0,3).map(m=>[`${m.name} 담기`, ()=>send({type:'ADD',id:m.id})]),
+      ['불고기정식 담기', ()=>send({type:'ADD',id:'m6'})],
+      ['장바구니 보기', ()=>send({type:'GO_CART'})],
+      ['결제 (성공)', ()=>send({type:'PAY',result:'success'})], ['결제 (실패)', ()=>send({type:'PAY',result:'fail'})],
+      ['실패 후 다시', ()=>send({type:'RETRY'})],
+    ]],
+    ['처음으로', [['처음으로 (무입력 타임아웃 포함)', ()=>send({type:'RESET'})]]],
+  ];
+  $('free').innerHTML = '';
+  groups.forEach(([title, btns]) => {
+    const g = document.createElement('div'); g.className = 'group';
+    g.innerHTML = `<b>${title}</b>`;
+    btns.forEach(([label, fn]) => { const b = document.createElement('button'); b.textContent = label; b.onclick = fn; g.appendChild(b); });
+    $('free').appendChild(g);
+  });
+}
+
+/* 시나리오 */
+const F = (age,conf=0.9) => ({type:'FRAME', face:true, age, conf});
+const Y = {type:'ANSWER',value:'yes'}, N = {type:'ANSWER',value:'no'};
+const SCENARIOS = [
+  { name:'① 고령 손님 정상 흐름', desc:'55세 이상 손님이 앞에 서서 질문 4개에 답하고 결제까지 가는 가장 기본적인 흐름입니다. "쉬운 화면으로 자동 전환"되는지, 추천이 나오는지 보세요.',
+    steps:[
+      ['카메라 앞에 62세 손님이 선다 (프레임 5장)', [F(62),F(63),F(61),F(62),F(64)]],
+      ['"매운 음식도 괜찮으세요?" → 아니요', [N]], ['"따뜻한 국물?" → 네', [Y]], ['"부드러운 음식?" → 네', [Y]], ['"든든하게?" → 아니요', [N]],
+      ['추천 1위 메뉴를 담는다 (된장찌개)', [{type:'ADD',id:'m1'}]], ['장바구니로 간다', [{type:'GO_CART'}]], ['결제 성공', [{type:'PAY',result:'success'}]],
+    ]},
+  { name:'② 경계선 나이가 흔들림', desc:'54세와 56세 사이에서 추정값이 계속 흔들리는 사람입니다. 연속 5회 기준이 너무 엄격해서 영원히 확정이 안 되는지 확인하세요.',
+    steps:[
+      ['56세 → 54세 → 57세 → 53세 → 56세 순서로 프레임이 들어온다', [F(56),F(54),F(57),F(53),F(56)]],
+      ['계속 흔들린다 (5장 더)', [F(55),F(54),F(56),F(54),F(55)]],
+      ['이때 손님은 어떤 화면을 보고 있나? 화면 아래 "지금 상태"를 확인하세요 (확정 전에는 아무 화면도 안 바뀝니다)', []],
+    ]},
+  { name:'③ 젊은 사람이 55+로 오인됨', desc:'40대가 58세로 잘못 인식되어 쉬운 화면과 음성 질문이 시작되는 상황입니다. 손님이 막히지 않고 일반 화면으로 빠져나올 수 있는지 보세요.',
+    steps:[
+      ['40대 손님이 58세로 5번 인식된다', [F(58),F(59),F(58),F(57),F(58)]],
+      ['손님이 질문을 원하지 않아 화면 전환 버튼을 누른다', [{type:'TOGGLE_MODE'}]],
+      ['(발견할 점) 모드는 바뀌지만 음성 질문 화면은 그대로입니다. 질문을 건너뛰는 방법이 따로 필요한가요?', []],
+      ['건너뛰기 4번', [{type:'ANSWER',value:'skip'},{type:'ANSWER',value:'skip'},{type:'ANSWER',value:'skip'},{type:'ANSWER',value:'skip'}]],
+    ]},
+  { name:'④ 일반 손님 + AI와 대화하기', desc:'55세 미만 손님이 일반 메뉴판을 보다가 "AI와 대화하기"를 눌러 추천을 받는 흐름입니다.',
+    steps:[
+      ['30세 손님이 선다 (프레임 5장)', [F(30),F(31),F(29),F(30),F(32)]],
+      ['"AI와 대화하기" 누름', [{type:'OPEN_CHAT'}]],
+      ['매운 것 좋아요 / 국물 좋아요 / 부드러운 것 아니요 / 든든한 것 좋아요', [Y,Y,N,Y]],
+    ]},
+  { name:'⑤ 결제 실패와 다시 시도', desc:'결제가 실패했을 때 장바구니가 유지되고 다시 결제할 수 있는지 봅니다.',
+    steps:[
+      ['30세 손님 인식', [F(30),F(30),F(30),F(30),F(30)]], ['제육볶음이 없으니 김치찌개를 담는다', [{type:'ADD',id:'m2'}]],
+      ['장바구니로 간다', [{type:'GO_CART'}]], ['결제 실패', [{type:'PAY',result:'fail'}]], ['다시 시도', [{type:'RETRY'}]], ['결제 성공', [{type:'PAY',result:'success'}]],
+    ]},
+  { name:'⑥ 하면 안 되는 동작', desc:'순서에 맞지 않는 동작을 시도합니다. 모두 거절되고 상태가 망가지지 않아야 합니다.',
+    steps:[
+      ['인식 전에 결제를 시도한다', [{type:'PAY',result:'success'}]],
+      ['인식 전에 화면 전환을 시도한다', [{type:'TOGGLE_MODE'}]],
+      ['30세 손님 인식', [F(30),F(30),F(30),F(30),F(30)]],
+      ['빈 장바구니로 결제 화면에 간다', [{type:'GO_CART'}]],
+      ['빈 장바구니로 결제한다', [{type:'PAY',result:'success'}]],
+    ]},
+];
+let sc = 0, step = 0;
+function startScenario(i) { sc = i; step = 0; prev = state = Kiosk.initial(); render(); }
+function renderScenario() {
+  $('tabs').innerHTML = '';
+  SCENARIOS.forEach((s,i) => { const b = document.createElement('button'); b.className='tab'+(i===sc?' on':''); b.textContent=s.name; b.onclick=()=>startScenario(i); $('tabs').appendChild(b); });
+  const S = SCENARIOS[sc];
+  const box = $('scenario');
+  box.innerHTML = `<p style="margin-top:0">${S.desc}</p><ol class="steps">` +
+    S.steps.map(([label],i)=>`<li class="${i<step?'done':i===step?'now':''}">${label}</li>`).join('') + '</ol>';
+  const row = document.createElement('div'); row.style.marginTop = '12px';
+  const next = document.createElement('button'); next.className='primary';
+  next.textContent = step < S.steps.length ? '다음 단계 실행' : '끝 (다시 하려면 탭을 누르세요)';
+  next.disabled = step >= S.steps.length;
+  next.onclick = () => { const [, acts] = S.steps[step]; step++; if (acts.length) sendAll(acts); else render(); };
+  const reset = document.createElement('button'); reset.textContent = '이 시나리오 처음부터'; reset.onclick = () => startScenario(sc);
+  row.append(next, reset); box.appendChild(row);
+}
+
+buildFree(); startScenario(0);
+</script>
+</body>
+</html>
