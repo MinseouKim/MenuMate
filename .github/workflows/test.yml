@@ -2,18 +2,25 @@ name: test
 
 on:
   push:
-    branches: [main, frontend, backend, AI]
+    branches: [main, AI, frontend, backend]
   pull_request:
     branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm test
+      - run: npm ci --include=dev
+      - run: npm run typecheck -w ai
+      - run: npm test -w ai
+      - run: npm run typecheck -w backend
+      - run: npm test -w backend
+      - run: npm run typecheck -w frontend
+      - run: npm test -w frontend

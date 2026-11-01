@@ -1,2 +1,18 @@
 node_modules/
+dist/
 .env
+.env.local
+*.log
+.DS_Store
+
+# Backend 로컬 데이터 (SQLite, 메뉴 사진)
+backend/data/
+
+# AI 모델 파일 (npm run models:setup -w ai 로 받음)
+ai/models/
+
+# 소개 영상 원본 (용량 35~88MB, GitHub에 올리지 않음. 자막·크레딧 문서만 커밋)
+docs/video/*.mp4
+
+# 개인 스크린샷 모음
+에러모음/
