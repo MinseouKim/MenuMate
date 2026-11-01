@@ -42,3 +42,10 @@
 |--------|------|----------|-----------|
 | `@mediapipe/tasks-vision` | 1.1.1 | Apache-2.0 | `models/mediapipe-wasm/` (`wasm/*.js`, `*.wasm`) |
 | `onnxruntime-web` | 1.30.0 | MIT | `models/ort-wasm/` (`dist/ort-wasm*.mjs`, `*.wasm`) |
+
+## 로컬 음성 인식 (Whisper base, 프론트 대체 수단)
+
+인터넷이 안 될 때 `frontend/src/services/stt/`가 이 기기 안에서 받아 적는다 (D89). 파일은 git에 넣지 않고(`ai/models/`는 제외) 아래처럼 받는다. Backend가 `/models/stt/`로 제공한다.
+
+- 모델: `onnx-community/whisper-base`(MIT/Apache) → `ai/models/stt/whisper-base/` 에 `config.json`, `generation_config.json`, `preprocessor_config.json`, `tokenizer.json`, `tokenizer_config.json`, `special_tokens_map.json`, `added_tokens.json`, `normalizer.json`, `merges.txt`, `vocab.json`, `onnx/encoder_model_int8.onnx`, `onnx/decoder_model_merged_int8.onnx` (합계 약 79MB)
+- ORT wasm: `node_modules/@huggingface/transformers/node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.{mjs,wasm}` → `ai/models/stt/ort-wasm/`

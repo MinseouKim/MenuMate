@@ -1,0 +1,61 @@
+/* 중식당 "원탁" 테마: 동네 중국집 간판(주칠·흑칠·금박) + 상아색 벽 메뉴 종이.
+   색 변수만 바꿔서 기존 화면에 입힌다. 반드시 맨 마지막에 불러온다. */
+:root {
+  --green: #9e1b14;      /* 주칠. 주 버튼·강조 (흰 글자 8:1) */
+  --green2: #7e140e;     /* 주칠 진하게. 눌림·진한 강조 */
+  --bg: #f6eedc;         /* 상아색 */
+  --ink: #1c1210;        /* 먹색 (상아 바탕 16:1) */
+  --muted: #4b3a33;      /* 보조 글자 (상아 바탕 9:1) */
+  --border: #cbbb9c;
+  --amber: #8f160f;
+  --tint: #f1e6cd;
+  --gold: #e8b23a;       /* 금박 */
+  --lacquer: #2a1510;    /* 흑칠 */
+  --meander: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 12'%3E%3Cpath d='M0 11H6V2H21V8H12V5H16M21 8V11H24' fill='none' stroke='%23e8b23a' stroke-width='1.6'/%3E%3C/svg%3E");
+  --meander-red: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 12'%3E%3Cpath d='M0 11H6V2H21V8H12V5H16M21 8V11H24' fill='none' stroke='%239e1b14' stroke-width='1.6'/%3E%3C/svg%3E");
+  --font-display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+}
+
+/* 상단: 흑칠 바탕 + 금박 회문 띠 */
+.kiosk-head { position: relative; background: var(--lacquer); border-bottom: 0; }
+.kiosk-head::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 24px;
+  background: var(--meander) repeat-x center / 48px 24px;
+}
+.kiosk-head .brand { color: var(--gold); font-family: var(--font-display); font-weight: 400; letter-spacing: 0; }
+
+/* 시작 화면 원탁 */
+.welcome .table { position: relative; width: 460px; height: 460px; margin: 0 auto 36px; flex: none; }
+.table-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.t-rim, .t-edge, .t-stud { fill: var(--lacquer); }
+.t-band { fill: var(--gold); }
+.t-top { fill: #7e140e; }
+.t-inner { fill: none; stroke: var(--gold); stroke-width: 1; }
+.t-spin { transform-origin: center; transform-box: fill-box; animation: turn 120s linear infinite; }
+@keyframes turn { to { transform: rotate(360deg); } }
+.table-name {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 104px; line-height: 1; color: #fffbf2;
+  text-shadow: 0 5px 0 var(--lacquer);
+}
+@media (prefers-reduced-motion: reduce) { .t-spin { animation: none; } }
+
+/* 기존 초록 기운 고정 색을 상아·종이 색으로 (변수로 못 바꾸는 것만) */
+.screen-menu .screen { background: var(--bg); }
+.choice, .example, .kiosk-foot, .progress, .menu-card .menu-info { background: #fffbf2; }
+.choice:nth-child(2) { background: var(--tint); border-color: var(--border); }
+.menu-card { border-color: var(--border); }
+.menu-select:hover, .info-reviews li, .order-list-total, .remove-item,
+.payment-point-input button, .tools button, .category-tab.selected { background: var(--tint); }
+.menu-photo, .menu-info-dialog .info-tabs, .menu-info-dialog .review-keyword, .info-heading button { background: var(--tint); }
+.payment-summary .payment-final { border-top-color: var(--border); }
+
+/* 55+ 빛 테두리 (D78): 큰 글씨 화면에서 지금 눌러야 할 주 버튼에만. 한 주기 1.2초(초당 3회 미만, WCAG 2.3.1) */
+.large button.primary:not(:disabled), .large .choice:first-child { animation: glow 1.2s ease-in-out infinite; }
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 0 4px var(--gold); }
+  50% { box-shadow: 0 0 24px 10px var(--gold); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .large button.primary:not(:disabled), .large .choice:first-child { animation: none; box-shadow: 0 0 0 4px var(--gold); }
+}

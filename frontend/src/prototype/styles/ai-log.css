@@ -1,0 +1,16 @@
+/* 연령대 판정 로그 창 (점검용). 전시 화면에는 기본으로 숨겨져 있다 */
+.age-log { position: fixed; right: 12px; bottom: 12px; z-index: 9999; width: 440px; max-width: calc(100vw - 24px); max-height: 60vh; display: flex; flex-direction: column;
+  background: #14100f; color: #eee; border: 1px solid #5a4a45; border-radius: 10px; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+.age-log header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #3a2f2b; }
+.age-log header button { margin-left: 6px; background: #2a1510; color: #eee; border: 1px solid #5a4a45; border-radius: 6px; padding: 2px 8px; font: inherit; cursor: pointer; }
+.age-log dl { margin: 0; padding: 8px 10px; border-bottom: 1px solid #3a2f2b; display: grid; gap: 2px; }
+.age-log dl div { display: flex; gap: 8px; }
+.age-log dt { width: 64px; color: #9a8a85; }
+.age-log dd { margin: 0; color: #ffd27a; }
+.age-log ol { list-style: none; margin: 0; padding: 6px 10px; overflow-y: auto; flex: 1; }
+.age-log li { padding: 1px 0; color: #cfc7c4; }
+.age-log li time { color: #7d6f6a; margin-right: 4px; }
+.age-log li.ok { color: #8ee0a0; }
+.age-log li.warn { color: #ffd27a; }
+.age-log li.error { color: #ff8a80; }
+.age-log footer { padding: 6px 10px; border-top: 1px solid #3a2f2b; color: #8a7b76; font-size: 11px; }

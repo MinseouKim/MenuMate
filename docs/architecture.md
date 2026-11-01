@@ -77,7 +77,7 @@ MenuMate_V.2.0.0/
 
 | 상황 | 명령 | 접속 |
 |------|------|------|
-| 개발 | `npm run dev -w backend` + `npm run dev -w frontend` | `http://localhost:5173` (Vite가 `/api`, `/static`, `/models`를 `:4000`으로 프록시) |
+| 개발 | `npm run dev -w backend` + `npm run dev -w frontend` | `http://localhost:3000` (Vite가 `/api`, `/static`, `/models`를 `:4000`으로 프록시) |
 | 전시 (단일 실행) | `npm run build -w frontend` 후 `npm run start -w backend` | `http://localhost:4000` |
 | 키오스크 화면 | Chrome `--kiosk --app=http://localhost:4000` | |
 
