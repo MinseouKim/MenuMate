@@ -40,7 +40,7 @@
 | `TZ` | `Asia/Seoul` | 주문번호 날짜·시간대(`/api/context`) 기준 |
 | `CORS_ORIGIN` | (빈 값 = 모두 허용) | 허용할 브라우저 출처, 쉼표 구분. 배포: `https://menumate-dl.vercel.app` (D96) |
 | `GEMINI_API_KEY` | (없음) | 대화형 추천 (D91). 2장 참고 |
-| `GEMINI_MODEL` | `gemini-3.8-flash` | 빠른 응답이 필요하면 `gemini-3.5-flash-lite` |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | 가장 빠른 모델(키오스크 대기 시간 기준). 품질 우선이면 `gemini-3.8-flash` |
 | `GOOGLE_TTS_API_KEY` | (없음) | 음성 안내 (D92). 2장 참고 |
 | `TTS_VOICE` | `ko-KR-Chirp3-HD-Leda` | Google TTS 목소리 이름. ko-KR Chirp3-HD 30종 중 선택 |
 | `WEATHER_LAT` / `WEATHER_LON` | `37.3943` / `126.9568` | 날씨를 볼 매장 좌표 (우루루 평촌본점 근처) |

@@ -52,15 +52,17 @@ describe('openMeteo', () => {
     expect(calls).toBe(2);
   });
 
-  it('실패하면 null이고 1분 뒤 다시 시도한다', async () => {
+  it('실패하면 null이고 이유를 로그에 남기며 30초 뒤 다시 시도한다', async () => {
     let calls = 0;
     let t = 0;
-    const src = openMeteo(37, 127, async () => { calls++; throw new Error('offline'); }, 600_000, () => t);
+    const warns: string[] = [];
+    const src = openMeteo(37, 127, async () => { calls++; throw new Error('offline'); }, 600_000, () => t, { warn: (m) => warns.push(m) });
     expect(await src.current()).toBeNull();
-    t = 30_000;
+    expect(warns[0]).toContain('Open-Meteo 호출 실패');
+    t = 15_000;
     expect(await src.current()).toBeNull();
     expect(calls).toBe(1);
-    t = 70_000;
+    t = 40_000;
     await src.current();
     expect(calls).toBe(2);
   });

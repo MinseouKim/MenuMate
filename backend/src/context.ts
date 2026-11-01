@@ -49,8 +49,11 @@ export interface WeatherSource {
   current(): Promise<WeatherNow | null>;
 }
 
-/** Open-Meteo를 10분 캐시로 읽는다. fetch는 테스트에서 바꾼다. */
-export function openMeteo(lat: number, lon: number, fetchImpl: FetchLike, cacheMs = 10 * 60_000, now: () => number = Date.now): WeatherSource {
+/** Open-Meteo를 10분 캐시로 읽는다. fetch는 테스트에서 바꾼다. 실패 이유는 log에 남긴다(배포 서버에서 null이 나온 원인 추적용). */
+export function openMeteo(
+  lat: number, lon: number, fetchImpl: FetchLike, cacheMs = 10 * 60_000, now: () => number = Date.now,
+  log?: { warn(msg: string): void },
+): WeatherSource {
   let cached: { at: number; value: WeatherNow | null } | null = null;
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
@@ -61,23 +64,27 @@ export function openMeteo(lat: number, lon: number, fetchImpl: FetchLike, cacheM
       let value: WeatherNow | null = null;
       try {
         const abort = new AbortController();
-        const timer = setTimeout(() => abort.abort(), 4000);
+        const timer = setTimeout(() => abort.abort(), 6000);
         try {
           const res = await fetchImpl(url, { signal: abort.signal });
           if (res.ok) {
-            const body = (await res.json()) as { current?: { temperature_2m?: number; weather_code?: number } };
+            const body = (await res.json()) as { current?: { temperature_2m?: number; weather_code?: number }; reason?: string };
             const t = body.current?.temperature_2m;
             const c = body.current?.weather_code;
             if (typeof t === 'number' && typeof c === 'number') value = toWeather(t, c);
+            else log?.warn(`Open-Meteo 응답에 current 값이 없어요: ${JSON.stringify(body).slice(0, 200)}`);
+          } else {
+            log?.warn(`Open-Meteo HTTP ${res.status}`);
           }
         } finally {
           clearTimeout(timer);
         }
-      } catch {
+      } catch (e) {
+        log?.warn(`Open-Meteo 호출 실패: ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`);
         value = null;
       }
-      // 실패는 짧게만 기억해 바로 다음 손님 때 다시 시도한다
-      cached = { at: value ? now() : now() - cacheMs + 60_000, value };
+      // 실패는 30초만 기억해 다음 손님 때 다시 시도한다
+      cached = { at: value ? now() : now() - cacheMs + 30_000, value };
       return value;
     },
   };

@@ -3,8 +3,9 @@
 import { apiUrl, config } from '../config';
 import type { ChatReply, ChatTurn, Conditions, KioskContext } from './types';
 
-const CONTEXT_TIMEOUT_MS = 3000;
-const CHAT_TIMEOUT_MS = 10000;
+// Render 무료 서버는 잠에서 깨는 데 1분 가까이 걸릴 수 있어 넉넉히 둔다. 서버 쪽 Gemini 대기(25초)보다 길게.
+const CONTEXT_TIMEOUT_MS = 8000;
+const CHAT_TIMEOUT_MS = 30000;
 
 async function post<T>(path: string, body: unknown, timeoutMs: number): Promise<T | null> {
   if (typeof fetch !== 'function') return null;

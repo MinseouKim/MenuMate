@@ -102,7 +102,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   // v3 외부 연동. 키가 없으면 해당 기능만 503으로 답하고 서버는 그대로 뜬다
   await app.register(cors, { origin: config.corsOrigins, methods: ['GET', 'POST', 'HEAD', 'OPTIONS'] });
-  const weather = deps.weather ?? openMeteo(config.weatherLat, config.weatherLon, (url, init) => fetch(url, init));
+  const weather = deps.weather ?? openMeteo(config.weatherLat, config.weatherLon, (url, init) => fetch(url, init), undefined, undefined, app.log);
   const synthesizer =
     deps.synthesizer ??
     createSynthesizer({ apiKey: config.googleTtsApiKey, voice: config.ttsVoice, fetchImpl: (url, init) => fetch(url, init), log: app.log });

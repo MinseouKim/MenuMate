@@ -9,7 +9,7 @@ let current: Promise<void> = Promise.resolve();
 /** 서버 TTS가 실패하면 잠시 서버를 건너뜁니다 (매 문장마다 기다리지 않게) */
 let serverSkipUntil = 0;
 const SKIP_MS = 60_000;
-const FETCH_TIMEOUT_MS = 6000;
+const FETCH_TIMEOUT_MS = 12000;
 
 function browserSpeak(text: string, mine: number): Promise<void> {
   return new Promise(resolve => {

@@ -6,7 +6,8 @@ import { AppError } from './errors.js';
 import type { MenuKnowledge } from './menuKnowledge.js';
 
 export const MAX_TURNS = 6; // 손님 발화 기준. 넘으면 강제로 추천 단계로
-const TIMEOUT_MS = 8000;
+// Render 무료(0.1 CPU)에서 첫 호출이 8초를 넘겨 중단된 적이 있어 넉넉히 둔다 (2026-11-02 배포 로그). 프론트 대기 한도(30초)보다 짧게.
+const TIMEOUT_MS = 25_000;
 const MOODS: readonly Mood[] = ['tired', 'celebrate', 'quick', 'neutral'];
 
 export interface LlmMessage { role: 'user' | 'model'; text: string }
@@ -138,7 +139,7 @@ function normalizeConditions(input: Partial<ChatConditions> | undefined, knowled
 export interface ChatDeps {
   llm: LlmClient | null;
   knowledge: MenuKnowledge | null;
-  log?: { warn(msg: string): void };
+  log?: { warn(msg: string): void; info?(msg: string): void };
 }
 
 export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatResponse> {
@@ -159,15 +160,18 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
+  const startedAt = performance.now();
   let text: string;
   try {
     text = await llm.generateJson(systemPrompt(knowledge, req.context ?? {}, userTurns), messages, CHAT_SCHEMA, abort.signal);
   } catch (e) {
-    deps.log?.warn(`Gemini 호출 실패: ${e instanceof Error ? e.message : String(e)}`); // 발화 내용은 적지 않는다
+    const took = Math.round(performance.now() - startedAt);
+    deps.log?.warn(`Gemini 호출 실패 (${llm.model}, ${took}ms): ${e instanceof Error ? e.message : String(e)}`); // 발화 내용은 적지 않는다
     throw new AppError('CHAT_UNAVAILABLE', 'gemini 실패');
   } finally {
     clearTimeout(timer);
   }
+  deps.log?.info?.(`Gemini 응답 ${Math.round(performance.now() - startedAt)}ms (${llm.model})`);
 
   let parsed: Partial<ChatResponse>;
   try {
