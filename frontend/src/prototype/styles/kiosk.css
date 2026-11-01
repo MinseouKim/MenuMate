@@ -1,0 +1,43 @@
+/* Portrait kiosk reference: 1080 x 1920 (9:16).
+   Fit the complete screen inside the browser; scroll only the content area. */
+html,body{height:100%;overflow:hidden}
+body{display:grid;place-items:center;background:#dce2de}
+main{width:min(calc(100vw - 32px),calc((100dvh - 32px) * 9 / 16));max-width:1080px;padding:0;margin:0;container-type:inline-size}
+.kiosk{width:100%;height:auto;aspect-ratio:9/16;min-height:0;max-height:calc(100dvh - 32px);border-radius:12px;display:flex;overflow:hidden}
+.kiosk-head{flex-shrink:0;padding:clamp(14px,3cqw,32px);gap:10px;flex-wrap:wrap}
+.brand{font-size:clamp(24px,4.4cqw,48px)}
+.tools{gap:6px;flex-wrap:wrap}
+.tools button{font-size:clamp(14px,2.2cqw,24px);min-height:48px;padding:8px 12px}
+.progress{flex-shrink:0;padding:12px clamp(16px,3cqw,32px);gap:10px;font-size:clamp(12px,1.9cqw,21px);justify-content:space-between}
+.screen{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:clamp(20px,4cqw,44px) clamp(18px,4cqw,44px);scrollbar-gutter:stable}
+.welcome{padding-top:clamp(12px,4cqw,48px)}
+.welcome h1{font-size:clamp(32px,7cqw,76px);line-height:1.32;letter-spacing:-1px}
+.welcome .muted{font-size:clamp(16px,2.8cqw,30px)}
+.choice-grid{grid-template-columns:1fr;gap:clamp(12px,2.5cqw,28px);margin-top:clamp(24px,5cqw,54px)}
+.choice{min-height:clamp(145px,27cqw,292px);padding:clamp(20px,4cqw,44px);border-radius:14px}
+.choice-title{font-size:clamp(24px,4.4cqw,48px)}
+.choice small{font-size:clamp(15px,2.6cqw,28px);margin-top:8px}
+.choice .number{font-size:clamp(13px,2cqw,22px);letter-spacing:1px}
+.choice-icon{font-size:clamp(32px,6cqw,64px);right:24px;top:20px}
+.welcome-foot{font-size:clamp(14px,2.4cqw,26px);margin-top:24px}
+h1{font-size:clamp(28px,4.8cqw,52px);line-height:1.4}
+h2{font-size:clamp(22px,3.7cqw,40px)}
+.eyebrow{font-size:clamp(14px,2.2cqw,24px)}
+p,.device-row,.reasons{font-size:clamp(16px,2.6cqw,28px)}
+.device-row{grid-template-columns:1fr;gap:6px}
+.menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.menu-card{min-width:0;padding:clamp(14px,2.8cqw,30px)}
+.menu-card h3{font-size:clamp(18px,3cqw,32px);overflow-wrap:anywhere}
+.price{font-size:clamp(20px,3.2cqw,35px)}
+.form-grid{grid-template-columns:1fr;gap:0}
+.primary,.secondary,.pill,.menu-card button{min-height:56px;font-size:clamp(16px,2.8cqw,30px)}
+.camera-panel{grid-template-columns:1fr}
+.camera-frame video{height:180px}
+.kiosk-foot{flex-shrink:0;padding:clamp(12px,2.4cqw,26px);gap:8px;flex-wrap:wrap;background:white}
+.kiosk-foot button{min-height:52px;font-size:clamp(16px,2.6cqw,28px);flex:1;padding:10px 12px;white-space:nowrap}
+.kiosk-foot .cart{flex-basis:100%;margin-left:0;min-width:0;min-height:60px}
+.large .choice-grid,.large .menu-grid{grid-template-columns:1fr}
+.large .screen h1{font-size:clamp(40px,8cqw,86px)}
+.large .screen p,.large .screen button,.large .screen label,.large .screen input,.large .screen select,.large .screen .reasons{font-size:clamp(22px,3.8cqw,41px)}
+@media(max-aspect-ratio:3/4){body{background:white}main{width:min(100vw,calc(100dvh * 9 / 16));max-width:none}.kiosk{max-height:100dvh;border-radius:0;border:0}}
+@media(max-width:380px){.tools button{padding:8px;min-height:44px}.progress{gap:6px;font-size:12px}.kiosk-head{padding:12px}.choice{min-height:138px}.screen{padding:18px 14px}.kiosk-foot button{padding:8px}.menu-grid{grid-template-columns:1fr}}
