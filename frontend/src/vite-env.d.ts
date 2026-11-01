@@ -20,6 +20,8 @@ interface ImportMetaEnv {
   readonly VITE_CHAT_SERVER?: string;
   readonly VITE_FACE_SIGNALS?: string;
   readonly VITE_DEV_SHORTCUTS?: string;
+  /** 간편주문 화면 안: a(직원과 마주 앉기) | b(눌러서 답하기) | c(한눈에 정리). 주소 ?rec= 가 우선 */
+  readonly VITE_RECOMMEND_LAYOUT?: string;
   /** 휴대폰에서 열 수 있는 영수증 배포 주소 */
   readonly VITE_RECEIPT_BASE_URL?: string;
   /** 휴대폰 영수증 아래 설문 링크 */

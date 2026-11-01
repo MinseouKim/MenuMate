@@ -74,6 +74,7 @@ Render에서는 `HOST=0.0.0.0`으로 두고 `PORT`는 Render가 넣어 준다 (`
 | `VITE_MOCK_AI` | `false` | 가짜 AgeGate/Speaker/FaceSignals 사용(개발용). **production 빌드에서 true면 빌드 실패** |
 | `VITE_MOCK_API` | `false` | 가짜 Backend 사용(개발용). **production 빌드에서 true면 빌드 실패** |
 | `VITE_DEV_SHORTCUTS` | `true` | 시연용 단축키 (D24). 관람객용 빌드에서도 켜 두되 화면에는 표시 안 함 |
+| `VITE_RECOMMEND_LAYOUT` | `a` | 간편주문(말로 추천) 화면 안. `a` 직원과 마주 앉기 / `b` 눌러서 답하기(큰 선택 카드, 글자 1.2배) / `c` 한눈에 정리(이해한 것 패널). 주소 `?rec=b`가 우선 (2026-11-02 캔버스 3안) |
 
 AI 판정 기준값(프레임, 신뢰도)은 AI가 실측 후 값을 정하고, 전시장에서 `.env`만 바꿔 조정한다.
 

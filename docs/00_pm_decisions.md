@@ -198,6 +198,7 @@
 | D95 | 연령 모델 교체 (D35 개정) | 기본 모델을 후보 A `insightface-genderage`(1.3MB, 비상업 라이선스)로. 클라우드 배포에서 345MB ViT를 매번 내려받기 어렵기 때문. ViT는 `--age=vit-age-gender`로 받을 수 있고 로컬의 기존 파일은 `candidates/`에 보관. 공모전·전시까지 비상업 용도 | ✅ | 2026-11-02 사용자 결정 |
 | D96 | 클라우드 배포 | 프론트 Vercel(`menumate-dl`, 루트 `vercel.json`, `main` 브랜치), 백엔드 Render 무료(`render.yaml`, 싱가포르, 빌드 때 모델 다운로드·마이그레이션·시드). **SQLite는 휘발성**이라 주문 기록은 재시작·재배포 때 사라진다(영구 저장은 다음 단계). CORS는 `CORS_ORIGIN`. push·PR 병합·배포는 사람이 직접 승인(CLAUDE.md 2번) | ✅ | 2026-11-02 사용자 결정 |
 | D97 | GitHub `AI` 브랜치 | 로컬 작업본은 GitHub `MinseouKim/MenuMate`와 공통 조상이 없어 `--allow-unrelated-histories`로 `AI` 브랜치에 합치고 10/08 구 구조 파일은 삭제. `backend` 브랜치(team-source, Express/MySQL)는 별개로 둔다. 작업은 `AI`에서, `main`은 PR로만 | ✅ | 2026-11-02 사용자: "AI 브랜치에서 만든 후 main으로" |
+| D99 | 간편주문 화면 3안 구현 | 말로 추천(간편주문) 대화·결과 화면을 3안(a 직원과 마주 앉기 / b 눌러서 답하기 / c 한눈에 정리)으로 모두 구현하고 `?rec=`·`VITE_RECOMMEND_LAYOUT`으로 고른다. 기본 a. 화면의 버튼은 직원 AI의 마지막 질문에 맞춰 바뀌는 입력 지름길이며 답변은 Gemini가 생성한다(정해진 문구 없음, 검증 기록 `docs/frontend/2026-11-02_간편주문_대화화면_3안.md`) | ✅ | 2026-11-02 사용자 "3안 모두 만들어줘" |
 | D98 | 리뷰 자동 수집 | 우루루 공개 리뷰를 **반자동 수집**(`scripts/collect-reviews.mjs`, Playwright, 사람이 로그인한 브라우저)해 메뉴별 최대 5건으로 정리(`scripts/build-menu-reviews.mjs`). 원본은 `ururu-menu/raw/`(git 제외, D74). 닉네임·사진은 저장하지 않는다. 플랫폼 약관 리스크는 사용자가 인지하고 감수. 2026-11-02 기준 GitHub backend 브랜치 리뷰(141건)와 합쳐 61메뉴 159건 | ✅ | 2026-11-02 사용자 결정 "자동 수집" |
 
 ## 7-1. 나중에 한꺼번에 반영할 변경 (사용자 요청, 2026-10-27)

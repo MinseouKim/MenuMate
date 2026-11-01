@@ -6,7 +6,9 @@ import { CHUNK_GROUPS } from './src/mocks/buildChunks.ts';
 import { assertNoMocksInProduction } from './src/mocks/buildGuard.ts';
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
-const BACKEND = 'http://localhost:4000';
+// 개발 프록시 대상. 배포된 서버(Render)로 화면만 붙여 볼 때는 DEV_PROXY_TARGET=https://menumate-api-xxxx.onrender.com npm run dev -w frontend
+const BACKEND = process.env.DEV_PROXY_TARGET || 'http://localhost:4000';
+const proxyTo = { target: BACKEND, changeOrigin: true, secure: true };
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, here('.'), 'VITE_');
@@ -34,7 +36,7 @@ export default defineConfig(({ command, mode }) => {
       port: 3000,
       strictPort: true,
       // AI 모델 파일과 메뉴 사진은 Backend 가 로컬 파일로 제공한다
-      proxy: { '/api': BACKEND, '/static': BACKEND, '/models': BACKEND },
+      proxy: { '/api': proxyTo, '/static': proxyTo, '/models': proxyTo },
     },
     test: {
       environment: 'jsdom',
