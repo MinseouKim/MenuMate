@@ -1,12 +1,18 @@
 import type { PrismaClient } from '@prisma/client';
+import cors from '@fastify/cors';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import type {
-  CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse,
+  ChatRequest, ChatResponse, ConditionExtractionRequest, ConditionExtractionResponse, ContextResponse,
+  CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse, TtsRequest,
 } from './contracts.js';
+import { converse, extractConditions, geminiClient, type LlmClient } from './chat.js';
 import type { Config } from './config.js';
+import { buildContext, openMeteo, type WeatherSource } from './context.js';
 import { loadEngine, type Engine } from './engine.js';
 import { AppError, errorBody } from './errors.js';
 import { loadCatalog } from './menu.js';
+import { loadMenuKnowledge, type MenuKnowledge } from './menuKnowledge.js';
+import { createSynthesizer, TTS_MAX_CHARS, type Synthesizer } from './tts.js';
 import { createOrder, createOrderSchema } from './orders.js';
 import { SimulatedPaymentGateway, type PaymentGateway } from './payment/gateway.js';
 import { payOrder, paymentSchema } from './payment/pay.js';
@@ -24,7 +30,40 @@ export interface AppDeps {
   /** 엔진 결과. 생략하면 config.engineFile에서 읽고, 없거나 틀리면 null (v1 점수) */
   engine?: Engine | null;
   logger?: boolean;
+  /** v3: 테스트에서 외부 호출을 바꾸기 위한 주입점. 생략하면 config로 실제 클라이언트를 만든다 */
+  weather?: WeatherSource;
+  synthesizer?: Synthesizer;
+  llm?: LlmClient | null;
+  knowledge?: MenuKnowledge | null;
 }
+
+const chatSchema = {
+  body: {
+    type: 'object',
+    required: ['turns'],
+    properties: {
+      turns: {
+        type: 'array',
+        maxItems: 24,
+        items: {
+          type: 'object',
+          required: ['role', 'text'],
+          properties: { role: { type: 'string', enum: ['user', 'assistant'] }, text: { type: 'string', maxLength: 500 } },
+        },
+      },
+      conditions: { type: 'object' },
+      context: { type: 'object' },
+    },
+  },
+} as const;
+
+const ttsSchema = {
+  body: { type: 'object', required: ['text'], properties: { text: { type: 'string', minLength: 1, maxLength: TTS_MAX_CHARS } } },
+} as const;
+
+const extractionSchema = {
+  body: { type: 'object', required: ['utterance'], properties: { utterance: { type: 'string', minLength: 1, maxLength: 500 } } },
+} as const;
 
 const recommendationSchema = {
   body: {
@@ -60,6 +99,18 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   const engine = deps.engine !== undefined ? deps.engine : loadEngine(config.engineFile, app.log);
+
+  // v3 외부 연동. 키가 없으면 해당 기능만 503으로 답하고 서버는 그대로 뜬다
+  await app.register(cors, { origin: config.corsOrigins, methods: ['GET', 'POST', 'HEAD', 'OPTIONS'] });
+  const weather = deps.weather ?? openMeteo(config.weatherLat, config.weatherLon, (url, init) => fetch(url, init));
+  const synthesizer =
+    deps.synthesizer ??
+    createSynthesizer({ apiKey: config.googleTtsApiKey, voice: config.ttsVoice, fetchImpl: (url, init) => fetch(url, init), log: app.log });
+  const knowledge = deps.knowledge !== undefined ? deps.knowledge : loadMenuKnowledge(config.menuDataDir, app.log);
+  const llm = deps.llm !== undefined ? deps.llm : config.geminiApiKey ? geminiClient(config.geminiApiKey, config.geminiModel) : null;
+  if (!llm) app.log.warn('GEMINI_API_KEY가 없어 대화형 추천(/api/chat)은 503으로 답합니다.');
+  if (!synthesizer.available) app.log.warn('GOOGLE_TTS_API_KEY가 없어 음성 합성(/api/tts)은 503으로 답합니다.');
+  const chatDeps = { llm, knowledge, log: app.log };
 
   app.setErrorHandler((err: FastifyError, req, reply) => {
     if (err instanceof AppError) return reply.status(err.status).send(errorBody(err.code));
@@ -109,6 +160,27 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     '/api/orders/:orderId/payment',
     { schema: paymentSchema },
     async (req) => payOrder({ prisma, gateway, now }, req.params.orderId, req.body),
+  );
+
+  // ---- v3 ----
+  app.get('/api/context', async (): Promise<ContextResponse> =>
+    buildContext({ prisma, weather, crowdWindowMin: config.crowdWindowMin, now }),
+  );
+
+  app.post<{ Body: TtsRequest }>('/api/tts', { schema: ttsSchema }, async (req, reply) => {
+    const audio = await synthesizer.speak(req.body.text);
+    reply.header('content-type', 'audio/mpeg').header('cache-control', 'private, max-age=3600');
+    return reply.send(audio);
+  });
+
+  app.post<{ Body: ChatRequest }>('/api/chat', { schema: chatSchema }, async (req): Promise<ChatResponse> =>
+    converse(chatDeps, { turns: req.body.turns, conditions: req.body.conditions ?? {}, context: req.body.context ?? {} }),
+  );
+
+  app.post<{ Body: ConditionExtractionRequest }>(
+    '/api/condition-extraction',
+    { schema: extractionSchema },
+    async (req): Promise<ConditionExtractionResponse> => extractConditions(chatDeps, req.body.utterance),
   );
 
   await registerStatic(app, config);

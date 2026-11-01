@@ -57,6 +57,79 @@ export type PaymentResponse =
   | { result: 'success'; order: Order }
   | { result: 'fail'; reason: string; order: Order };
 
+// ---- v3 (2026-11-02): 상황 인식, 음성, 대화형 추천 ----
+
+export type TimeOfDay = 'morning' | 'lunch' | 'afternoon' | 'evening' | 'night';
+export type Crowd = 'low' | 'mid' | 'high';
+export interface WeatherNow {
+  tempC: number;
+  /** WMO 날씨 코드 (Open-Meteo weather_code) */
+  code: number;
+  /** 손님에게 읽어 줄 한국어 표현. 예: "비", "맑음" */
+  label: string;
+  rainy: boolean;
+  cold: boolean;
+  hot: boolean;
+}
+/** GET /api/context — 시간대·날씨·혼잡도. 날씨는 못 받으면 null */
+export interface ContextResponse {
+  timeOfDay: TimeOfDay;
+  /** 매장 로컬 시각 0~23 */
+  hour: number;
+  weather: WeatherNow | null;
+  crowd: Crowd;
+  /** 최근 crowdWindowMin분 결제 완료 주문 수 */
+  recentOrders: number;
+}
+
+/** POST /api/tts — { text } → audio/mpeg. 키가 없으면 503 TTS_UNAVAILABLE */
+export interface TtsRequest { text: string }
+
+/** 대화에서 쓰는 손님 조건. 프론트 prototype/types.ts의 Conditions와 같은 모양 (raw 제외) */
+export interface ChatConditions {
+  party: number;
+  spicy: number | null;
+  kind: string;
+  texture: string;
+  exclude: string[];
+  budget: number | null;
+  totalBudget?: number | null;
+}
+export interface ChatTurn { role: 'user' | 'assistant'; text: string }
+export type Mood = 'tired' | 'celebrate' | 'quick' | 'neutral';
+/** POST /api/chat */
+export interface ChatRequest {
+  turns: ChatTurn[];
+  conditions: Partial<ChatConditions>;
+  context: Partial<Pick<ContextResponse, 'timeOfDay' | 'weather' | 'crowd'>>;
+}
+export interface ChatResponse {
+  /** 직원 말투의 짧은 답변 (TTS로 읽음) */
+  reply: string;
+  /** 이번 턴까지 파악한 조건. 프론트가 그대로 덮어쓴다 */
+  conditions: ChatConditions;
+  mood: Mood | null;
+  /** 추천에 가점을 줄 메뉴 id (0~3개, 메뉴 지식 안의 id만) */
+  picks: string[];
+  /** true면 질문을 멈추고 추천 화면으로 */
+  done: boolean;
+  /** 서버가 쓴 모델. 디버그용 */
+  model: string;
+}
+
+/** POST /api/condition-extraction — 기존 프론트(aiClient.ts) 계약. 단일 발화 → 조건 */
+export interface ConditionExtractionRequest { utterance: string }
+export interface ConditionExtractionResponse {
+  conditions: {
+    party_size: number;
+    spicy_level: 0 | 1 | 2 | 3 | null;
+    budget_per_person: number | null;
+    excluded_ingredients: string[];
+    food_keywords: string[];
+  };
+  source: 'llm';
+}
+
 /** 4xx, 5xx 공통 */
 export type ErrorCode =
   | 'VALIDATION_FAILED'
@@ -66,5 +139,9 @@ export type ErrorCode =
   | 'ORDER_ALREADY_PAID'
   /** 없는 경로나 파일 (/api, /static, /models). api.md v1.1에서 추가 */
   | 'NOT_FOUND'
+  /** Google TTS 키가 없거나 호출 실패. 프론트는 브라우저 TTS로 */
+  | 'TTS_UNAVAILABLE'
+  /** Gemini 키가 없거나 호출 실패. 프론트는 규칙 해석으로 */
+  | 'CHAT_UNAVAILABLE'
   | 'INTERNAL';
 export interface ErrorResponse { error: { code: ErrorCode; message: string } }

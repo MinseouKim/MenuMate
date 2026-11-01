@@ -1,0 +1,38 @@
+# Render Blueprint — MenuMate 백엔드(Fastify)를 무료 웹 서비스로 올린다.
+# Render 대시보드 → New → Blueprint → 이 저장소의 main 브랜치 선택 → sync:false 값 입력.
+# 무료 플랜: 15분 무요청 시 잠들고 깨는 데 약 1분, 디스크 휘발성(SQLite 주문 기록은 재시작 때 사라짐 — 2026-11-02 사용자 결정).
+services:
+  - type: web
+    name: menumate-api
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    # 워크스페이스 루트에서 설치·모델 다운로드·DB 준비. tsx가 devDependency라 --include=dev
+    buildCommand: npm ci --include=dev && npm run models:setup -w ai && npm run db:migrate -w backend && npm run db:seed -w backend
+    startCommand: npm run start -w backend
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: TZ
+        value: Asia/Seoul
+      - key: CORS_ORIGIN            # Vercel 키오스크 주소. 여러 개면 쉼표로
+        value: https://menumate-dl.vercel.app
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: GOOGLE_TTS_API_KEY
+        sync: false
+      - key: TTS_VOICE
+        value: ko-KR-Chirp3-HD-Leda
+      - key: WEATHER_LAT
+        value: "37.3943"
+      - key: WEATHER_LON
+        value: "126.9568"
+      - key: PAYMENT_SIM_DELAY_MS
+        value: "1500"
