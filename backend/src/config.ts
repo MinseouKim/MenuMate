@@ -77,7 +77,8 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
       ? env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
       : true,
     geminiApiKey: secret(env, 'GEMINI_API_KEY'),
-    geminiModel: env.GEMINI_MODEL?.trim() || 'gemini-3.8-flash',
+    // 키오스크는 응답 속도가 중요해 기본은 가장 빠른 모델. 품질을 올리려면 GEMINI_MODEL=gemini-3.8-flash
+    geminiModel: env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite',
     googleTtsApiKey: secret(env, 'GOOGLE_TTS_API_KEY'),
     ttsVoice: env.TTS_VOICE?.trim() || 'ko-KR-Chirp3-HD-Leda',
     weatherLat: num(env, 'WEATHER_LAT', 37.3943),

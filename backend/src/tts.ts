@@ -66,7 +66,8 @@ export function createSynthesizer(opts: TtsOptions): Synthesizer {
         if (!res.ok) {
           const detail = await res.text().catch(() => '');
           if (res.status === 401 || res.status === 403) {
-            opts.log?.warn(`Google TTS가 API 키를 거부했어요 (${res.status}). Cloud 콘솔에서 Text-to-Speech API 활성화와 키 제한을 확인하거나 서비스 계정이 필요합니다.`);
+            // 응답 본문에는 키가 들어 있지 않다. 이유(SERVICE_DISABLED, API_KEY_INVALID 등)만 보이게 앞부분을 남긴다.
+            opts.log?.warn(`Google TTS가 API 키를 거부했어요 (${res.status}): ${detail.replace(/\s+/g, ' ').slice(0, 300)} — Cloud 콘솔에서 Text-to-Speech API 활성화와 키 제한을 확인하거나 서비스 계정이 필요합니다.`);
           } else {
             opts.log?.warn(`Google TTS 오류 ${res.status}: ${detail.slice(0, 200)}`);
           }
