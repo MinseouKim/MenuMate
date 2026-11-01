@@ -337,3 +337,17 @@ body { display: grid; place-items: center; }
   .kx *, .kx *::before, .kx *::after { animation: none !important; transition: none !important; }
   .kx.large .kx-order:not(:disabled), .kx.large .kx-choice:first-child, .kx.large .kx-actions .kx-btn-primary:not(:disabled) { box-shadow: 0 0 0 calc(var(--u) * 4) var(--gold); }
 }
+
+/* ── 직원 AI 대화 (2026-11-02) ─────────────────────────────────────────── */
+.kx-context { font-weight: 700; }
+.kx-chat { display: grid; gap: calc(var(--u) * 14); }
+.kx-bubble { max-width: 88%; padding: calc(var(--u) * 18) calc(var(--u) * 24); border-radius: var(--r-card); font-size: calc(var(--f) * 34); line-height: 1.4; }
+.kx-bubble-ai { justify-self: start; background: var(--paper); border: 2px solid var(--line); border-bottom-left-radius: calc(var(--u) * 6); }
+.kx-bubble-me { justify-self: end; background: var(--lacquer); color: var(--ivory); border-bottom-right-radius: calc(var(--u) * 6); }
+.kx-bubble-wait { color: var(--muted); font-style: italic; }
+.kx-talk:disabled { opacity: .55; cursor: default; }
+
+/* 카메라 불편 신호 → 큰 글씨 제안 */
+.kx-comfort { display: grid; gap: calc(var(--u) * 16); }
+.kx-comfort-lead { display: flex; align-items: center; gap: calc(var(--u) * 12); font-size: calc(var(--f) * 34); font-weight: 700; }
+.kx-comfort-lead svg { width: calc(var(--u) * 40); height: calc(var(--u) * 40); flex: none; }

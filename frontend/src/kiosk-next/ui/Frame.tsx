@@ -17,7 +17,7 @@ export function Header({ kiosk, bottom = false }: { kiosk: Kiosk; bottom?: boole
       <a className="kx-brand" href="#" onClick={e => { e.preventDefault(); if (state.cart.length) act.open({ kind: 'home' }); else act.reset(); }}>menumate</a>
       <div className="kx-tools">
         {watching && (
-          <span className="kx-camera-live" role="status" aria-label="카메라 작동 중" title="화면 설정을 맞추려고 얼굴 나이대만 추정해요. 영상은 저장하거나 화면에 보여 주지 않아요.">
+          <span className="kx-camera-live" role="status" aria-label="카메라 작동 중" title="화면 설정을 맞추려고 얼굴 나이대와 불편 신호(가까이 옴·찌푸림)만 봐요. 영상은 저장하거나 화면에 보여 주지 않아요.">
             <CameraIcon /><i aria-hidden="true" /><span className="label">카메라 작동 중</span>
           </span>
         )}

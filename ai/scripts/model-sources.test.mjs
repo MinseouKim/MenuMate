@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { AGE_MODELS, FACE_MODEL, SELECTED_AGE_MODEL, parseSetupArgs } from './model-sources.mjs';
 
 describe('model-sources', () => {
-  it('기본 나이 모델은 사용자가 승인한 후보 B (D35)', () => {
-    expect(SELECTED_AGE_MODEL).toBe('vit-age-gender');
-    expect(parseSetupArgs([])).toEqual({ age: 'vit-age-gender', candidates: false });
+  it('기본 나이 모델은 클라우드 배포용 후보 A (D35 개정, 2026-11-02)', () => {
+    expect(SELECTED_AGE_MODEL).toBe('insightface-genderage');
+    expect(parseSetupArgs([])).toEqual({ age: 'insightface-genderage', candidates: false });
   });
 
   it('gram 대책으로 후보 A를 옵션으로 고를 수 있다', () => {

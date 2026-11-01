@@ -44,7 +44,17 @@ export interface Speaker {
   cancel(): void;
 }
 
+/** 불편 신호 (2026-11-02): 얼굴이 화면에 가까워짐 / 눈 찌푸림. 좌표·이미지는 나오지 않는다 (D2 확장) */
+export type FaceSignal = 'approach' | 'squint';
+export interface FaceSignalsConfig { landmarkerModelUrl: string; mediapipeWasmUrl: string; fps?: number }
+export interface FaceSignals {
+  start(video: HTMLVideoElement): void;
+  stop(): void;
+  onSignal(cb: (s: FaceSignal) => void): () => void;
+}
+
 export interface AiModule {
   createAgeGate(config: AgeGateConfig): Promise<AgeGate>;
   createSpeaker(config?: SpeakerConfig): Promise<Speaker>;
+  createFaceSignals(config: FaceSignalsConfig): Promise<FaceSignals>;
 }

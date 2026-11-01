@@ -1,12 +1,12 @@
 # 시스템 아키텍처
 
 - 작성: Frontend, Backend, AI 공동 / 승인: PM
-- 상태: v1 (2026-10-24)
-- 관련 결정: D2, D22, D27, D31, D32, D34, D35, D36
+- 상태: v2 (2026-11-02, D90~D96 반영)
+- 관련 결정: D2, D22, D27, D31, D34, D35, D90, D91, D92, D93, D94, D96
 
 ## 1. 전체 구성
 
-노트북 한 대 안에서 모두 돌고, 인터넷을 쓰지 않는다 (D32).
+온라인으로 동작한다 (D90). 얼굴 판정은 여전히 브라우저 안에서만 하고(D2), 대화·음성·날씨는 서버가 외부 API를 부른다. 배포는 프론트 Vercel + 백엔드 Render (D96). 노트북 한 대에서도 같은 구성으로 돈다.
 
 ```mermaid
 flowchart LR
@@ -20,28 +20,44 @@ flowchart LR
     UI[Frontend<br/>React + TS + Vite<br/>화면 상태 리듀서]
     subgraph AI["@menumate/ai (브라우저 안 On-device)"]
       FD[MediaPipe<br/>Face Detector]
-      AGE[ONNX Runtime Web<br/>나이 추정]
+      AGE[ONNX Runtime Web<br/>나이 추정 InsightFace 1.3MB]
       GATE[ageGateReducer<br/>55+ 판정·8초 타임아웃]
-      TTS[Speaker<br/>OS 내장 한국어 음성]
+      SIG[Face Landmarker<br/>불편 신호: 가까워짐·찌푸림]
     end
+    PLAY[오디오 재생<br/>서버 MP3 → 실패 시 브라우저 TTS]
   end
 
-  subgraph Server["Backend (Node.js + Fastify) :4000"]
-    API[/api/*<br/>메뉴·질문·추천·주문·결제/]
+  subgraph Server["Backend (Node.js + Fastify) · Render"]
+    API[/api/menu·orders·payment/]
+    CHAT[/api/chat, /api/condition-extraction<br/>직원 AI 대화/]
+    CTX[/api/context<br/>시간대·날씨·혼잡도/]
+    TTSP[/api/tts<br/>MP3 캐시/]
     PAY[PaymentGateway<br/>시뮬레이션]
-    STATIC[/models/*, /static/*, 프론트 빌드/]
-    DB[(SQLite<br/>Prisma)]
+    STATIC[/models/*, /static/*/]
+    DB[(SQLite 휘발성<br/>Prisma)]
+  end
+
+  subgraph Ext[외부 API]
+    GEM[Gemini API]
+    GTTS[Google Cloud TTS]
+    OM[Open-Meteo]
   end
 
   CAM -- 영상 프레임 --> FD --> AGE --> GATE
+  CAM -- 영상 프레임 --> SIG
   GATE -- "senior / non_senior / timeout<br/>(나이 숫자·이미지 없음)" --> UI
-  UI -- 질문 문구 --> TTS --> SPK
-  UI <-- 터치 --> MON
-  UI -- "JSON (연령 정보 없음)" --> API
+  SIG -- "approach / squint<br/>(좌표·이미지 없음)" --> UI
+  UI -- 안내·답변 문구 --> TTSP --> PLAY --> SPK
+  UI <-- 터치·음성 --> MON
+  UI -- "대화 턴 + 조건 + 상황<br/>(연령대·얼굴 정보 없음)" --> CHAT --> GEM
+  UI --> CTX --> OM
+  TTSP --> GTTS
+  UI -- "주문 JSON" --> API
   API --> PAY
   API --> DB
+  CTX -- 최근 결제 주문 수 --> DB
   STATIC -- 모델·WASM 파일 --> AI
-  STATIC -- 화면 파일 --> UI
+  VERCEL[Vercel<br/>프론트 정적 배포] -- 화면 파일 --> UI
 ```
 
 ## 2. 데이터 흐름과 개인정보 경계 (D2)
@@ -51,8 +67,12 @@ flowchart LR
 | 카메라 프레임 | 브라우저 video | `@menumate/ai` 내부 | **안 함** (추론 후 폐기) |
 | 추정 나이 숫자 | `@menumate/ai` 내부 | 모듈 밖으로 안 나감 | **안 함** |
 | 연령대 (senior/non_senior) | `@menumate/ai` | Frontend 상태 | 세션 메모리. 초기화 시 삭제. 서버로 안 보냄 |
-| 취향 답변 | Frontend | `POST /api/recommendations` | **안 함** (계산만) |
-| 주문·결제 결과 | Backend | SQLite | 저장 (메뉴, 수량, 금액, 매장/포장, 주문번호) |
+| 불편 신호 (approach/squint, D94) | `@menumate/ai` 내부 (랜드마크·블렌드셰이프는 밖으로 안 나감) | Frontend 상태 → "큰 글씨" 제안 팝업 | **안 함**. 서버로 안 보냄 |
+| 손님 발화·대화 턴 (D91) | 브라우저 음성 인식 | `POST /api/chat` → Gemini API | 서버 **저장·로그 안 함**. 세션 메모리만. Google 측 처리는 Gemini API 약관을 따름 |
+| 안내·답변 문장 (D92) | Frontend | `POST /api/tts` → Google Cloud TTS | 서버 메모리 캐시(문장 해시, 최대 200개). 개인정보 없음 |
+| 시간대·날씨·혼잡도 (D93) | Backend (Open-Meteo, 주문 수 집계) | Frontend | **안 함** |
+| 취향 답변 (구 질문 5개 흐름) | Frontend | `POST /api/recommendations` | **안 함** (계산만). 현재 화면은 쓰지 않음 (D86) |
+| 주문·결제 결과 | Backend | SQLite | 저장 (메뉴, 수량, 금액, 매장/포장, 주문번호). **Render 무료는 휘발성**: 재시작 때 사라짐 (D96) |
 
 ## 3. 폴더 구조 (npm workspaces)
 

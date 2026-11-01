@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
-import { AGE_MODELS, FACE_MODEL, parseSetupArgs } from './model-sources.mjs';
+import { AGE_MODELS, FACE_MODEL, LANDMARKER_MODEL, parseSetupArgs } from './model-sources.mjs';
 
 const AI_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MODELS = join(AI_DIR, 'models');
@@ -77,8 +77,20 @@ const mb = (b) => `${(b / 1024 / 1024).toFixed(1)}MB`;
 
 console.log('얼굴 검출 모델');
 await download(FACE_MODEL, join(MODELS, FACE_MODEL.file));
+console.log('얼굴 신호(랜드마크) 모델');
+await download(LANDMARKER_MODEL, join(MODELS, LANDMARKER_MODEL.file));
 
 console.log(`나이 추정 모델: ${ageArg}`);
+{
+  // 다른 후보가 들어 있으면 지우지 않고 candidates/ 로 옮겨 둔다 (모델 파일 삭제 금지, CLAUDE.md 1번)
+  const dest = join(MODELS, 'age', 'age_estimator.onnx');
+  if (existsSync(dest) && (await sha256(dest)) !== AGE_MODELS[ageArg].sha256) {
+    const keep = join(MODELS, 'age', 'candidates', `previous-${Date.now()}.onnx`);
+    await mkdir(dirname(keep), { recursive: true });
+    await rename(dest, keep);
+    console.log(`  보관  ${rel(keep)} (이전 age_estimator.onnx)`);
+  }
+}
 await download(AGE_MODELS[ageArg], join(MODELS, 'age', 'age_estimator.onnx'));
 if (withCandidates) {
   for (const [id, m] of Object.entries(AGE_MODELS)) await download(m, join(MODELS, 'age', 'candidates', `${id}.onnx`));

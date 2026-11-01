@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { microphoneGranted, requestMicrophone } from '../prototype/media';
 import { usage } from '../prototype/usage';
 import { HybridSttProvider } from '../services/stt/hybridSttProvider';
+import { stopSpeaking } from './speech';
 
 /** 끝내기를 잊어도 계속 듣지 않도록 이 시간이 지나면 스스로 끝냅니다. */
 const LISTEN_LIMIT_MS = 20_000;
@@ -55,7 +56,7 @@ export function useSpeechInput(onResult: (text: string) => void) {
       if (failure) { setError(failure); return; }
       micReady.current = true;
     }
-    window.speechSynthesis?.cancel();
+    stopSpeaking(); // 안내 음성(서버 TTS 포함)을 멈추고 듣는다
     busy.current = true;
     const token = ++epoch.current;
     setError(''); setNotice(''); setHeard(''); setListening(true);
@@ -76,5 +77,5 @@ export function useSpeechInput(onResult: (text: string) => void) {
     }
   }
 
-  return { listening, heard, error, notice, toggle: () => (listening ? finish() : void start()) };
+  return { listening, heard, error, notice, toggle: () => (listening ? finish() : void start()), start: () => void start(), finish };
 }

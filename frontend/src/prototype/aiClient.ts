@@ -1,5 +1,6 @@
 // 서버의 AI 조건 추출(POST /api/condition-extraction)을 부릅니다. API 키는 서버 .env에만 있습니다.
 // 서버 주소가 없거나, 늦거나, LLM이 아닌 규칙으로 답하면 null을 돌려주고 화면 쪽 규칙 해석을 그대로 씁니다.
+import { apiUrl, config } from '../config';
 import type { Conditions } from './types';
 import { KIND_OPTIONS } from './recommendation';
 
@@ -7,11 +8,10 @@ interface ServerConditions { party_size: number; spicy_level: 0 | 1 | 2 | 3 | nu
 const TIMEOUT_MS = 4000;
 
 export async function extractWithServer(text: string): Promise<ServerConditions | null> {
-  const base = import.meta.env.VITE_API_BASE_URL;
-  if (!base) return null;
+  if (!config.chatServer || typeof fetch !== 'function') return null;
   const abort = new AbortController(); const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(`${base.replace(/\/$/, '')}/api/condition-extraction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ utterance: text }), signal: abort.signal });
+    const res = await fetch(apiUrl('/api/condition-extraction'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ utterance: text }), signal: abort.signal });
     if (!res.ok) return null;
     const body = await res.json() as { conditions?: ServerConditions; source?: string };
     return body.source === 'llm' && body.conditions ? body.conditions : null;

@@ -1,6 +1,19 @@
 import type { Conditions, Menu, Recommendation } from './types';
 import { negatedTerms, NOODLE, parseBudget, parseParty, stripNegated } from './parse';
 // 프로토타입용 규칙 모듈. 서버 LLM·DB를 호출하지 않습니다.
+// extra: 직원 AI(서버 대화)가 고른 메뉴 id와 날씨·시간대. 없으면 예전과 똑같이 동작합니다.
+export interface RecommendExtra { picks?: string[]; context?: { timeOfDay?: string; crowd?: string; weather?: { rainy: boolean; cold: boolean; hot: boolean; label?: string } | null } | null }
+const WARM=['soup','noodle'],COOL=['cold'],QUICK=['noodle','rice'];
+/** 상황 보정: 비·추위 → 국물·면, 더위 → 냉채, 점심·붐빌 때 → 조리가 빠른 식사. 점수 2 이하라 손님이 말한 조건을 이기지 않습니다. */
+export function contextBonus(m: Menu, ctx: RecommendExtra['context']): {score: number; reason: string} | null {
+  if(!ctx)return null;
+  const w=ctx.weather;
+  if(w?.rainy&&WARM.includes(m.category))return {score:2,reason:w.label==='눈'?'눈 오는 날 따뜻하게 드시기 좋아요':'비 오는 날 따뜻하게 드시기 좋아요'};
+  if(w?.cold&&WARM.includes(m.category))return {score:2,reason:'쌀쌀한 날 몸이 따뜻해지는 메뉴예요'};
+  if(w?.hot&&COOL.includes(m.category))return {score:2,reason:'더운 날 시원하게 드시기 좋아요'};
+  if((ctx.crowd==='high'||ctx.timeOfDay==='lunch')&&QUICK.includes(m.category))return {score:1,reason:'지금처럼 바쁠 때 빨리 나오는 메뉴예요'};
+  return null;
+}
 export const KIND_OPTIONS=['면','밥','베이징덕/생선','딤섬','야채','냉채/샐러드','스프/탕','치킨','돼지고기','소고기','해산물'];
 export const EXCLUDE_OPTIONS=['해산물','새우','돼지고기','소고기','닭고기','계란','견과류'];
 // 버튼에는 없지만 말로 빼 달라고 할 수 있는 재료입니다.
@@ -16,7 +29,8 @@ export const KioskAI = {
   const wanted=stripNegated(text);
   return {party,spicy,kind:KIND_WORDS.find(([,re])=>re.test(wanted))?.[0]??'상관없음',texture:wanted.includes('바삭')?'바삭함':wanted.includes('쫄깃')?'쫄깃함':'상관없음',exclude,budget:total?Math.round(total/party):perPerson,totalBudget:total,raw:text};
  },
- recommend(c: Conditions,menus: Menu[]): Recommendation[] {
+ recommend(c: Conditions,menus: Menu[],extra: RecommendExtra={}): Recommendation[] {
+  const picks=new Set(extra.picks??[]);
   const groups: Record<string,string[]>={'해산물':['해산물','새우','생선','게','해삼','전복','관자','굴','오징어','조개']};
   const excluded=c.exclude.flatMap(i=>groups[i]||[i]);
   // '해물'로만 적힌 메뉴는 어떤 해산물이 들어갔는지 모르므로, 새우·게 같은 해산물 하나라도 빼 달라고 하면 함께 뺍니다.
@@ -31,6 +45,8 @@ export const KioskAI = {
    // 맵기 0은 '안 매움'과 '아직 모름'이 섞여 있어, 매장에서 확인한 메뉴(spicyChecked)만 안 맵다고 말합니다.
    if(c.spicy!==null&&m.spicy===c.spicy){if(c.spicy===0&&!m.spicyChecked){score+=2;reasons.push('맵다는 표시가 없는 메뉴예요')}else{score+=4;reasons.push(c.spicy===0?'안 매운 메뉴예요':'원하신 맵기와 맞아요')}}
    if(c.texture!=='상관없음'&&m.texture.includes(c.texture)){score+=3;reasons.push(`${c.texture} 식감 태그가 있어요`)}
+   if(picks.has(m.id)){score+=6;reasons.push('대화 내용을 듣고 직원 AI가 골라 드린 메뉴예요')}
+   const ctx=contextBonus(m,extra.context);if(ctx){score+=ctx.score;reasons.push(ctx.reason)}
    return {score,reasons};
   };
   const pool=menus.filter(allowed).map(m=>({m,...fit(m)})).sort((a,b)=>b.score-a.score);

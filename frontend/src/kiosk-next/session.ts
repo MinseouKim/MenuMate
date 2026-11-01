@@ -2,7 +2,20 @@
 // 여기서는 "어떤 일이 일어나면 상태가 어떻게 바뀌는가"만 정합니다. 그래서 브라우저 없이 테스트할 수 있습니다.
 import type { FaceGroup } from '../prototype/ageAssist';
 import * as Cart from './cart';
-import type { Conditions, Dialog, Line, Mode, Order, Prefs, Recommendation, Screen } from './types';
+import type { ChatReply, ChatTurn, Conditions, Dialog, KioskContext, Line, Mode, Mood, Order, Prefs, Recommendation, Screen } from './types';
+
+/** 직원 AI와 나눈 대화. 서버가 없으면 failed=true 가 되어 예전 길(말하기 → 확인 → 추천)로 갑니다. */
+export interface ChatState {
+  turns: ChatTurn[];
+  /** 서버 답을 기다리는 중 */
+  pending: boolean;
+  failed: boolean;
+  mood: Mood | null;
+  picks: string[];
+  done: boolean;
+  context: KioskContext | null;
+}
+const NO_CHAT: ChatState = { turns: [], pending: false, failed: false, mood: null, picks: [], done: false, context: null };
 
 export interface SessionState {
   screen: Screen;
@@ -30,6 +43,9 @@ export interface SessionState {
   staffCalled: boolean;
   /** 빈 조건. 새 손님을 맞을 때 되돌아가는 값입니다. */
   blank: Conditions;
+  chat: ChatState;
+  /** 카메라 불편 신호로 큰 글씨를 제안했는지 (손님 한 명당 한 번) */
+  comfortAsked: boolean;
 }
 
 export type Action =
@@ -52,7 +68,13 @@ export type Action =
   | { type: 'ordered'; order: Order }
   | { type: 'message'; text: string }
   | { type: 'dialog'; dialog: Dialog | null }
-  | { type: 'staff-called' };
+  | { type: 'staff-called' }
+  | { type: 'chat/context'; context: KioskContext | null }
+  | { type: 'chat/user'; text: string }
+  | { type: 'chat/pending'; on: boolean }
+  | { type: 'chat/assistant'; reply: ChatReply }
+  | { type: 'chat/failed' }
+  | { type: 'comfort/asked' };
 
 const START_CATEGORY = 'duck-fish';
 const NO_PREFS: Prefs = { large: false, voice: false, contrast: false, low: false };
@@ -62,7 +84,7 @@ export function createInitialState(blank: Conditions): SessionState {
     screen: 'welcome', history: [], mode: 'recommend', category: START_CATEGORY, search: null,
     cart: Cart.emptyCart, prefs: NO_PREFS, manual: false, faceDone: false, faceNote: null,
     conditions: blank, aiUsed: false, results: [], order: null, orderCount: 0,
-    message: '', dialog: null, staffCalled: false, blank,
+    message: '', dialog: null, staffCalled: false, blank, chat: NO_CHAT, comfortAsked: false,
   };
 }
 
@@ -73,10 +95,12 @@ function fresh(state: SessionState, to: Screen, wipePrefs: boolean): SessionStat
     ...state,
     screen: to, history: [], category: START_CATEGORY, search: null, cart: Cart.emptyCart,
     conditions: state.blank, aiUsed: false, results: [], dialog: null, message: '', staffCalled: false,
+    // 상황(날씨·시간대)은 손님이 바뀌어도 그대로 쓰고, 대화만 새로 시작합니다.
+    chat: { ...NO_CHAT, context: state.chat.context },
     mode: done ? state.mode : 'recommend',
     order: done ? state.order : null,
     prefs: wipePrefs ? NO_PREFS : state.prefs,
-    ...(to === 'welcome' ? { faceDone: false, manual: false, faceNote: null } : {}),
+    ...(to === 'welcome' ? { faceDone: false, manual: false, faceNote: null, comfortAsked: false } : {}),
   };
 }
 
@@ -144,6 +168,30 @@ export function reducer(state: SessionState, action: Action): SessionState {
       return { ...state, dialog: action.dialog, ...(action.dialog?.kind === 'help' ? { staffCalled: false } : {}) };
     case 'staff-called':
       return { ...state, staffCalled: true };
+    case 'chat/context':
+      return { ...state, chat: { ...state.chat, context: action.context } };
+    case 'chat/user': {
+      const text = action.text.trim();
+      if (!text) return state;
+      // 손님이 말한 문장들을 이어 붙여 두면(raw), 메뉴 이름 언급 가점과 '이렇게 이해했어요' 표시에 그대로 쓸 수 있습니다.
+      const raw = [state.conditions.raw, text].filter(Boolean).join(' ');
+      return { ...state, chat: { ...state.chat, turns: [...state.chat.turns, { role: 'user', text }], pending: true }, conditions: { ...state.conditions, raw } };
+    }
+    case 'chat/pending':
+      return { ...state, chat: { ...state.chat, pending: action.on } };
+    case 'chat/assistant': {
+      const { reply } = action;
+      return {
+        ...state,
+        chat: { ...state.chat, turns: [...state.chat.turns, { role: 'assistant', text: reply.reply }], pending: false, mood: reply.mood, picks: reply.picks, done: reply.done },
+        conditions: { ...state.conditions, ...reply.conditions },
+        aiUsed: true,
+      };
+    }
+    case 'chat/failed':
+      return { ...state, chat: { ...state.chat, pending: false, failed: true } };
+    case 'comfort/asked':
+      return { ...state, comfortAsked: true };
   }
 }
 

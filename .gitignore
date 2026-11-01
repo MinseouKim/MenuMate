@@ -16,3 +16,6 @@ docs/video/*.mp4
 
 # 개인 스크린샷 모음
 에러모음/
+
+# 리뷰 수집 원본 (scripts/collect-reviews.mjs, D74·D98)
+ururu-menu/raw/

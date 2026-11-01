@@ -34,7 +34,7 @@ export default defineConfig(({ command, mode }) => {
       port: 3000,
       strictPort: true,
       // AI 모델 파일과 메뉴 사진은 Backend 가 로컬 파일로 제공한다
-      proxy: { '/static': BACKEND, '/models': BACKEND },
+      proxy: { '/api': BACKEND, '/static': BACKEND, '/models': BACKEND },
     },
     test: {
       environment: 'jsdom',

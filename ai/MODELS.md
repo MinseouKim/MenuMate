@@ -14,13 +14,26 @@
 | SHA-256 | `b4578f35940bf5a1a655214a1cce5cab13eba73c1297cd78e1a04c2380b0152f` |
 | 위치 | `models/face/blaze_face_short_range.tflite` |
 
-## 나이 추정 (확정: 후보 B, 사용자 승인 2026-10-25, D35)
+## 얼굴 신호: 랜드마크·블렌드셰이프 (2026-11-02 추가, D94)
+
+| 항목 | 값 |
+|------|-----|
+| 이름 | MediaPipe Face Landmarker `face_landmarker` (float16, 버전 1) |
+| 출처 | https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task |
+| 라이선스 | Apache-2.0 |
+| 크기 | 3,758,596 bytes (3.6MB) |
+| SHA-256 | `64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff` |
+| 위치 | `models/face/face_landmarker.task` |
+| 용도 | `createFaceSignals`: 얼굴 면적 비율(가까워짐)과 `eyeSquintLeft/Right`(찌푸림)만 읽어 신호로 낸다. 좌표는 모듈 밖으로 안 나감 |
+
+## 나이 추정 (기본: 후보 A, 2026-11-02 D95로 개정. 이전 기본은 후보 B, D35)
 
 `models/age/age_estimator.onnx` 하나로 고정. 어떤 후보인지는 ONNX 입력 이름으로 자동 인식한다.
-`models:setup` 기본값은 후보 B다 (`scripts/model-sources.mjs`의 `SELECTED_AGE_MODEL`). 후보 A는 gram 대책으로 `--age=insightface-genderage`로 남겨 둔다.
-**상업화 때는 후보 B의 학습 데이터(UTKFace, 비상업 연구용) 라이선스 검토가 필요하다.**
+`models:setup` 기본값은 **후보 A**다 (`scripts/model-sources.mjs`의 `SELECTED_AGE_MODEL`). 클라우드 배포(Render 무료)에서 345MB를 매번 내려받기 어렵기 때문. 후보 B는 `--age=vit-age-gender`로 받는다.
+setup은 기존 `age_estimator.onnx`가 다른 후보이면 지우지 않고 `models/age/candidates/previous-<시각>.onnx`로 옮긴다.
+**후보 A는 비상업 라이선스라 공모전·전시까지만 쓴다. 상업화 때는 후보 B(학습 데이터 UTKFace도 비상업 연구용)와 함께 라이선스 검토가 필요하다.**
 
-| 항목 | 후보 A `insightface-genderage` (gram 대책용) | **후보 B `vit-age-gender` (확정)** |
+| 항목 | **후보 A `insightface-genderage` (기본, D95)** | 후보 B `vit-age-gender` (정확도 우선, `--age=vit-age-gender`) |
 |------|------|------|
 | 이름 | InsightFace buffalo_l genderage | age-gender-prediction (ViT-B/16) ONNX |
 | 출처 | https://huggingface.co/public-data/insightface (커밋 `33c1063c49c785b7652d3fd529f86fa4f149392b`, `models/buffalo_l/genderage.onnx`) | https://huggingface.co/onnx-community/age-gender-prediction-ONNX (커밋 `6c138f6454d37dd55e5d4648e23e1ec23844e705`, `onnx/model.onnx`). 원본 `abhilash88/age-gender-prediction` |

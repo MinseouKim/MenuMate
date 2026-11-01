@@ -133,3 +133,28 @@ describe('KioskAI', () => {
     for (const r of results) expect(r.main.ingredients.some(i => seafood.includes(i))).toBe(false);
   });
 });
+
+describe('KioskAI.recommend extra (직원 AI picks · 상황 보정)', () => {
+  const base = KioskAI.extract('');
+  it('picks에 든 메뉴는 점수가 올라 추천에 먼저 나온다', () => {
+    const without = KioskAI.recommend({ ...base, party: 1 }, menus);
+    const target = menus.find(m => m.category === 'rice' && !without.some(r => r.lines.some(l => l.id === m.id)))!;
+    const withPick = KioskAI.recommend({ ...base, party: 1 }, menus, { picks: [target.id] });
+    const hit = withPick.find(r => r.lines.some(l => l.id === target.id))!;
+    expect(hit).toBeDefined();
+    expect(hit.reasons).toContain('대화 내용을 듣고 직원 AI가 골라 드린 메뉴예요');
+  });
+  it('비 오는 날에는 국물·면 메뉴에 이유가 붙고, 더운 날에는 냉채에 붙는다', () => {
+    const rainy = { timeOfDay: 'evening', crowd: 'low', weather: { rainy: true, cold: false, hot: false, label: '비' } } as const;
+    const r1 = KioskAI.recommend({ ...base, party: 1, kind: '면' }, menus, { context: rainy });
+    expect(r1.some(r => r.reasons.includes('비 오는 날 따뜻하게 드시기 좋아요'))).toBe(true);
+    const hot = { timeOfDay: 'afternoon', crowd: 'low', weather: { rainy: false, cold: false, hot: true, label: '맑음' } } as const;
+    const r2 = KioskAI.recommend({ ...base, party: 2, kind: '냉채/샐러드' }, menus, { context: hot });
+    expect(r2.some(r => r.reasons.includes('더운 날 시원하게 드시기 좋아요'))).toBe(true);
+  });
+  it('extra가 없으면 예전과 같은 결과', () => {
+    const a = KioskAI.recommend({ ...base, party: 2, kind: '딤섬' }, menus);
+    const b = KioskAI.recommend({ ...base, party: 2, kind: '딤섬' }, menus, {});
+    expect(a).toEqual(b);
+  });
+});

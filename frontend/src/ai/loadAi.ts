@@ -1,11 +1,15 @@
 import { config } from '../config';
 import { silentSpeaker } from './fallback';
-import type { AgeGate, AiModule, Speaker } from './types';
+import type { AgeGate, AiModule, FaceSignals, Speaker } from './types';
 
-/** 음성과 판정기는 따로 준비된다. 큰 나이 추정 모델(수백 MB)을 기다리는 동안에도 음성과 화면은 쓸 수 있어야 한다 (D46) */
+/** 음성과 판정기는 따로 준비된다. 나이 추정 모델을 기다리는 동안에도 음성과 화면은 쓸 수 있어야 한다 (D46) */
 export interface AiLoad {
-  speaker: Promise<Speaker>;          // 실패해도 reject하지 않고 silentSpeaker
-  ageGate: Promise<AgeGate | null>;   // 실패하면 null. 그동안 화면은 터치와 단축키로 진행한다
+  speaker: Promise<Speaker>;              // 실패해도 reject하지 않고 silentSpeaker
+  ageGate: Promise<AgeGate | null>;       // 실패하면 null. 그동안 화면은 터치와 단축키로 진행한다
+  /** 불편 신호(얼굴 접근·찌푸림). 실패하거나 꺼져 있으면 null — 큰 글씨 제안만 없어진다 */
+  faceSignals: Promise<FaceSignals | null>;
+  /** 연령 판정과 불편 신호가 같은 카메라 영상을 쓰도록 공유한다 */
+  video: { current: HTMLVideoElement | null };
 }
 
 /**
@@ -50,5 +54,13 @@ function startLoading(): AiLoad {
     return null;
   });
 
-  return { speaker, ageGate };
+  const faceSignals: Promise<FaceSignals | null> = !config.faceSignals
+    ? Promise.resolve(null)
+    : mod.then(m => m?.createFaceSignals({ landmarkerModelUrl: config.landmarkerModelUrl, mediapipeWasmUrl: config.mediapipeWasmUrl, fps: 2 }) ?? null)
+      .catch((e: unknown) => {
+        console.warn('[ai] 불편 신호 모델을 불러오지 못했습니다. 큰 글씨 제안 없이 진행합니다', e);
+        return null;
+      });
+
+  return { speaker, ageGate, faceSignals, video: { current: null } };
 }

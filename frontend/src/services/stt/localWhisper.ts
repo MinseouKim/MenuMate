@@ -1,10 +1,11 @@
 /**
- * 인터넷 없이 쓰는 음성 인식: 브라우저 안에서 Whisper(base, int8)를 돌린다 (D32).
- * 모델 파일은 Backend가 /models/stt/ 로 제공한다 (ai/models/stt/, 받는 법은 ai/MODELS.md).
+ * 브라우저 음성 인식이 안 될 때의 대체 수단: 브라우저 안에서 Whisper(base, int8)를 돌린다 (D89).
+ * 모델 파일은 Backend가 /models/stt/ 로 제공한다 (ai/models/stt/, 받는 법은 ai/MODELS.md). 배포 서버에 파일이 없으면 이 대체 수단은 꺼진다.
  * 불러오는 데 몇 초 걸려서 필요할 때(Web Speech가 안 될 때)만 불러온다.
  */
+import { config } from '../../config';
 const MODEL = 'whisper-base';
-const MODEL_ROOT = '/models/stt/';
+const MODEL_ROOT = config.sttModelRoot.endsWith('/') ? config.sttModelRoot : `${config.sttModelRoot}/`;
 
 type Asr = (audio: Float32Array, options: Record<string, unknown>) => Promise<{ text: string } | { text: string }[]>;
 let loading: Promise<Asr> | null = null;

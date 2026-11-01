@@ -11,7 +11,9 @@ import * as Cart from './cart';
 import { defaultRecommender, type Recommender } from './recommender';
 import { createInitialState, lineOf, reducer, type SessionState } from './session';
 import { chime, speak, stopSpeaking } from './speech';
+import { useFaceSignals } from './useFaceSignals';
 import { money, type Conditions, type Dialog, type Menu, type PaymentResult, type Prefs, type Recommendation, type Screen } from './types';
+import { config } from '../config';
 
 export const IDLE_MS = 60_000;
 export const IDLE_GRACE_MS = 20_000;
@@ -40,7 +42,8 @@ function narration(s: SessionState, catalog: Catalog, total: number): string {
     notice: '말로 추천받기 시작 버튼을 눌러 주세요.',
     input: s.mode === 'order'
       ? '말하기 버튼을 누르고 메뉴 이름과 개수를 말씀해 주세요. 다 말씀하시면 한 번 더 눌러 주세요.'
-      : '말하기 버튼을 누르고 원하는 메뉴나 취향을 말씀해 주세요. 다 말씀하시면 한 번 더 눌러 주세요.',
+      // 직원 AI와 대화 중이면 마지막 답변을 그대로 읽습니다(음성 안내가 꺼져 있어도 대화 답변은 읽습니다 — 아래 effect).
+      : lastAssistant(s) ?? (s.chat.pending ? '잠시만요, 생각하고 있어요.' : '말하기 버튼을 누르고 원하는 메뉴나 취향을 말씀해 주세요. 다 말씀하시면 한 번 더 눌러 주세요.'),
     review: `${s.conditions.party}명으로 이해했어요. 맞으면 추천해 주세요 버튼을 눌러 주세요.`,
     results: s.results.length
       ? `추천 메뉴 ${s.results.length}가지예요. ${s.results.map((r, i) => `${i + 1}번, ${r.lines.map(l => `${nameOf(l.id)} ${l.quantity}개`).join(', ')}, ${money(r.total)}.`).join(' ')}`
@@ -51,6 +54,13 @@ function narration(s: SessionState, catalog: Catalog, total: number): string {
   return by[s.screen];
 }
 
+/** 대화 중 직원 AI의 마지막 말. 대화가 실패했거나 아직 없으면 null */
+export function lastAssistant(s: SessionState): string | null {
+  if (s.chat.failed) return null;
+  const last = [...s.chat.turns].reverse().find(t => t.role === 'assistant');
+  return last?.text ?? null;
+}
+
 export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecommender }: KioskDeps = {}) {
   const [state, dispatch] = useReducer(reducer, undefined, () => createInitialState(recommender.understand('')));
   const { screen, dialog, prefs, message } = state;
@@ -58,8 +68,16 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
   const total = Cart.total(state.cart, catalog);
   const count = Cart.count(state.cart);
 
-  // 카메라: 손님 한 명마다 한 번만 정하고, 정하면 끕니다. 영상은 저장하지 않고 화면에도 띄우지 않습니다.
-  const face = useAgeAssist(!state.faceDone && screen !== 'payment' && screen !== 'done', group => dispatch({ type: 'face', group }));
+  // 카메라: 연령대는 손님 한 명마다 한 번만 정합니다. 그 뒤에도(결제·완료 화면 전까지) 카메라는 켜 두고
+  // 얼굴이 화면에 가까워지거나 눈을 찌푸리는 '불편 신호'만 봅니다 (VITE_FACE_SIGNALS). 영상은 저장하지 않고 화면에도 띄우지 않습니다.
+  const cameraOn = screen !== 'payment' && screen !== 'done' && (!state.faceDone || config.faceSignals);
+  const face = useAgeAssist(cameraOn, group => dispatch({ type: 'face', group }));
+  const comfort = useFaceSignals(cameraOn && state.faceDone && screen !== 'welcome' && !state.comfortAsked && !prefs.large);
+  useEffect(() => {
+    if (!comfort.signal || state.comfortAsked || prefs.large || screen === 'welcome') return;
+    dispatch({ type: 'comfort/asked' });
+    dispatch({ type: 'dialog', dialog: { kind: 'comfort', signal: comfort.signal } });
+  }, [comfort.signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 바깥 일(타이머·소리·기록) ─────────────────────────────────────────────
   useEffect(() => { if (state.faceNote) logAge('ok', '화면 적용: 큰 글씨 + 음성 안내 켬'); }, [state.faceNote]);
@@ -81,13 +99,30 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (dialog?.kind !== 'idle') return; const t = setTimeout(() => act.reset('welcome', true), IDLE_GRACE_MS); return () => clearTimeout(t); }, [dialog]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 음성 안내
+  // 음성 안내. 직원 AI 답변은 음성 안내 설정과 관계없이 읽습니다(대화가 곧 안내이므로).
   const narrated = narration(state, catalog, total);
+  const talking = screen === 'input' && state.mode === 'recommend' && lastAssistant(state) !== null;
   useEffect(() => { if (prefs.voice && message) speak(message); }, [message, prefs.voice]);
   useEffect(() => {
-    if (prefs.voice) speak(narrated);
+    if (prefs.voice || talking) void speak(narrated);
     return stopSpeaking;
-  }, [narrated, prefs.voice]);
+  }, [narrated, prefs.voice, talking]);
+
+  // 직원 AI 대화: 말하기 화면에 들어오면 상황(날씨·시간대)을 받고 첫 인사를 청합니다. 서버가 없으면 예전 길로.
+  useEffect(() => {
+    if (screen !== 'input' || state.mode !== 'recommend' || state.chat.failed || state.chat.pending || state.chat.turns.length > 0) return;
+    const token = ++aiToken.current;
+    dispatch({ type: 'chat/pending', on: true });
+    void (async () => {
+      const context = state.chat.context ?? (await recommender.context());
+      if (token !== aiToken.current) return;
+      dispatch({ type: 'chat/context', context });
+      const reply = await recommender.converse([], state.conditions, context);
+      if (token !== aiToken.current) return;
+      if (reply) { usage.ai('llm'); dispatch({ type: 'chat/assistant', reply }); }
+      else dispatch({ type: 'chat/failed' });
+    })();
+  }, [screen, state.mode, state.chat.failed, state.chat.pending, state.chat.turns.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 손님이 하는 일 ────────────────────────────────────────────────────────
   const say = (text: string) => dispatch({ type: 'message', text });
@@ -157,7 +192,32 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
     callStaff() { chime(); dispatch({ type: 'staff-called' }); },
 
     // 말로 추천 / 말로 주문
-    submit(text: string) { if (state.mode === 'recommend') act.askRecommend(text); else act.orderBySpeech(text); },
+    submit(text: string) {
+      if (state.mode !== 'recommend') return act.orderBySpeech(text);
+      if (!state.chat.failed && !state.chat.pending) return act.chatSay(text);
+      act.askRecommend(text);
+    },
+    /** 직원 AI에게 한 마디. 답이 오면 읽어 주고, 조건이 충분하면(done) 바로 추천 결과로 갑니다. */
+    chatSay(text: string) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const turns = [...state.chat.turns, { role: 'user' as const, text: trimmed }];
+      dispatch({ type: 'chat/user', text: trimmed });
+      const token = ++aiToken.current;
+      void recommender.converse(turns, state.conditions, state.chat.context).then(reply => {
+        if (token !== aiToken.current) return;
+        if (!reply) {
+          // 대화 서버가 끊기면 지금까지 말한 내용을 규칙으로 읽어 예전 길(확인 화면)로 이어 갑니다.
+          dispatch({ type: 'chat/failed' });
+          say('AI 연결이 안 돼 간단한 질문으로 진행할게요.');
+          act.askRecommend([state.conditions.raw, trimmed].filter(Boolean).join(' '));
+          return;
+        }
+        usage.ai('llm');
+        dispatch({ type: 'chat/assistant', reply });
+        if (reply.done) act.showResults({ ...state.conditions, ...reply.conditions, raw: [state.conditions.raw, trimmed].filter(Boolean).join(' ') }, reply.picks);
+      });
+    },
     askRecommend(text: string) {
       const local = recommender.understand(text);
       dispatch({ type: 'mode', mode: 'recommend' });
@@ -182,9 +242,15 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
       open({ kind: 'spoken', menu: matches[0], quantity });
     },
     patchConditions: (patch: Partial<Conditions>) => dispatch({ type: 'conditions/patch', patch }),
-    showResults() {
-      dispatch({ type: 'results', results: recommender.recommend(state.conditions, catalog.menus) });
+    /** 추천 결과로. 대화에서 바로 올 때는 아직 state에 반영되기 전의 조건·picks를 직접 받습니다. */
+    showResults(conditions: Conditions = state.conditions, picks: string[] = state.chat.picks) {
+      dispatch({ type: 'results', results: recommender.recommend(conditions, catalog.menus, { picks, context: state.chat.context }) });
       act.go('results');
+    },
+    /** 카메라 불편 신호 제안에 답함 */
+    comfortAnswer(yes: boolean) {
+      if (yes) { usage.flag('large'); dispatch({ type: 'pref', name: 'large', on: true, byUser: false }); say('글씨를 크게 바꿨어요.'); }
+      open(null);
     },
     takeResult(result: Recommendation) {
       addLines(result.lines.map(l => Cart.withDefaultOption(l, catalog)));

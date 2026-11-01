@@ -52,6 +52,7 @@ export function useAgeAssist(active: boolean, onGroup?: (group: FaceGroup) => vo
         video.muted = true; video.playsInline = true; video.srcObject = stream;
         await video.play();
         logAge('info', '카메라 켜짐', { camera: '켜짐', model: '불러오는 중' });
+        loadAi().video.current = video; // 불편 신호(useFaceSignals)가 같은 영상을 씁니다
         gate = await loadAi().ageGate;
         if (!alive) return;
         if (!gate) { logAge('error', '연령 판정 모델을 불러오지 못했어요', { model: '실패' }); setPhase({ state: 'error', error: '연령 판정 모델을 불러오지 못했어요. 화면은 직접 설정해 주세요.' }); return; }
@@ -97,6 +98,7 @@ export function useAgeAssist(active: boolean, onGroup?: (group: FaceGroup) => vo
       alive = false;
       off?.(); gate?.stop();
       if (onKey) window.removeEventListener('keydown', onKey);
+      loadAi().video.current = null;
       stream?.getTracks().forEach(t => t.stop());
       setAgeStatus({ camera: '꺼짐' }); logAge('info', '카메라를 끕니다');
       setPhase(null); setGroup(null);

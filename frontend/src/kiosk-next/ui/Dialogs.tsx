@@ -19,6 +19,7 @@ function titleOf(d: Dialog): string {
     case 'settings': return '화면 설정';
     case 'confirm': return '담은 메뉴를 확인해 주세요';
     case 'help': return '도움이 필요하세요?';
+    case 'comfort': return '글씨를 크게 바꿔 드릴까요?';
   }
 }
 
@@ -50,6 +51,15 @@ export function Dialogs({ kiosk }: { kiosk: Kiosk }) {
       {dialog.kind === 'idle' && <IdleNotice kiosk={kiosk} />}
 
       {dialog.kind === 'confirm' && <ConfirmCart kiosk={kiosk} />}
+
+      {dialog.kind === 'comfort' && (
+        <div className="kx-comfort">
+          <p className="kx-comfort-lead"><CameraIcon /><span>{dialog.signal === 'approach' ? '화면에 가까이 다가오신 것 같아요.' : '글씨가 잘 안 보이시는 것 같아요.'}</span></p>
+          <p className="kx-muted">큰 글씨로 바꾸면 보기 편해요. 언제든 위쪽 ‘기본 글씨’ 버튼으로 되돌릴 수 있어요.</p>
+          <button className="kx-btn kx-btn-primary" onClick={() => act.comfortAnswer(true)}>네, 크게 보여 주세요</button>
+          <button className="kx-btn kx-btn-ghost" onClick={() => act.comfortAnswer(false)}>아니요, 괜찮아요</button>
+        </div>
+      )}
 
       {dialog.kind === 'option' && (
         <>

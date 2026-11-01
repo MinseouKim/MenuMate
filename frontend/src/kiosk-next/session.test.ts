@@ -103,3 +103,40 @@ describe('session 추천 조건', () => {
     expect(edited).toMatchObject({ conditions: { party: 5 }, aiUsed: false });
   });
 });
+
+describe('직원 AI 대화 (chat)', () => {
+  const reply = { reply: '몇 분이세요?', conditions: { party: 1, spicy: null, kind: '상관없음', texture: '상관없음', exclude: [], budget: null, totalBudget: null }, mood: null, picks: [], done: false };
+  it('손님 말은 turns와 raw에 쌓이고 답을 기다리는 상태가 된다', () => {
+    const s = run([{ type: 'chat/user', text: ' 둘이요 ' }]);
+    expect(s.chat).toMatchObject({ turns: [{ role: 'user', text: '둘이요' }], pending: true });
+    expect(s.conditions.raw).toBe('둘이요');
+    expect(run([{ type: 'chat/user', text: '매운 건 빼고' }], s).conditions.raw).toBe('둘이요 매운 건 빼고');
+  });
+  it('빈 말은 무시한다', () => {
+    expect(run([{ type: 'chat/user', text: '   ' }]).chat.turns).toEqual([]);
+  });
+  it('AI 답은 조건을 덮어쓰고 picks·done을 남기며 aiUsed가 된다', () => {
+    const s = run([
+      { type: 'chat/user', text: '둘이서 매운 면' },
+      { type: 'chat/assistant', reply: { ...reply, reply: '이런 메뉴 어떠세요?', conditions: { ...reply.conditions, party: 2, spicy: 2, kind: '면' }, picks: ['noodle-1'], done: true, mood: 'tired' } },
+    ]);
+    expect(s.chat).toMatchObject({ pending: false, done: true, picks: ['noodle-1'], mood: 'tired' });
+    expect(s.chat.turns.map(t => t.role)).toEqual(['user', 'assistant']);
+    expect(s.conditions).toMatchObject({ party: 2, spicy: 2, kind: '면', raw: '둘이서 매운 면' });
+    expect(s.aiUsed).toBe(true);
+  });
+  it('서버가 없으면 failed가 되고 더는 기다리지 않는다', () => {
+    const s = run([{ type: 'chat/user', text: '둘이요' }, { type: 'chat/failed' }]);
+    expect(s.chat).toMatchObject({ pending: false, failed: true });
+  });
+  it('처음으로 돌아가면 대화는 지워지고 상황(날씨)은 남는다', () => {
+    const ctx = { timeOfDay: 'evening' as const, hour: 19, weather: null, crowd: 'low' as const, recentOrders: 0 };
+    const s = run([{ type: 'chat/context', context: ctx }, { type: 'chat/user', text: '둘이요' }, { type: 'chat/assistant', reply }, { type: 'reset' }]);
+    expect(s.chat).toEqual({ turns: [], pending: false, failed: false, mood: null, picks: [], done: false, context: ctx });
+  });
+  it('큰 글씨 제안은 손님 한 명당 한 번이고 처음으로 가면 풀린다', () => {
+    const s = run([go('menu'), { type: 'comfort/asked' }]);
+    expect(s.comfortAsked).toBe(true);
+    expect(run([{ type: 'reset' }], s).comfortAsked).toBe(false);
+  });
+});
