@@ -25,15 +25,28 @@ function browserSpeak(text: string, mine: number): Promise<void> {
   });
 }
 
+/** 첫인사·맞장구처럼 늘 쓰는 문장의 음성. 서버 캐시는 서버가 잠들면 사라지므로 브라우저에 둡니다 (2026-11-03 설계 4-1) */
+const prefetched = new Map<string, Blob>();
+async function fetchSpeech(text: string, signal?: AbortSignal): Promise<Blob | null> {
+  const res = await fetch(apiUrl('/api/tts'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal });
+  return res.ok ? res.blob() : null;
+}
+export function prefetchSpeech(texts: string[]): void {
+  if (!config.ttsServer || typeof fetch !== 'function') return;
+  for (const text of texts) {
+    if (prefetched.has(text)) continue;
+    void fetchSpeech(text).then(blob => { if (blob) prefetched.set(text, blob); }).catch(() => { /* 다음 기회에 */ });
+  }
+}
+
 async function serverSpeak(text: string, mine: number): Promise<boolean> {
   if (!config.ttsServer || typeof fetch !== 'function' || typeof Audio === 'undefined') return false;
-  if (Date.now() < serverSkipUntil) return false;
+  if (Date.now() < serverSkipUntil && !prefetched.has(text)) return false;
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(apiUrl('/api/tts'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: abort.signal });
-    if (!res.ok) { serverSkipUntil = Date.now() + SKIP_MS; return false; }
-    const blob = await res.blob();
+    const blob = prefetched.get(text) ?? await fetchSpeech(text, abort.signal);
+    if (!blob) { serverSkipUntil = Date.now() + SKIP_MS; return false; }
     if (mine !== token) return true; // 그 사이 다른 안내로 바뀜: 조용히 버립니다
     const url = URL.createObjectURL(blob);
     const el = new Audio(url);
@@ -51,20 +64,27 @@ async function serverSpeak(text: string, mine: number): Promise<boolean> {
   }
 }
 
+/** 지금 소리 내 읽고 있는 문장. 마이크에 들린 말이 이 소리의 메아리인지 가릴 때 씁니다 (listening.ts isEcho) */
+let speakingNow = '';
+export const speakingText = () => speakingNow;
+
 export function speak(text: string): Promise<void> {
   stopSpeaking();
   const mine = ++token;
+  speakingNow = text;
   current = (async () => {
     try {
       const ok = await serverSpeak(text, mine);
       if (!ok && mine === token) await browserSpeak(text, mine);
     } catch { /* 소리 없이 진행 */ }
+    if (mine === token) speakingNow = '';
   })();
   return current;
 }
 
 export function stopSpeaking() {
   token++;
+  speakingNow = '';
   window.speechSynthesis?.cancel();
   if (audio) { try { audio.pause(); } catch { /* ignore */ } audio = null; }
 }

@@ -10,9 +10,10 @@ import { catalog as defaultCatalog, type Catalog } from './catalog';
 import * as Cart from './cart';
 import { defaultRecommender, type Recommender } from './recommender';
 import { createInitialState, lineOf, reducer, type SessionState } from './session';
-import { chime, speak, stopSpeaking } from './speech';
+import { ACKS, GREETING, wakeServer } from './chatClient';
+import { chime, prefetchSpeech, speak, stopSpeaking } from './speech';
 import { useFaceSignals } from './useFaceSignals';
-import { money, type Conditions, type Dialog, type Menu, type PaymentResult, type Prefs, type Recommendation, type Screen } from './types';
+import { money, type ChatTurn, type Conditions, type Dialog, type Menu, type PaymentResult, type PickReason, type Prefs, type Recommendation, type Screen } from './types';
 import { config } from '../config';
 
 export const IDLE_MS = 60_000;
@@ -24,6 +25,8 @@ export const FACE_WAIT_MS = 20_000;
 const WELCOME_RESET_MS = 30_000;
 const NOTE_MS = 10_000;
 const MESSAGE_MS = 3_000;
+/** 무료 서버(Render)는 15분 동안 요청이 없으면 잠듭니다 */
+const WAKE_MS = 10 * 60_000;
 
 // 시연 모드(운영자 단축키 Ctrl+Shift+1~4): 전시장 소음으로 음성 인식이 어려울 때 준비한 문장을 말한 것처럼 넣습니다.
 const DEMO = {
@@ -108,24 +111,38 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
     return stopSpeaking;
   }, [narrated, prefs.voice, talking]);
 
-  // 직원 AI 대화: 말하기 화면에 들어오면 상황(날씨·시간대)을 받고 첫 인사를 청합니다. 서버가 없으면 예전 길로.
+  // 직원 AI 대화: 말하기 화면에 들어오면 서버를 기다리지 않고 가게 첫인사부터. 상황(날씨·시간대)은 뒤에서 받아 둡니다.
+  // 서버가 안 되면 손님의 첫 대답에서 알게 되고, 그때 예전 길(확인 화면)로 이어 갑니다 (chatSend).
   useEffect(() => {
-    if (screen !== 'input' || state.mode !== 'recommend' || state.chat.failed || state.chat.pending || state.chat.turns.length > 0) return;
-    const token = ++aiToken.current;
-    dispatch({ type: 'chat/pending', on: true });
-    void (async () => {
-      const context = state.chat.context ?? (await recommender.context());
-      if (token !== aiToken.current) return;
-      dispatch({ type: 'chat/context', context });
-      const reply = await recommender.converse([], state.conditions, context);
-      if (token !== aiToken.current) return;
-      if (reply) { usage.ai('llm'); dispatch({ type: 'chat/assistant', reply }); }
-      else dispatch({ type: 'chat/failed' });
-    })();
-  }, [screen, state.mode, state.chat.failed, state.chat.pending, state.chat.turns.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (screen !== 'input' || state.mode !== 'recommend' || state.chat.failed || state.chat.turns.length > 0) return;
+    dispatch({ type: 'chat/greet', text: GREETING });
+    if (!state.chat.context) void recommender.context().then(context => dispatch({ type: 'chat/context', context }));
+  }, [screen, state.mode, state.chat.failed, state.chat.turns.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 무료 서버가 잠들지 않게: 켜질 때와 시작 화면에 돌아올 때, 그리고 10분마다 깨웁니다. 맞장구 음성도 미리 받아 둡니다.
+  useEffect(() => { if (screen === 'welcome') { wakeServer(); prefetchSpeech([GREETING, ...ACKS]); } }, [screen]);
+  useEffect(() => { const t = setInterval(wakeServer, WAKE_MS); return () => clearInterval(t); }, []);
 
   // ── 손님이 하는 일 ────────────────────────────────────────────────────────
   const say = (text: string) => dispatch({ type: 'message', text });
+  /** 대화 기록을 서버에 보내고 답을 반영합니다. 새로 보내면 앞선 요청의 늦은 답은 버립니다(aiToken). */
+  const chatSend = (turns: ChatTurn[], latest: string) => {
+    const token = ++aiToken.current;
+    const raw = [state.conditions.raw, latest].filter(Boolean).join(' ');
+    void recommender.converse(turns, state.conditions, state.chat.context).then(reply => {
+      if (token !== aiToken.current) return;
+      if (!reply) {
+        // 대화 서버가 끊기면 지금까지 말한 내용을 규칙으로 읽어 예전 길(확인 화면)로 이어 갑니다.
+        dispatch({ type: 'chat/failed' });
+        say('AI 연결이 안 돼 간단한 질문으로 진행할게요.');
+        act.askRecommend(raw);
+        return;
+      }
+      usage.ai('llm');
+      dispatch({ type: 'chat/assistant', reply });
+      if (reply.done) act.showResults({ ...state.conditions, ...reply.conditions, raw }, reply.picks, reply.pickReasons ?? []);
+    });
+  };
   const open = (next: Dialog | null) => dispatch({ type: 'dialog', dialog: next });
   const addLines = (items: Parameters<typeof Cart.add>[1]) => dispatch({ type: 'cart', change: cart => Cart.add(cart, items) });
 
@@ -194,30 +211,31 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
     // 말로 추천 / 말로 주문
     submit(text: string) {
       if (state.mode !== 'recommend') return act.orderBySpeech(text);
-      if (!state.chat.failed && !state.chat.pending) return act.chatSay(text);
-      act.askRecommend(text);
+      if (state.chat.failed) return act.askRecommend(text);
+      // 직원 AI가 생각하는 중에 이어 말하면 앞말과 합쳐 다시 보냅니다 (예전에는 여기서 확인 화면으로 새었음)
+      if (state.chat.pending) return act.chatAmend(text);
+      act.chatSay(text);
     },
-    /** 직원 AI에게 한 마디. 답이 오면 읽어 주고, 조건이 충분하면(done) 바로 추천 결과로 갑니다. */
+    /** 직원 AI에게 한 마디. 바로 맞장구를 하고, 답이 오면 읽어 주고, 조건이 충분하면(done) 바로 추천 결과로 갑니다. */
     chatSay(text: string) {
       const trimmed = text.trim();
       if (!trimmed) return;
-      const turns = [...state.chat.turns, { role: 'user' as const, text: trimmed }];
       dispatch({ type: 'chat/user', text: trimmed });
-      const token = ++aiToken.current;
-      void recommender.converse(turns, state.conditions, state.chat.context).then(reply => {
-        if (token !== aiToken.current) return;
-        if (!reply) {
-          // 대화 서버가 끊기면 지금까지 말한 내용을 규칙으로 읽어 예전 길(확인 화면)로 이어 갑니다.
-          dispatch({ type: 'chat/failed' });
-          say('AI 연결이 안 돼 간단한 질문으로 진행할게요.');
-          act.askRecommend([state.conditions.raw, trimmed].filter(Boolean).join(' '));
-          return;
-        }
-        usage.ai('llm');
-        dispatch({ type: 'chat/assistant', reply });
-        if (reply.done) act.showResults({ ...state.conditions, ...reply.conditions, raw: [state.conditions.raw, trimmed].filter(Boolean).join(' ') }, reply.picks);
-      });
+      void speak(ACKS[state.chat.turns.length % ACKS.length]);
+      chatSend([...state.chat.turns, { role: 'user', text: trimmed }], trimmed);
     },
+    /** 생각 중에 손님이 이어 말함: 진행 중인 요청은 버리고 합친 문장으로 다시 묻습니다 */
+    chatAmend(text: string) {
+      const trimmed = text.trim();
+      const turns = [...state.chat.turns];
+      const last = turns.length - 1;
+      if (!trimmed || turns[last]?.role !== 'user') return;
+      dispatch({ type: 'chat/amend', text: trimmed });
+      turns[last] = { role: 'user', text: `${turns[last].text} ${trimmed}` };
+      chatSend(turns, trimmed);
+    },
+    /** 손님이 직원 말을 끊음 (barge-in) */
+    interrupted: () => dispatch({ type: 'chat/interrupted' }),
     askRecommend(text: string) {
       const local = recommender.understand(text);
       dispatch({ type: 'mode', mode: 'recommend' });
@@ -243,8 +261,10 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
     },
     patchConditions: (patch: Partial<Conditions>) => dispatch({ type: 'conditions/patch', patch }),
     /** 추천 결과로. 대화에서 바로 올 때는 아직 state에 반영되기 전의 조건·picks를 직접 받습니다. */
-    showResults(conditions: Conditions = state.conditions, picks: string[] = state.chat.picks) {
-      dispatch({ type: 'results', results: recommender.recommend(conditions, catalog.menus, { picks, context: state.chat.context }) });
+    showResults(conditions: Conditions = state.conditions, picks: string[] = state.chat.picks, pickReasons: PickReason[] = state.chat.pickReasons) {
+      // 이유가 있는 새 서버면 대화로 고른 메뉴가 자리를 먼저 차지하고(pickReasons), 옛 서버면 가점만 줍니다(picks).
+      const extra = pickReasons.length ? { pickReasons, context: state.chat.context } : { picks, context: state.chat.context };
+      dispatch({ type: 'results', results: recommender.recommend(conditions, catalog.menus, extra) });
       act.go('results');
     },
     /** 카메라 불편 신호 제안에 답함 */

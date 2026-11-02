@@ -115,6 +115,27 @@ describe('직원 AI 대화 (chat)', () => {
   it('빈 말은 무시한다', () => {
     expect(run([{ type: 'chat/user', text: '   ' }]).chat.turns).toEqual([]);
   });
+  // 2026-11-03 말로 추천 v2 (설계 4-1)
+  it('첫인사는 서버 없이 바로: 직원 턴 하나, 인원을 묻는 중', () => {
+    const s = run([{ type: 'chat/greet', text: '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?' }]);
+    expect(s.chat).toMatchObject({ turns: [{ role: 'assistant', text: '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?' }], asking: 'party', pending: false, failed: false });
+  });
+  it('답을 기다리는 중에 손님이 이어 말하면 앞말에 합친다 (확인 화면으로 새지 않음)', () => {
+    const s = run([{ type: 'chat/user', text: '둘이요' }, { type: 'chat/amend', text: '아이도 하나 있어요' }]);
+    expect(s.chat.turns).toEqual([{ role: 'user', text: '둘이요 아이도 하나 있어요' }]);
+    expect(s.chat.pending).toBe(true);
+    expect(s.conditions.raw).toBe('둘이요 아이도 하나 있어요');
+    expect(s.screen).not.toBe('review');
+  });
+  it('손님이 직원 말을 끊으면 마지막 직원 턴에 끊김 표시', () => {
+    const s = run([{ type: 'chat/greet', text: '어서 오세요! 몇 분이서 오셨어요?' }, { type: 'chat/interrupted' }]);
+    expect(s.chat.turns[0]).toMatchObject({ role: 'assistant', interrupted: true });
+  });
+  it('서버가 준 추천 이유·들은 조건·1인 가정을 기억한다', () => {
+    const why = [{ id: 'noodle-1', why: '순한 짜장이에요', heard: '안 맵게', review: null }];
+    const s = run([{ type: 'chat/user', text: '둘이요 안 맵게' }, { type: 'chat/assistant', reply: { ...reply, done: true, picks: ['noodle-1'], pickReasons: why, heardSummary: '2명 · 안 맵게', partyAssumed: false } }]);
+    expect(s.chat).toMatchObject({ pickReasons: why, heardSummary: '2명 · 안 맵게', partyAssumed: false });
+  });
   it('AI 답은 조건을 덮어쓰고 picks·done을 남기며 aiUsed가 된다', () => {
     const s = run([
       { type: 'chat/user', text: '둘이서 매운 면' },
@@ -136,7 +157,7 @@ describe('직원 AI 대화 (chat)', () => {
   it('처음으로 돌아가면 대화는 지워지고 상황(날씨)은 남는다', () => {
     const ctx = { timeOfDay: 'evening' as const, hour: 19, weather: null, crowd: 'low' as const, recentOrders: 0 };
     const s = run([{ type: 'chat/context', context: ctx }, { type: 'chat/user', text: '둘이요' }, { type: 'chat/assistant', reply }, { type: 'reset' }]);
-    expect(s.chat).toEqual({ turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, context: ctx });
+    expect(s.chat).toEqual({ turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, pickReasons: [], heardSummary: null, partyAssumed: false, context: ctx });
   });
   it('큰 글씨 제안은 손님 한 명당 한 번이고 처음으로 가면 풀린다', () => {
     const s = run([go('menu'), { type: 'comfort/asked' }]);

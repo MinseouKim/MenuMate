@@ -5,13 +5,39 @@ import { useEffect, useRef, useState } from 'react';
 import { microphoneGranted, requestMicrophone } from '../prototype/media';
 import { usage } from '../prototype/usage';
 import { HybridSttProvider } from '../services/stt/hybridSttProvider';
-import { stopSpeaking } from './speech';
+import type { SttCallbacks } from '../services/stt/types';
+import { endpointDelay, isEcho, stripEcho } from './listening';
+import { speakingText, stopSpeaking } from './speech';
 
-/** 끝내기를 잊어도 계속 듣지 않도록 이 시간이 지나면 스스로 끝냅니다. */
+/** 끝내기를 잊어도 계속 듣지 않도록 이 시간이 지나면 스스로 끝냅니다. 핸즈프리는 한 번에 8초. */
 const LISTEN_LIMIT_MS = 20_000;
+const HANDS_FREE_LIMIT_MS = 8_000;
+/** 핸즈프리: 듣기가 끝나면 이만큼 쉬고 다시 듣습니다 */
+const RESTART_MS = 300;
 
-export function useSpeechInput(onResult: (text: string) => void) {
-  const [stt] = useState(() => new HybridSttProvider());
+interface Stt { isSupported(): boolean; start(c: SttCallbacks): void; stop(): void; cancel(): void }
+export interface SpeechInputOptions {
+  /**
+   * 핸즈프리(2026-11-03 설계 4-1): 버튼을 다시 누르지 않아도 말끝을 알아서 끝내고, 끝나면 다시 듣습니다.
+   * 직원이 말하는 중에도 들으며, 자기 목소리 메아리는 무시하고 손님이 끼어들면 직원 말을 멈춥니다.
+   */
+  handsFree?: boolean;
+  /** 큰 글씨 모드(고령 손님): 말끝을 조금 더 기다립니다 */
+  large?: boolean;
+  /** 손님이 직원 말을 끊었을 때 */
+  onBargeIn?: () => void;
+  /** 테스트용 음성 인식 */
+  provider?: Stt;
+}
+
+export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInputOptions = {}) {
+  const [stt] = useState<Stt>(() => opts.provider ?? new HybridSttProvider());
+  const optsRef = useRef(opts);
+  useEffect(() => { optsRef.current = opts; });
+  /** 끼어들 때 섞여 들어온 직원 문장 (끝난 문장에서 덜어 냄) */
+  const echoOf = useRef('');
+  const endpoint = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const restart = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState('');
   const [error, setError] = useState('');
@@ -27,7 +53,7 @@ export function useSpeechInput(onResult: (text: string) => void) {
   useEffect(() => { void microphoneGranted().then(granted => { if (granted) micReady.current = true; }); }, []);
   useEffect(() => {
     alive.current = true;
-    const stop = () => { epoch.current++; busy.current = false; clearTimeout(limit.current); stt.cancel(); };
+    const stop = () => { epoch.current++; busy.current = false; clearTimeout(limit.current); clearTimeout(endpoint.current); clearTimeout(restart.current); stt.cancel(); };
     const onHidden = () => { if (document.hidden) { stop(); setListening(false); } };
     document.addEventListener('visibilitychange', onHidden);
     window.addEventListener('pagehide', stop);
@@ -38,8 +64,23 @@ export function useSpeechInput(onResult: (text: string) => void) {
 
   function finish() {
     clearTimeout(limit.current);
-    setNotice('들은 내용을 정리하고 있어요…');
+    clearTimeout(endpoint.current);
+    if (!optsRef.current.handsFree) setNotice('들은 내용을 정리하고 있어요…');
     stt.stop();
+  }
+
+  /** 핸즈프리 중간 결과: 메아리는 버리고, 끼어들면 직원 말을 멈추고, 말끝 타이머를 다시 잽니다 */
+  function heardSoFar(text: string, token: number) {
+    const spoken = speakingText();
+    if (spoken) {
+      if (isEcho(text, spoken)) { echoOf.current = spoken; return; }
+      echoOf.current = spoken;
+      stopSpeaking();
+      optsRef.current.onBargeIn?.();
+    }
+    setHeard(stripEcho(text, echoOf.current));
+    clearTimeout(endpoint.current);
+    endpoint.current = setTimeout(() => { if (current(token)) finish(); }, endpointDelay(text, optsRef.current.large));
   }
 
   async function start() {
@@ -56,20 +97,37 @@ export function useSpeechInput(onResult: (text: string) => void) {
       if (failure) { setError(failure); return; }
       micReady.current = true;
     }
-    stopSpeaking(); // 안내 음성(서버 TTS 포함)을 멈추고 듣는다
+    const handsFree = !!optsRef.current.handsFree;
+    // 버튼으로 들을 때는 안내 음성을 멈추고 듣습니다. 핸즈프리는 직원이 말하는 중에도 듣고, 손님이 끼어들 때만 멈춥니다.
+    if (!handsFree) stopSpeaking();
     busy.current = true;
     const token = ++epoch.current;
     setError(''); setNotice(''); setHeard(''); setListening(true);
+    echoOf.current = '';
     usage.count('voiceTries');
     clearTimeout(limit.current);
-    limit.current = setTimeout(() => { if (current(token)) finish(); }, LISTEN_LIMIT_MS);
-    const end = () => { clearTimeout(limit.current); setNotice(''); setListening(false); busy.current = false; };
+    limit.current = setTimeout(() => { if (current(token)) finish(); }, handsFree ? HANDS_FREE_LIMIT_MS : LISTEN_LIMIT_MS);
+    const end = () => { clearTimeout(limit.current); clearTimeout(endpoint.current); setNotice(''); setListening(false); busy.current = false; };
     try {
       stt.start({
-        onInterim: text => { if (current(token)) setHeard(text); },
-        onResult: text => { if (current(token) && text.trim()) { usage.count('voiceOk'); resultRef.current(text); } },
-        onError: message => { if (current(token)) { setError(message); end(); } },
-        onEnd: () => { if (current(token)) end(); },
+        onInterim: text => { if (!current(token)) return; if (handsFree) heardSoFar(text, token); else setHeard(text); },
+        onResult: text => {
+          if (!current(token)) return;
+          const said = handsFree ? stripEcho(text, echoOf.current) : text;
+          if (said.trim()) { usage.count('voiceOk'); resultRef.current(said); }
+        },
+        onError: (message, code) => {
+          if (!current(token)) return;
+          // 핸즈프리에서 아무 말이 없던 것(코드 없음)은 오류가 아니라 다시 들을 일입니다.
+          if (handsFree && !code) return;
+          setError(message); end();
+        },
+        onEnd: () => {
+          if (!current(token)) return;
+          const again = handsFree && busy.current; // 오류로 이미 끝났으면(busy=false) 다시 듣지 않음
+          end();
+          if (again) restart.current = setTimeout(() => { if (alive.current && optsRef.current.handsFree) void start(); }, RESTART_MS);
+        },
       });
     } catch {
       setError('마이크를 시작하지 못했어요. 메뉴판에서 직접 골라 주세요.');
