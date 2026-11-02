@@ -237,7 +237,7 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
 const PARTY_QUESTION = '몇 분이서 드실 건가요?';
 const DEFAULT_WHY = '말씀하신 조건에 맞는 메뉴예요';
-const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전복', '관자', '굴', '오징어', '조개'];
+export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전복', '관자', '굴', '오징어', '조개'];
 
 const PARTY_WORDS: [RegExp, number][] = [
   [/혼자|한\s*(명|분|사람)/, 1], [/둘|두\s*(명|분|사람)/, 2], [/셋|세\s*(명|분|사람)/, 3],
