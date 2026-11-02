@@ -22,6 +22,9 @@ export interface Persona {
   budget: number | null;
 }
 
+/** 시뮬레이터·Claude 시험 도구가 같은 손님 번호로 같은 손님을 쓰도록 공유 */
+export const PERSONA_SEED = 2026;
+
 const AGES = ['10대', '20대', '30대', '40대', '50대', '60대', '70대 이상'];
 const BACKGROUNDS = [
   '한국인(서울 표준어)', '한국인(경상도 사투리)', '한국인(전라도 사투리)', '한국인(충청도 사투리, 느린 말투)',

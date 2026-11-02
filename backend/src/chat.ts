@@ -167,27 +167,32 @@ export interface ChatDeps {
   log?: { warn(msg: string): void; info?(msg: string): void };
 }
 
-export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatResponse> {
-  if (!deps.llm || !deps.knowledge) throw new AppError('CHAT_UNAVAILABLE', 'GEMINI_API_KEY 또는 메뉴 데이터 없음');
-  const { llm, knowledge } = deps;
+/** 직원 LLM이 받는 입력 그대로 (시스템 프롬프트, 대화 메시지). converse와 Claude 시험 도구(sim-step)가 같이 쓴다 */
+export function chatInput(knowledge: MenuKnowledge, req: ChatRequest) {
   const turns = (req.turns ?? []).filter((t) => t && (t.role === 'user' || t.role === 'assistant') && typeof t.text === 'string');
   const userTurns = turns.filter((t) => t.role === 'user').length;
   const prior = normalizeConditions(req.conditions, knowledge);
+  const messages: LlmMessage[] = turns.map((t) => ({ role: t.role === 'user' ? 'user' : 'model', text: t.text.slice(0, 500) }));
+  messages.push({ role: 'user', text: `[지금까지 파악한 조건: ${JSON.stringify(prior)}. 위 대화를 바탕으로 다음 답변을 JSON으로 주세요.]` });
+  return { turns, userTurns, prior, system: systemPrompt(knowledge, req.context ?? {}, userTurns), messages };
+}
+
+export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatResponse> {
+  if (!deps.llm || !deps.knowledge) throw new AppError('CHAT_UNAVAILABLE', 'GEMINI_API_KEY 또는 메뉴 데이터 없음');
+  const { llm, knowledge } = deps;
+  const { turns, userTurns, prior, system, messages } = chatInput(knowledge, req);
 
   // 첫 인사는 LLM 없이 가게 인사 + 인원 질문 (화면도 같은 문장을 바로 띄운다. 옛 화면이 빈 대화로 부를 때를 위해 서버도 같은 답)
   if (turns.length === 0) {
     return { reply: GREETING, conditions: prior, mood: null, picks: [], pickReasons: [], done: false, asking: 'party', heardSummary: null, partyAssumed: false, model: 'template' };
   }
 
-  const messages: LlmMessage[] = turns.map((t) => ({ role: t.role === 'user' ? 'user' : 'model', text: t.text.slice(0, 500) }));
-  messages.push({ role: 'user', text: `[지금까지 파악한 조건: ${JSON.stringify(prior)}. 위 대화를 바탕으로 다음 답변을 JSON으로 주세요.]` });
-
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
   const startedAt = performance.now();
   let text: string;
   try {
-    text = await llm.generateJson(systemPrompt(knowledge, req.context ?? {}, userTurns), messages, CHAT_SCHEMA, abort.signal);
+    text = await llm.generateJson(system, messages, CHAT_SCHEMA, abort.signal);
   } catch (e) {
     const took = Math.round(performance.now() - startedAt);
     deps.log?.warn(`Gemini 호출 실패 (${llm.model}, ${took}ms): ${e instanceof Error ? e.message : String(e)}`); // 발화 내용은 적지 않는다
@@ -327,12 +332,15 @@ const PARTY_WORDS: [RegExp, number][] = [
   [/혼자|한\s*(명|분|사람)/, 1], [/둘|두\s*(명|분|사람)/, 2], [/셋|세\s*(명|분|사람)/, 3],
   [/넷|네\s*(명|분|사람)/, 4], [/다섯/, 5], [/여섯/, 6],
 ];
-/** 손님 말에서 인원. 인원 말이 없으면 null ("1인당 만오천원"의 1인은 인원이 아님) */
+/** 손님 말에서 인원. 인원 말이 없으면 null ("1인당 만오천원"의 1인은 인원이 아님). 고쳐 말하면("한 명, 아니 두 명") 마지막에 말한 인원 */
 export function partyMentioned(text: string): number | null {
   const t = text.replace(/\d*\s*인\s*당|한\s*사람\s*당/g, ' ');
-  const n = t.match(/(\d+)\s*(명|분|인)(?!분)/);
-  if (n) return Math.min(8, Math.max(1, Number(n[1])));
-  return PARTY_WORDS.find(([re]) => re.test(t))?.[1] ?? null;
+  const found: { at: number; n: number }[] = [];
+  for (const m of t.matchAll(/(\d+)\s*(명|분|인)(?!분)/g)) found.push({ at: m.index, n: Number(m[1]) });
+  for (const [re, n] of PARTY_WORDS) for (const m of t.matchAll(new RegExp(re.source, 'g'))) found.push({ at: m.index, n });
+  if (!found.length) return null;
+  const last = found.reduce((a, b) => (b.at > a.at ? b : a));
+  return Math.min(8, Math.max(1, last.n));
 }
 
 const pickId = (p: unknown): string => (typeof p === 'string' ? p : typeof p === 'object' && p && typeof (p as { id?: unknown }).id === 'string' ? (p as { id: string }).id : '');

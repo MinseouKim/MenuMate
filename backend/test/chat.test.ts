@@ -477,6 +477,13 @@ describe('partyMentioned', () => {
     ];
     for (const [text, want] of cases) expect([text, partyMentioned(text)]).toEqual([text, want]);
   });
+  it('고쳐 말하면 마지막에 말한 인원 ("한 명, 아니 두 명"을 1명으로 읽어 재채점에서 거짓 "인원 틀림"이 남음)', () => {
+    const cases: [string, number][] = [
+      ['한 명, 아니 두 명이에요 아이도 있어요', 2], ['한 명, 아니 두 사람 있어요', 2], ['Three… 두 명, 아니 세 명이에요', 3], ['두 명, 아니 세 명이라예', 3],
+      ['3명, 아니 4명이요', 4], ['넷, 아니 다섯 명', 5], ['다섯 명, 아니 넷이요', 4],
+    ];
+    for (const [text, want] of cases) expect([text, partyMentioned(text)]).toEqual([text, want]);
+  });
 });
 
 describe('geminiClient 요청 설정', () => {

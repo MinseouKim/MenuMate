@@ -11,7 +11,8 @@ const SCHEMA = {
   required: ['say', 'accept', 'why'],
 } as const;
 
-function card(p: Persona): string {
+/** 손님 설정 카드 (손님 AI 지시문, Claude 시험 도구 출력에 같이 씀) */
+export function card(p: Persona): string {
   return [
     `나이 ${p.age}, 성별 ${p.gender}, 배경 ${p.background}. 말하는 방식: ${p.style}.`,
     // 총인원을 분명히: "일행 3명(아이 포함)"을 손님 AI가 "아이 포함 네 명"으로 말한 적이 있음 (2026-11-03 회차)

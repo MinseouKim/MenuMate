@@ -1,5 +1,5 @@
 // 시뮬레이션 대화 자동 채점 (Byte by Yum!의 자동 채점을 규칙으로 가볍게). 사람이 문제 목록을 보고 프롬프트·서버 검사를 고칩니다.
-import { partyMentioned, SEAFOOD } from '../chat.js';
+import { askedExclude, askedKind, excludeMentioned, MAX_TURNS, partyMentioned, SEAFOOD, wantsAnything } from '../chat.js';
 import type { MenuKnowledge } from '../menuKnowledge.js';
 import type { Persona } from './personas.js';
 import type { SimRecord } from './run.js';
@@ -45,7 +45,17 @@ export function scoreConversation(rec: Omit<SimRecord, 'error'> & { error?: stri
     if (saidParty !== null && final.conditions.party !== saidParty) issues.push(`인원 틀림: ${final.conditions.party}명 (손님 말 ${saidParty}명)`);
     else if (saidParty === null && final.conditions.party !== p.party) issues.push(`인원 틀림: ${final.conditions.party}명 (실제 ${p.party}명)`);
     if (final.reply.includes('?')) issues.push('추천하면서 질문으로 끝남');
+    // PM 결정(2026-11-03): 강제 종료가 아니면 추천 전에 못 드시는 재료와 종류를 확인한다. 손님이 먼저 말했거나 직원이 물었으면 됨
+    const userTexts = rec.turns.filter((t) => t.role === 'user').map((t) => t.text);
+    const asked = rec.turns.filter((t) => t.role === 'assistant' && t.text !== final.reply && !t.text.includes('(끊김)')).map((t) => t.text);
+    if (userTexts.length < MAX_TURNS) {
+      if (!final.conditions.exclude.length && !userTexts.some(excludeMentioned) && !asked.some(askedExclude)) issues.push('재료 확인 없이 추천');
+      if (final.conditions.kind === '상관없음' && !userTexts.some(wantsAnything) && !asked.some(askedKind)) issues.push('종류 확인 없이 추천');
+    }
   }
+  // 질문인데 무엇을 묻는지(asking)가 없으면 화면 답 버튼이 추정으로 돌아간다
+  const noAsking = steps.filter((s) => !s.done && !s.asking).length;
+  if (noAsking) issues.push(`질문 종류(asking) 없음 ${noAsking}회`);
   const userTurns = rec.turns.filter((t) => t.role === 'user').length;
   const avgMs = steps.length ? Math.round(steps.reduce((v, s) => v + s.ms, 0) / steps.length) : 0;
   return { ok: issues.length === 0, issues, actorIssues, userTurns, avgMs, accepted: rec.verdict ? rec.verdict.accept : null };

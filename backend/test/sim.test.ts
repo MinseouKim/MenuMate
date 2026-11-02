@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { ChatResponse } from '../src/contracts.js';
 import { fromData } from '../src/menuKnowledge.js';
 import { makePersonas } from '../src/sim/personas.js';
-import { quotaKind } from '../src/sim/quota.js';
+import { offlineReason, quotaKind } from '../src/sim/quota.js';
 import { runPersona, type CustomerTurn } from '../src/sim/run.js';
 import { scoreConversation } from '../src/sim/score.js';
 import { llmCustomer, scriptedCustomer } from '../src/sim/customer.js';
-import { summarize } from '../src/sim/summary.js';
+import { rowsFromRecords, summarize, summarizeByMode, type SimMode } from '../src/sim/summary.js';
 
 const knowledge = fromData([
   { id: 'noodle-1', name: '짬뽕', price: 11000, category: 'noodle', kind: '면', spicy: 2, servingPeople: 1, quantityUnit: '1그릇', ingredients: ['해산물', '돼지고기'], texture: [] },
@@ -75,6 +75,7 @@ describe('runPersona (직원 AI ↔ 손님 AI 대화 한 번)', () => {
 describe('scoreConversation (자동 채점)', () => {
   const p = { ...persona, party: 2, exclude: ['해산물'], spicy: '못 먹음' as const };
   const base = { persona: p, turns: [], steps: [], verdict: null, error: null };
+  const ASKED_EXCLUDE = { role: 'assistant' as const, text: '못 드시는 재료 있으세요?' };
   it('추천이 손님 조건을 어기면 문제로 적는다: 빼는 재료, 안 매운 걸 원하는데 매운 메뉴, 인원 틀림', () => {
     const final = staffReply({ done: true, picks: ['noodle-1'], conditions: { ...staffReply({}).conditions, party: 1 } });
     const s = scoreConversation({ ...base, final, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
@@ -82,26 +83,45 @@ describe('scoreConversation (자동 채점)', () => {
     expect(s.ok).toBe(false);
   });
   it('조건을 지킨 추천이면 문제 없음, 턴 수·평균 응답 시간도 남긴다', () => {
-    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0 } });
+    // 재료를 묻고(ASKED_EXCLUDE) 종류(면)를 안 뒤의 추천 — 새 채점 규칙(재료·종류 확인 없이 추천)에 걸리지 않게
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' } });
     const steps = [{ reply: '매운 건 괜찮으세요?', asking: 'spicy' as const, done: false, ms: 1200 }, { reply: '유니짜장 골라 봤어요.', asking: null, done: true, ms: 1800 }];
-    const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, steps, turns: [{ role: 'user', text: 'a' }, { role: 'user', text: 'b' }] }, knowledge);
+    const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, steps, turns: [{ role: 'user', text: 'a' }, ASKED_EXCLUDE, { role: 'user', text: 'b' }] }, knowledge);
     expect(s).toMatchObject({ ok: true, issues: [], userTurns: 2, avgMs: 1500 });
   });
   it('손님 역할 AI가 설정과 다른 인원을 말하면 "손님 역할 오류"로 따로 적고 직원 통과(ok)에는 넣지 않는다 (34건 중 "인원 틀림" 9건이 모두 이 경우)', () => {
-    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0 } });
-    const turns = [{ role: 'assistant' as const, text: '몇 분이세요?' }, { role: 'user' as const, text: '두 명이요' }];
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' } });
+    const turns = [{ role: 'assistant' as const, text: '몇 분이세요?' }, { role: 'user' as const, text: '두 명이요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '없어요' }];
     const s = scoreConversation({ ...base, persona: { ...p, party: 1, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
     expect(s.actorIssues).toEqual(['손님 역할 오류: 인원을 2명으로 말함']);
     expect(s.issues).toEqual([]);
     expect(s.ok).toBe(true);
   });
   it('손님이 말한 인원과 직원이 적은 인원이 다를 때만 "인원 틀림" (손님 말 기준, 마지막으로 말한 인원)', () => {
-    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 1, spicy: 0 } });
-    const turns = [{ role: 'user' as const, text: '한 명, 아니 두 명이요' }, { role: 'user' as const, text: '아 둘이요' }];
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 1, spicy: 0, kind: '면' } });
+    const turns = [{ role: 'user' as const, text: '한 명, 아니 두 명이요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '아 둘이요' }];
     const s = scoreConversation({ ...base, persona: { ...p, party: 2, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
     expect(s.actorIssues).toEqual([]);
     expect(s.issues).toEqual(['인원 틀림: 1명 (손님 말 2명)']);
     expect(s.ok).toBe(false);
+  });
+  it('재료를 묻지도 듣지도 않고 추천하면 "재료 확인 없이 추천", 종류를 모르는데(아무거나도 아님) 추천하면 "종류 확인 없이 추천" (PM 결정 1·2를 채점에도)', () => {
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0 } });
+    const steps = [{ reply: final.reply, asking: null, done: true, ms: 100 }];
+    const bare = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, steps, turns: [{ role: 'user', text: '둘이요' }] }, knowledge);
+    expect(bare.issues).toEqual(['재료 확인 없이 추천', '종류 확인 없이 추천']);
+    const told = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, steps, turns: [{ role: 'user', text: '둘이요, 못 먹는 거 없고 아무거나요' }] }, knowledge);
+    expect(told.issues).toEqual([]);
+  });
+  it('손님 발화 6번째 강제 추천은 재료·종류 확인 규칙의 예외', () => {
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0 } });
+    const turns = [{ role: 'user' as const, text: '둘이요' }, ...Array.from({ length: 5 }, () => ({ role: 'user' as const, text: '음' }))];
+    const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
+    expect(s.issues).toEqual([]);
+  });
+  it('질문(done=false)인데 asking이 없으면 "질문 종류 없음"으로 적는다 (화면 답 버튼이 추정으로 돌아감)', () => {
+    const s = scoreConversation({ ...base, final: null, steps: [{ reply: '매운 건 괜찮으세요?', asking: null, done: false, ms: 10 }, { reply: '몇 분이세요?', asking: 'party', done: false, ms: 10 }] }, knowledge);
+    expect(s.issues).toContain('질문 종류(asking) 없음 1회');
   });
   it('직원 말이 60자를 넘거나, 추천 없이 끝나면 문제로 적는다', () => {
     const long = '가'.repeat(61);
@@ -163,6 +183,54 @@ describe('summarize (쌓인 대화 요약 → 고칠 규칙 찾기)', () => {
     expect(s.okRate).toBe(0.67);
     expect(s.topIssues).toEqual([{ issue: '직원 말 60자 초과', count: 1 }]);
     expect(s.actorIssues).toEqual([{ issue: '손님 역할 오류', count: 2 }]);
+  });
+});
+
+describe('요약할 때 다시 채점 + mode별 요약 (오프라인 결과가 Gemini 통과율에 섞이지 않게)', () => {
+  const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' } });
+  const oldRecord = {
+    at: '2026-11-03T00:00:00Z', model: 'gemini-x', customer: 'gemini',
+    persona: { ...persona, party: 1, exclude: [], spicy: '못 먹음' },
+    turns: [{ role: 'assistant', text: '몇 분이세요?' }, { role: 'user', text: '두 명이요' }, { role: 'assistant', text: '못 드시는 재료 있으세요?' }, { role: 'user', text: '없어요' }, { role: 'assistant', text: final.reply }],
+    steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }], final, verdict: { accept: true, why: '좋아요' }, error: null,
+    // 옛 채점기가 저장한 점수 (설정 1명 ↔ 직원 2명을 직원 탓으로 봄)
+    score: { ok: false, issues: ['인원 틀림: 2명 (실제 1명)'], userTurns: 2, avgMs: 100, accepted: true },
+  };
+
+  it('rowsFromRecords: 저장된 대화를 지금 채점기로 다시 채점한다 (옛 "인원 틀림"이 손님 역할 오류로), 저장된 score 객체는 건드리지 않는다', () => {
+    const saved = JSON.parse(JSON.stringify(oldRecord));
+    const rows = rowsFromRecords([saved], knowledge);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].mode).toBe('gemini'); // mode 없는 옛 기록은 Gemini 직원
+    expect(rows[0].score).toMatchObject({ ok: true, issues: [], actorIssues: ['손님 역할 오류: 인원을 2명으로 말함'], accepted: true });
+    expect(saved.score).toEqual(oldRecord.score);
+  });
+  it('rowsFromRecords: 오류로 끝난 기록(score·turns 없음)은 뺀다, mode·실수 종류를 옮긴다', () => {
+    const rows = rowsFromRecords([
+      { at: 'x', persona, error: 'boom' },
+      { ...oldRecord, mode: 'offline-fuzz', fuzz: 'ghost-id' },
+    ], knowledge);
+    expect(rows.map((r) => [r.mode, r.fuzz])).toEqual([['offline-fuzz', 'ghost-id']]);
+  });
+  it('summarizeByMode: mode별로 따로 요약하고, 오프라인은 실수 종류별 통과율도', () => {
+    const row = (mode: SimMode, ok: boolean, fuzz?: string) => ({ persona, mode, fuzz, score: { ok, issues: ok ? [] : ['추천 메뉴 없음'], userTurns: 2, avgMs: 10, accepted: null } });
+    const s = summarizeByMode([row('gemini', true), row('gemini', true), row('offline-fuzz', false, 'ghost-id'), row('offline-fuzz', true, 'long-done')]);
+    expect(Object.keys(s)).toEqual(['gemini', 'offline-fuzz']);
+    expect(s.gemini).toMatchObject({ conversations: 2, okRate: 1 });
+    expect(s['offline-fuzz']).toMatchObject({ conversations: 2, okRate: 0.5 });
+    expect(s['offline-fuzz']?.byMistake).toEqual({ 'ghost-id': { conversations: 1, okRate: 0, topIssues: [{ issue: '추천 메뉴 없음', count: 1 }] }, 'long-done': { conversations: 1, okRate: 1, topIssues: [] } });
+  });
+});
+
+describe('offlineReason (Gemini를 못 쓰면 오프라인 서버 검사 시험으로 전환)', () => {
+  it('키 없음·하루 한도·키 오류면 이유를, 분당 한도·그 밖의 오류면 null', () => {
+    expect(offlineReason(false, '')).toBe('no-key');
+    expect(offlineReason(true, '429 RESOURCE_EXHAUSTED quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier')).toBe('day-quota');
+    expect(offlineReason(true, 'API key not valid. Please pass a valid API key.')).toBe('key-error');
+    expect(offlineReason(true, 'PERMISSION_DENIED')).toBe('key-error');
+    expect(offlineReason(true, '429 Too Many Requests')).toBeNull();
+    expect(offlineReason(true, 'json 파싱 실패')).toBeNull();
+    expect(offlineReason(true, '')).toBeNull();
   });
 });
 
