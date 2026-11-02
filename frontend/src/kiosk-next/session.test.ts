@@ -125,6 +125,10 @@ describe('직원 AI 대화 (chat)', () => {
     expect(s.conditions).toMatchObject({ party: 2, spicy: 2, kind: '면', raw: '둘이서 매운 면' });
     expect(s.aiUsed).toBe(true);
   });
+  it('서버가 알려 준 질문 종류(asking)를 기억하고, 옛 서버처럼 없으면 null', () => {
+    expect(run([{ type: 'chat/user', text: '둘이요' }, { type: 'chat/assistant', reply: { ...reply, asking: 'spicy' } }]).chat.asking).toBe('spicy');
+    expect(run([{ type: 'chat/user', text: '둘이요' }, { type: 'chat/assistant', reply }]).chat.asking).toBeNull();
+  });
   it('서버가 없으면 failed가 되고 더는 기다리지 않는다', () => {
     const s = run([{ type: 'chat/user', text: '둘이요' }, { type: 'chat/failed' }]);
     expect(s.chat).toMatchObject({ pending: false, failed: true });
@@ -132,7 +136,7 @@ describe('직원 AI 대화 (chat)', () => {
   it('처음으로 돌아가면 대화는 지워지고 상황(날씨)은 남는다', () => {
     const ctx = { timeOfDay: 'evening' as const, hour: 19, weather: null, crowd: 'low' as const, recentOrders: 0 };
     const s = run([{ type: 'chat/context', context: ctx }, { type: 'chat/user', text: '둘이요' }, { type: 'chat/assistant', reply }, { type: 'reset' }]);
-    expect(s.chat).toEqual({ turns: [], pending: false, failed: false, mood: null, picks: [], done: false, context: ctx });
+    expect(s.chat).toEqual({ turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, context: ctx });
   });
   it('큰 글씨 제안은 손님 한 명당 한 번이고 처음으로 가면 풀린다', () => {
     const s = run([go('menu'), { type: 'comfort/asked' }]);

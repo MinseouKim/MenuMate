@@ -1,7 +1,7 @@
 // 대화형 추천: 우루루 직원처럼 짧게 묻고 답하며 손님 조건을 채우고, 충분해지면 메뉴 3개를 고른다.
 // LLM 호출은 LlmClient 뒤에 두어 테스트에서 바꾼다. 발화 원문은 로그에 남기지 않는다.
 import { GoogleGenAI } from '@google/genai';
-import type { ChatConditions, ChatRequest, ChatResponse, ConditionExtractionResponse, ContextResponse, Mood } from './contracts.js';
+import type { Asking, ChatConditions, ChatRequest, ChatResponse, ConditionExtractionResponse, ContextResponse, Mood } from './contracts.js';
 import { AppError } from './errors.js';
 import type { MenuKnowledge } from './menuKnowledge.js';
 
@@ -9,6 +9,7 @@ export const MAX_TURNS = 6; // 손님 발화 기준. 넘으면 강제로 추천 
 // Render 무료(0.1 CPU)에서 첫 호출이 8초를 넘겨 중단된 적이 있어 넉넉히 둔다 (2026-11-02 배포 로그). 프론트 대기 한도(30초)보다 짧게.
 const TIMEOUT_MS = 25_000;
 const MOODS: readonly Mood[] = ['tired', 'celebrate', 'quick', 'neutral'];
+const ASKINGS: readonly Asking[] = ['party', 'spicy', 'kind', 'exclude', 'other'];
 
 export interface LlmMessage { role: 'user' | 'model'; text: string }
 export interface LlmClient {
@@ -58,8 +59,9 @@ export const CHAT_SCHEMA = {
     mood: { type: ['string', 'null'], enum: [...MOODS, null] },
     picks: { type: 'array', items: { type: 'string' } },
     done: { type: 'boolean' },
+    asking: { type: 'string', enum: [...ASKINGS] },
   },
-  required: ['reply', 'conditions', 'mood', 'picks', 'done'],
+  required: ['reply', 'conditions', 'mood', 'picks', 'done', 'asking'],
 } as const;
 
 const EXTRACT_SCHEMA = {
@@ -97,7 +99,8 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     '당신은 중식당 "우루루 평촌본점"의 밝고 친절한 홀 직원입니다. 손님이 메뉴 80개 중에서 고르기 쉽도록 짧게 대화하며 조건을 파악합니다.',
     '',
     '말투 규칙:',
-    '- 존댓말, 한 번에 문장 1~2개, 질문은 한 번에 하나만. 글자 수 60자 이내.',
+    '- 존댓말, 한 번에 문장 1~2개, 질문은 한 번에 하나만(물음표는 답변 끝에 한 번만). 글자 수 60자 이내.',
+    '- asking에는 reply 끝의 질문이 묻는 것을 넣습니다: party(인원), spicy(매운맛), kind(면·밥·딤섬 같은 종류), exclude(빼야 할 재료), other(그 밖, 예/아니요로 답할 질문). 손님 화면에 이 값에 맞는 답 버튼이 뜨므로 reply 질문과 꼭 일치해야 합니다. done=true면 other.',
     '- 첫 인사(대화 기록이 비어 있을 때)에는 아래 "지금 상황"을 자연스럽게 한 번만 녹이고, 그 뒤에 반드시 인원을 묻습니다. 예: "비 오는 저녁이네요, 따뜻한 국물 어떠세요? 몇 분이서 오셨어요?" 이후 턴에서는 상황을 반복하지 않습니다.',
     '- 인원을 아직 모르는데 손님이 "아무거나", "추천해 줘"라고 하면 인원 하나만 짧게 묻고(done=false), 인원을 알면 바로 done=true로 추천합니다. 양을 몇 인분 담을지 정하려면 인원이 꼭 필요합니다.',
     '- 아래 메뉴 목록에 없는 음식·가격·재료는 절대 말하지 않습니다. 알레르기 안전은 보장하지 않으며 재료가 걱정되면 "직원에게 확인해 주세요"라고 안내합니다.',
@@ -188,7 +191,8 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   const picks = (Array.isArray(parsed.picks) ? parsed.picks : []).filter((id): id is string => typeof id === 'string' && knowledge.ids.has(id)).slice(0, 3);
   const mood = MOODS.includes(parsed.mood as Mood) ? (parsed.mood as Mood) : null;
   const reply = typeof parsed.reply === 'string' && parsed.reply.trim() ? parsed.reply.trim().slice(0, 200) : (done ? '네, 이런 메뉴 어떠세요?' : '몇 분이서 오셨어요?');
-  return { reply, conditions, mood, picks: done ? picks : [], done, model: llm.model };
+  const asking = !done && ASKINGS.includes(parsed.asking as Asking) ? (parsed.asking as Asking) : null;
+  return { reply, conditions, mood, picks: done ? picks : [], done, asking, model: llm.model };
 }
 
 /** 기존 프론트(aiClient.ts) 계약: 발화 한 문장 → 조건 */

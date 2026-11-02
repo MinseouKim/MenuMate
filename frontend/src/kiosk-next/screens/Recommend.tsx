@@ -45,7 +45,8 @@ const REPLIES: Record<Asking, string[]> = {
   spicy: ['매운 건 못 먹어요', '조금 매운 건 괜찮아요', '매운 거 좋아해요', '아무거나 괜찮아요'],
   kind: ['면 요리요', '밥 요리요', '딤섬이요', '고기 요리요'],
   exclude: ['빼는 재료 없어요', '해산물은 빼 주세요', '돼지고기는 빼 주세요', '견과류는 빼 주세요'],
-  other: ['혼자 왔어요', '두 명이에요', '매운 건 못 먹어요', '아무거나 추천해 주세요'],
+  // 인원·맵기·종류·재료가 아닌 질문("따뜻한 국물 어떠세요?")은 예/아니요로 답합니다.
+  other: ['네, 좋아요', '아니요, 다른 걸로요', '잘 모르겠어요', '아무거나 추천해 주세요'],
 };
 /** 안 2의 큰 선택 카드. 큰 글자(숫자·한 단어)와 그 아래 설명, 누르면 보낼 문장 */
 const CARDS: Record<Asking, { big: string; label: string; say: string }[]> = {
@@ -74,9 +75,9 @@ const CARDS: Record<Asking, { big: string; label: string; say: string }[]> = {
     { big: '견과류', label: '땅콩 등', say: '견과류는 빼 주세요' },
   ],
   other: [
-    { big: '1', label: '혼자 왔어요', say: '혼자 왔어요' },
-    { big: '2', label: '두 명이에요', say: '두 명이에요' },
-    { big: '안 매움', label: '매운 건 못 먹어요', say: '매운 건 못 먹어요' },
+    { big: '네', label: '좋아요', say: '네, 좋아요' },
+    { big: '아니요', label: '다른 걸로요', say: '아니요, 다른 걸로요' },
+    { big: '모름', label: '잘 모르겠어요', say: '잘 모르겠어요' },
     { big: '추천', label: '아무거나 추천해 주세요', say: '아무거나 추천해 주세요' },
   ],
 };
@@ -96,7 +97,8 @@ function useTalk(kiosk: Kiosk) {
     void whenSilent().then(() => { if (alive && !speech.listening) speech.start(); });
     return () => { alive = false; };
   }, [assistant, talking, chat.pending, chat.done]); // eslint-disable-line react-hooks/exhaustive-deps
-  return { speech, talking, assistant, asking: askingOf(assistant), chat, ctxLine: contextLine(chat.context) };
+  // 서버가 질문 종류를 알려 주면 그대로, 옛 서버면 문장으로 추정합니다.
+  return { speech, talking, assistant, asking: chat.asking ?? askingOf(assistant), chat, ctxLine: contextLine(chat.context) };
 }
 
 export function Input({ kiosk }: { kiosk: Kiosk }) {

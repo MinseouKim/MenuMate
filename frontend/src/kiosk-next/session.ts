@@ -2,7 +2,7 @@
 // 여기서는 "어떤 일이 일어나면 상태가 어떻게 바뀌는가"만 정합니다. 그래서 브라우저 없이 테스트할 수 있습니다.
 import type { FaceGroup } from '../prototype/ageAssist';
 import * as Cart from './cart';
-import type { ChatReply, ChatTurn, Conditions, Dialog, KioskContext, Line, Mode, Mood, Order, Prefs, Recommendation, Screen } from './types';
+import type { Asking, ChatReply, ChatTurn, Conditions, Dialog, KioskContext, Line, Mode, Mood, Order, Prefs, Recommendation, Screen } from './types';
 
 /** 직원 AI와 나눈 대화. 서버가 없으면 failed=true 가 되어 예전 길(말하기 → 확인 → 추천)로 갑니다. */
 export interface ChatState {
@@ -13,9 +13,11 @@ export interface ChatState {
   mood: Mood | null;
   picks: string[];
   done: boolean;
+  /** 마지막 질문이 묻는 것(서버가 알려 줄 때만). 화면의 터치 답 버튼이 이 값을 따릅니다. */
+  asking: Asking | null;
   context: KioskContext | null;
 }
-const NO_CHAT: ChatState = { turns: [], pending: false, failed: false, mood: null, picks: [], done: false, context: null };
+const NO_CHAT: ChatState = { turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, context: null };
 
 export interface SessionState {
   screen: Screen;
@@ -183,7 +185,7 @@ export function reducer(state: SessionState, action: Action): SessionState {
       const { reply } = action;
       return {
         ...state,
-        chat: { ...state.chat, turns: [...state.chat.turns, { role: 'assistant', text: reply.reply }], pending: false, mood: reply.mood, picks: reply.picks, done: reply.done },
+        chat: { ...state.chat, turns: [...state.chat.turns, { role: 'assistant', text: reply.reply }], pending: false, mood: reply.mood, picks: reply.picks, done: reply.done, asking: reply.asking ?? null },
         conditions: { ...state.conditions, ...reply.conditions },
         aiUsed: true,
       };

@@ -81,6 +81,18 @@ describe('converse', () => {
     expect(res.conditions).toMatchObject({ party: 2, spicy: 2, kind: '면' });
   });
 
+  it('asking: 질문 중이면 무엇을 묻는지 그대로, 모르는 값·추천 단계면 null', async () => {
+    const ask = (asking: unknown, done = false) => converse(
+      { llm: fakeLlm({ reply: '어떤 종류가 좋으세요?', conditions: {}, mood: null, picks: [], done, asking }), knowledge },
+      { turns: [{ role: 'user', text: '둘이요' }], conditions: {}, context: {} },
+    ).then((r) => r.asking);
+    expect(await ask('kind')).toBe('kind');
+    expect(await ask('exclude')).toBe('exclude');
+    expect(await ask('budget')).toBeNull();
+    expect(await ask(undefined)).toBeNull();
+    expect(await ask('kind', true)).toBeNull();
+  });
+
   it('조건 값을 정리한다 (범위 밖 kind·spicy·party)', async () => {
     const res = await converse(
       { llm: fakeLlm({ reply: 'x', conditions: { party: 50, spicy: 9, kind: '피자', texture: '', exclude: ['새우', '', '새우'], budget: -3, totalBudget: null }, mood: 'weird', picks: [], done: false }), knowledge },

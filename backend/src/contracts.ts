@@ -97,6 +97,8 @@ export interface ChatConditions {
 }
 export interface ChatTurn { role: 'user' | 'assistant'; text: string }
 export type Mood = 'tired' | 'celebrate' | 'quick' | 'neutral';
+/** 직원 AI 질문이 묻는 것: 인원, 매운맛, 종류, 빼는 재료, 그 밖(예/아니요) */
+export type Asking = 'party' | 'spicy' | 'kind' | 'exclude' | 'other';
 /** POST /api/chat */
 export interface ChatRequest {
   turns: ChatTurn[];
@@ -113,6 +115,8 @@ export interface ChatResponse {
   picks: string[];
   /** true면 질문을 멈추고 추천 화면으로 */
   done: boolean;
+  /** reply 끝의 질문이 무엇을 묻는지. 프론트가 이 값에 맞는 터치 답 버튼을 띄운다. done이거나 모르면 null */
+  asking: Asking | null;
   /** 서버가 쓴 모델. 디버그용 */
   model: string;
 }

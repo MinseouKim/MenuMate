@@ -29,12 +29,16 @@ export interface WeatherNow { tempC: number; code: number; label: string; rainy:
 export interface KioskContext { timeOfDay: TimeOfDay; hour: number; weather: WeatherNow | null; crowd: 'low' | 'mid' | 'high'; recentOrders: number }
 export interface ChatTurn { role: 'user' | 'assistant'; text: string }
 export type Mood = 'tired' | 'celebrate' | 'quick' | 'neutral';
+/** 직원 AI 질문이 묻는 것: 인원, 매운맛, 종류, 빼는 재료, 그 밖(예/아니요). 서버 contracts.ts 와 같은 값입니다. */
+export type Asking = 'party' | 'spicy' | 'kind' | 'exclude' | 'other';
 export interface ChatReply {
   reply: string;
   conditions: Omit<Conditions, 'raw'>;
   mood: Mood | null;
   picks: string[];
   done: boolean;
+  /** 서버가 알려 준 질문 종류. 2026-11-02 이전 서버는 보내지 않아 화면이 문장으로 추정합니다(layout.ts askingOf). */
+  asking?: Asking | null;
 }
 /** 추천 점수에 더해 주는 바깥 정보: 직원 AI가 고른 메뉴, 날씨·시간대 */
 export interface RecommendExtra { picks?: string[]; context?: KioskContext | null }
