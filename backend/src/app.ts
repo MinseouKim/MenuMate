@@ -5,7 +5,8 @@ import type {
   ChatRequest, ChatResponse, ConditionExtractionRequest, ConditionExtractionResponse, ContextResponse,
   CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse, TtsRequest,
 } from './contracts.js';
-import { converse, extractConditions, geminiClient, type LlmClient } from './chat.js';
+import { converse, extractConditions, type LlmClient } from './chat.js';
+import { createLlm } from './llm.js';
 import type { Config } from './config.js';
 import { buildContext, openMeteo, type WeatherSource } from './context.js';
 import { loadEngine, type Engine } from './engine.js';
@@ -107,8 +108,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     deps.synthesizer ??
     createSynthesizer({ apiKey: config.googleTtsApiKey, voice: config.ttsVoice, fetchImpl: (url, init) => fetch(url, init), log: app.log });
   const knowledge = deps.knowledge !== undefined ? deps.knowledge : loadMenuKnowledge(config.menuDataDir, app.log);
-  const llm = deps.llm !== undefined ? deps.llm : config.geminiApiKey ? geminiClient(config.geminiApiKey, config.geminiModel) : null;
-  if (!llm) app.log.warn('GEMINI_API_KEY가 없어 대화형 추천(/api/chat)은 503으로 답합니다.');
+  const llm = deps.llm !== undefined ? deps.llm : createLlm(config);
+  if (!llm) app.log.warn(`${config.llmProvider === 'claude' ? 'ANTHROPIC_API_KEY' : 'GEMINI_API_KEY'}가 없어 대화형 추천(/api/chat)은 503으로 답합니다.`);
+  else app.log.info(`대화형 추천 AI: ${llm.model}`);
   if (!synthesizer.available) app.log.warn('GOOGLE_TTS_API_KEY가 없어 음성 합성(/api/tts)은 503으로 답합니다.');
   const chatDeps = { llm, knowledge, log: app.log };
 

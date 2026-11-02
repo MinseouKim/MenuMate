@@ -43,6 +43,15 @@ describe('loadConfig', () => {
     expect(c.paymentSimDelayMs).toBe(0);
   });
 
+  it('대화 AI는 기본 Gemini, LLM_PROVIDER=claude면 Claude 키·모델을 읽는다', () => {
+    expect(loadConfig({}, base)).toMatchObject({ llmProvider: 'gemini', anthropicApiKey: null, claudeModel: 'claude-sonnet-5-5', claudeEffort: 'medium', anthropicFederation: false });
+    expect(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_API_KEY: ' sk-x ', CLAUDE_MODEL: 'claude-haiku-5-5', CLAUDE_EFFORT: 'low' }, base))
+      .toMatchObject({ llmProvider: 'claude', anthropicApiKey: 'sk-x', claudeModel: 'claude-haiku-5-5', claudeEffort: 'low' });
+    expect(loadConfig({ ANTHROPIC_FEDERATION_RULE_ID: 'fdrl_1' }, base).anthropicFederation).toBe(true);
+    expect(() => loadConfig({ LLM_PROVIDER: 'openai' }, base)).toThrow(/LLM_PROVIDER/);
+    expect(() => loadConfig({ CLAUDE_EFFORT: 'mid' }, base)).toThrow(/CLAUDE_EFFORT/);
+  });
+
   it('잘못된 값이면 서버를 띄우기 전에 알려 준다', () => {
     expect(() => loadConfig({ PAYMENT_SIM_RESULT: 'maybe' }, base)).toThrow(/PAYMENT_SIM_RESULT/);
     expect(() => loadConfig({ PAYMENT_MODE: 'pg' }, base)).toThrow(/PAYMENT_MODE/);

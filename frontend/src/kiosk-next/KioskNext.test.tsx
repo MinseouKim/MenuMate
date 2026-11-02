@@ -3,7 +3,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import KioskNext from './KioskNext';
 import { createCatalog } from './catalog';
-import type { Menu } from './types';
+import { defaultRecommender, type Recommender } from './recommender';
+import type { ChatReply, Menu } from './types';
 
 const menu = (id: string, name: string, price: number, extra: Partial<Menu> = {}): Menu => ({
   id, name, price, category: 'dimsum', kind: '', spicy: 0, texture: [], flavor: [], ingredients: [],
@@ -149,5 +150,51 @@ describe('KioskNext', () => {
     expect(screen.getByLabelText('인원')).toHaveTextContent('2명');
     await user.click(screen.getByRole('button', { name: '맞아요, 추천해주세요' }));
     expect(screen.getByRole('heading', { name: '이 메뉴는 어떠세요?' })).toBeInTheDocument();
+  });
+
+  describe('직원 AI 질문에 맞는 터치 답 버튼', () => {
+    const BLANK = { party: 1, spicy: null, kind: '상관없음', texture: '상관없음', exclude: [], budget: null, totalBudget: null };
+    /** 서버(/api/context, /api/chat)만 가짜로. 손님이 보낸 문장을 기록합니다. */
+    function fakeServer(replies: ChatReply[]) {
+      const sent: string[] = [];
+      const recommender: Recommender = {
+        ...defaultRecommender,
+        context: async () => null,
+        converse: async turns => {
+          const last = turns.at(-1);
+          if (last?.role === 'user') sent.push(last.text);
+          return replies.shift() ?? null;
+        },
+      };
+      return { recommender, sent };
+    }
+    async function startChat(recommender: Recommender) {
+      const user = userEvent.setup();
+      render(<KioskNext recommender={recommender} />);
+      await user.click(screen.getByRole('button', { name: /말로 추천 받아 주문/ }));
+      await user.click(screen.getByRole('button', { name: '말로 추천받기 시작' }));
+      return user;
+    }
+
+    it('질문 문장에 단서가 없어도 서버가 알려 준 asking대로 버튼을 띄운다', async () => {
+      // "어떻게 드릴까요?"만으로는 화면이 무엇을 묻는지 알 수 없다. 서버가 spicy라고 알려 준다.
+      const { recommender } = fakeServer([{ reply: '어떻게 드릴까요?', conditions: BLANK, mood: null, picks: [], done: false, asking: 'spicy' }]);
+      await startChat(recommender);
+      expect(await screen.findByRole('button', { name: /매운 건 못 먹어요/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /혼자 왔어요/ })).not.toBeInTheDocument();
+    });
+
+    it('인원·맵기·종류·재료가 아닌 질문에는 예/아니요로 답하고, 누른 말이 그대로 서버로 간다', async () => {
+      const { recommender, sent } = fakeServer([
+        { reply: '오늘 기분은 어떠세요?', conditions: { ...BLANK, party: 2 }, mood: null, picks: [], done: false, asking: 'other' },
+        { reply: '매운 음식도 괜찮으세요?', conditions: { ...BLANK, party: 2 }, mood: null, picks: [], done: false, asking: 'spicy' },
+      ]);
+      const user = await startChat(recommender);
+      const yes = await screen.findByRole('button', { name: /^네,? ?좋아요$/ });
+      expect(screen.getByRole('button', { name: /^아니요,? ?다른 걸로요$/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /혼자 왔어요/ })).not.toBeInTheDocument();
+      await user.click(yes);
+      expect(sent).toEqual(['네, 좋아요']);
+    });
   });
 });

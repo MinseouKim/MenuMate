@@ -11,7 +11,7 @@ const knowledge = fromData(
   new Map([['dimsum-1', { id: 'dimsum-1', keywords: ['부드러움', '육즙', '최고·강추'], reviews: [{ quote: '소룡포 육즙이 가득해요', summary: '육즙 가득' }] }]]),
 );
 
-function fakeLlm(answer: object | string, capture?: { system?: string; messages?: unknown[] }): LlmClient {
+function fakeLlm(answer: object | string, capture?: { system?: readonly string[]; messages?: unknown[] }): LlmClient {
   return {
     model: 'fake',
     async generateJson(system, messages) {
@@ -40,12 +40,21 @@ describe('menuKnowledge', () => {
 
 describe('systemPrompt', () => {
   it('상황과 메뉴 목록을 넣는다', () => {
-    const p = systemPrompt(knowledge, { timeOfDay: 'evening', weather: { tempC: 9, code: 61, label: '비', rainy: true, cold: false, hot: false }, crowd: 'high' }, 0);
+    const p = systemPrompt(knowledge, { timeOfDay: 'evening', weather: { tempC: 9, code: 61, label: '비', rainy: true, cold: false, hot: false }, crowd: 'high' }, 0).join('\n');
     expect(p).toContain('날씨: 비, 9도 (비·눈 오는 날)');
     expect(p).toContain('시간대: 저녁');
     expect(p).toContain('붐빔');
     expect(p).toContain('noodle-1 | 짬뽕');
     expect(p).not.toContain('soup-1');
+  });
+  it('앞부분(규칙·메뉴)은 상황·턴과 무관하게 같고, 바뀌는 상황·발화 수는 뒷부분에만 (프롬프트 캐시가 맞으려면)', () => {
+    const [stableA, volatileA] = systemPrompt(knowledge, { timeOfDay: 'evening' }, 0);
+    const [stableB, volatileB] = systemPrompt(knowledge, { timeOfDay: 'lunch', crowd: 'high' }, 3);
+    expect(stableA).toBe(stableB);
+    expect(stableA).toContain('noodle-1 | 짬뽕');
+    expect(stableA).not.toContain('시간대');
+    expect(volatileA).toContain('시간대: 저녁');
+    expect(volatileB).toContain('손님 발화 수: 3');
   });
   it('상황이 없으면 그렇다고 적는다', () => {
     expect(describeContext({})).toBe('상황 정보 없음');
@@ -58,7 +67,7 @@ describe('converse', () => {
   });
 
   it('첫 인사: 대화가 비어 있으면 시작 신호를 보내고 답을 정리한다', async () => {
-    const cap: { system?: string; messages?: any[] } = {};
+    const cap: { system?: readonly string[]; messages?: any[] } = {};
     const res = await converse(
       { llm: fakeLlm({ reply: '비 오는 저녁이네요! 몇 분이세요?', conditions: { party: 1, spicy: null, kind: '상관없음', texture: '상관없음', exclude: [], budget: null, totalBudget: null }, mood: null, picks: [], done: false }, cap) , knowledge },
       { turns: [], conditions: {}, context: { timeOfDay: 'evening' } },
@@ -79,6 +88,32 @@ describe('converse', () => {
     expect(res.picks).toEqual(['noodle-1', 'dimsum-1', 'soup-1']);
     expect(res.mood).toBe('tired');
     expect(res.conditions).toMatchObject({ party: 2, spicy: 2, kind: '면' });
+  });
+
+  it('asking: 질문 중이면 무엇을 묻는지 그대로, 모르는 값·추천 단계면 null', async () => {
+    const ask = (asking: unknown, done = false) => converse(
+      { llm: fakeLlm({ reply: '어떤 종류가 좋으세요?', conditions: {}, mood: null, picks: [], done, asking }), knowledge },
+      { turns: [{ role: 'user', text: '둘이요' }], conditions: {}, context: {} },
+    ).then((r) => r.asking);
+    expect(await ask('kind')).toBe('kind');
+    expect(await ask('exclude')).toBe('exclude');
+    expect(await ask('budget')).toBeNull();
+    expect(await ask(undefined)).toBeNull();
+    expect(await ask('kind', true)).toBeNull();
+  });
+
+  it('Gemini에 보내는 응답 형식이 asking을 반드시 채우게 한다 (빠지면 Gemini가 보내지 않아 화면이 늘 추정으로 돌아감)', async () => {
+    let sent: any;
+    const llm: LlmClient = {
+      model: 'fake',
+      async generateJson(_system, _messages, schema) {
+        sent = schema;
+        return JSON.stringify({ reply: '몇 분이세요?', conditions: {}, mood: null, picks: [], done: false, asking: 'party' });
+      },
+    };
+    await converse({ llm, knowledge }, { turns: [], conditions: {}, context: {} });
+    expect(sent.required).toContain('asking');
+    expect(sent.properties.asking.enum).toEqual(['party', 'spicy', 'kind', 'exclude', 'other']);
   });
 
   it('조건 값을 정리한다 (범위 밖 kind·spicy·party)', async () => {
