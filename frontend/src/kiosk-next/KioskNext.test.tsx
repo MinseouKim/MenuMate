@@ -1,6 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// 간편주문 화면은 기본안(board, 주문 확인 보드)으로 고정합니다. 로컬 .env 의 VITE_RECOMMEND_LAYOUT 과 관계없이 기본 화면의 흐름을 확인하기 위해서입니다.
+vi.mock('./layout', async importOriginal => ({ ...(await importOriginal<typeof import('./layout')>()), recommendLayout: 'board' }));
 import KioskNext from './KioskNext';
 import { createCatalog } from './catalog';
 import { defaultRecommender, type Recommender } from './recommender';
@@ -149,7 +151,11 @@ describe('KioskNext', () => {
     expect(await screen.findByRole('heading', { name: '이렇게 이해했어요' })).toBeInTheDocument();
     expect(screen.getByLabelText('인원')).toHaveTextContent('2명');
     await user.click(screen.getByRole('button', { name: '맞아요, 추천해주세요' }));
-    expect(screen.getByRole('heading', { name: '이 메뉴는 어떠세요?' })).toBeInTheDocument();
+    // 주문 확인 보드 결과 화면(2026-11-03): 옛 제목 "이 메뉴는 어떠세요?" 대신 "들은 대로 골랐어요"와 1순위 카드
+    expect(screen.getByRole('heading', { name: '들은 대로 골랐어요' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: '1순위' })).toBeInTheDocument();
+    // 대화 없이 온 길이라 "더 이야기하기" 대신 조건 고치기
+    expect(screen.getByRole('button', { name: '조건 고치기' })).toBeInTheDocument();
   });
 
   it('키오스크가 켜지면 잠든 서버를 미리 깨운다 (/api/health)', async () => {

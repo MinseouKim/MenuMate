@@ -1,18 +1,20 @@
-// 간편주문(말로 추천) 화면 3안 중 어느 것을 쓸지. 전시 전 비교용으로 주소 `?rec=a|b|c` 가 환경 변수보다 우선합니다 (2026-11-02, 캔버스 "간편주문 대화 화면 3안").
+// 간편주문(말로 추천) 화면을 어느 안으로 그릴지. 주소 `?rec=board|a|b|c` 가 환경 변수보다 우선합니다 (2026-11-02, 캔버스 "간편주문 대화 화면 3안").
+//  board(기본): 주문 확인 보드 — 2026-11-03 팀장이 고른 1안. 흑칠 보드에 들은 조건을 채우고, 핸즈프리라 말하기 버튼이 없음
+//  아래 a/b/c 는 비교용으로 남겨 둡니다.
 //  a: 직원과 마주 앉기 — 큰 말풍선, 전폭 말하기 버튼
 //  b: 눌러서 답하기 — AI 질문에 맞는 큰 선택 카드, 글자 1.2배
 //  c: 한눈에 정리 — "지금까지 이해한 것" 패널 + 짧은 대화
 import type { Asking } from './types';
 
-export type RecommendLayout = 'a' | 'b' | 'c';
+export type RecommendLayout = 'board' | 'a' | 'b' | 'c';
 
-const isLayout = (v: unknown): v is RecommendLayout => v === 'a' || v === 'b' || v === 'c';
+const isLayout = (v: unknown): v is RecommendLayout => v === 'board' || v === 'a' || v === 'b' || v === 'c';
 
 export function resolveRecommendLayout(search: string, envValue: string | undefined): RecommendLayout {
   const fromUrl = new URLSearchParams(search).get('rec')?.toLowerCase();
   if (isLayout(fromUrl)) return fromUrl;
   const fromEnv = envValue?.trim().toLowerCase();
-  return isLayout(fromEnv) ? fromEnv : 'a';
+  return isLayout(fromEnv) ? fromEnv : 'board';
 }
 
 export const recommendLayout: RecommendLayout = resolveRecommendLayout(

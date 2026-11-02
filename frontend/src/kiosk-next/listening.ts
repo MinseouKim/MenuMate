@@ -6,12 +6,12 @@ const CONTINUING = /(그리고|그러니까|근데|그럼|저기|하고|랑|음+
 const FINISHED = /(요|니다)$/;
 
 /**
- * 손님 말이 멈춘 뒤 몇 ms 조용하면 "다 말했다"고 볼지. 버튼을 다시 누르지 않아도 끝나게 합니다.
- * 너무 일찍 끊겨도 생각 중에 이어 말하면 앞말과 합쳐 다시 보내므로(chat/amend) 짧게 잡습니다.
+ * 손님 말이 멈춘 뒤(마지막 중간 인식 결과 뒤) 몇 ms 조용하면 "다 말했다"고 볼지. 버튼을 다시 누르지 않아도 끝나게 합니다.
+ * 브라우저 인식은 중간 결과가 0.2~0.4초 늦게 오므로 실제 침묵은 이보다 깁니다. 0.5초는 말 중간에 끊겨서 늘렸습니다 (2026-11-03 팀장 시험).
  */
 export function endpointDelay(text: string, large = false): number {
   const t = text.trim().replace(/[.!?…~,\s]+$/, '');
-  const base = CONTINUING.test(t) ? 1200 : FINISHED.test(t) ? 500 : 800;
+  const base = CONTINUING.test(t) ? 1400 : FINISHED.test(t) ? 700 : 1000;
   return base + (large ? 500 : 0);
 }
 
@@ -19,19 +19,20 @@ const norm = (s: string) => s.replace(/[\s.,!?…~'"“”‘’·]/g, '');
 
 /**
  * 직원 음성이 나오는 동안 들린 말이 그 음성 자체(스피커 → 마이크)인지.
- * 지금 읽는 문장에 없는 글자가 2자를 넘으면 손님이 끼어든 것으로 봅니다.
+ * 지금 읽는 문장에 없는 글자가 2자(긴 말은 5분의 1)를 넘으면 손님 말로 봅니다. 브라우저가 메아리를 조금 잘못 알아들어도 견딥니다.
  */
 export function isEcho(heard: string, speaking: string): boolean {
   const s = norm(speaking);
   if (!s) return false;
   const h = norm(heard);
+  const allowed = Math.max(2, Math.floor(h.length / 5));
   let unmatched = 0;
   for (let i = 0; i < h.length;) {
     let len = 0;
     for (let l = h.length - i; l >= 2; l--) if (s.includes(h.slice(i, i + l))) { len = l; break; }
     if (len) i += len;
     else { unmatched++; i++; }
-    if (unmatched > 2) return false;
+    if (unmatched > allowed) return false;
   }
   return true;
 }
@@ -43,4 +44,23 @@ export function stripEcho(text: string, spoken: string): string {
   let cut = 0;
   while (cut < words.length && s && s.includes(norm(words.slice(0, cut + 1).join('')))) cut++;
   return words.slice(cut).join(' ');
+}
+
+const SKIP = /[\s.,!?…~'"“”‘’·]/;
+/**
+ * 들은 말이 메아리 스냅샷(직원이 말하는 동안 들린 원문)으로 시작하면 그 뒤만 남깁니다. 띄어쓰기·문장부호는 무시합니다.
+ * 스냅샷으로 시작하지 않으면(브라우저가 앞부분을 고쳐 들었으면) 그대로 돌려줍니다.
+ */
+export function dropPrefix(text: string, snapshot: string): string {
+  const want = norm(snapshot);
+  if (!want) return text.trim();
+  let j = 0;
+  let i = 0;
+  for (; i < text.length && j < want.length; i++) {
+    if (SKIP.test(text[i])) continue;
+    if (text[i] !== want[j]) return text.trim();
+    j++;
+  }
+  if (j < want.length) return text.trim();
+  return text.slice(i).replace(/^[\s.,!?…~'"“”‘’·]+/, '').trim();
 }

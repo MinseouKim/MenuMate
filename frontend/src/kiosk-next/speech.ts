@@ -67,24 +67,43 @@ async function serverSpeak(text: string, mine: number): Promise<boolean> {
 /** 지금 소리 내 읽고 있는 문장. 마이크에 들린 말이 이 소리의 메아리인지 가릴 때 씁니다 (listening.ts isEcho) */
 let speakingNow = '';
 export const speakingText = () => speakingNow;
+/** 직원 음성이 끝나면(끝까지 읽었거나 멈춤) 알립니다. 핸즈프리 듣기가 그동안 쌓인 메아리를 버리고 새로 듣습니다 */
+const silenceListeners = new Set<() => void>();
+export function onSilence(listener: () => void): () => void {
+  silenceListeners.add(listener);
+  return () => { silenceListeners.delete(listener); };
+}
+/** 직원 음성이 시작되거나 끝날 때마다 알립니다. 화면의 "직원이 말하는 중" 표시가 씁니다 (useSyncExternalStore) */
+const speakingListeners = new Set<() => void>();
+export function onSpeakingChange(listener: () => void): () => void {
+  speakingListeners.add(listener);
+  return () => { speakingListeners.delete(listener); };
+}
+function quiet() {
+  if (!speakingNow) return;
+  speakingNow = '';
+  silenceListeners.forEach(f => f());
+  speakingListeners.forEach(f => f());
+}
 
 export function speak(text: string): Promise<void> {
   stopSpeaking();
   const mine = ++token;
   speakingNow = text;
+  speakingListeners.forEach(f => f());
   current = (async () => {
     try {
       const ok = await serverSpeak(text, mine);
       if (!ok && mine === token) await browserSpeak(text, mine);
     } catch { /* 소리 없이 진행 */ }
-    if (mine === token) speakingNow = '';
+    if (mine === token) quiet();
   })();
   return current;
 }
 
 export function stopSpeaking() {
   token++;
-  speakingNow = '';
+  quiet();
   window.speechSynthesis?.cancel();
   if (audio) { try { audio.pause(); } catch { /* ignore */ } audio = null; }
 }
