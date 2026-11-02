@@ -87,6 +87,22 @@ describe('scoreConversation (자동 채점)', () => {
     const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, steps, turns: [{ role: 'user', text: 'a' }, { role: 'user', text: 'b' }] }, knowledge);
     expect(s).toMatchObject({ ok: true, issues: [], userTurns: 2, avgMs: 1500 });
   });
+  it('손님 역할 AI가 설정과 다른 인원을 말하면 "손님 역할 오류"로 따로 적고 직원 통과(ok)에는 넣지 않는다 (34건 중 "인원 틀림" 9건이 모두 이 경우)', () => {
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0 } });
+    const turns = [{ role: 'assistant' as const, text: '몇 분이세요?' }, { role: 'user' as const, text: '두 명이요' }];
+    const s = scoreConversation({ ...base, persona: { ...p, party: 1, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
+    expect(s.actorIssues).toEqual(['손님 역할 오류: 인원을 2명으로 말함']);
+    expect(s.issues).toEqual([]);
+    expect(s.ok).toBe(true);
+  });
+  it('손님이 말한 인원과 직원이 적은 인원이 다를 때만 "인원 틀림" (손님 말 기준, 마지막으로 말한 인원)', () => {
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 1, spicy: 0 } });
+    const turns = [{ role: 'user' as const, text: '한 명, 아니 두 명이요' }, { role: 'user' as const, text: '아 둘이요' }];
+    const s = scoreConversation({ ...base, persona: { ...p, party: 2, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 100 }] }, knowledge);
+    expect(s.actorIssues).toEqual([]);
+    expect(s.issues).toEqual(['인원 틀림: 1명 (손님 말 2명)']);
+    expect(s.ok).toBe(false);
+  });
   it('직원 말이 60자를 넘거나, 추천 없이 끝나면 문제로 적는다', () => {
     const long = '가'.repeat(61);
     const s = scoreConversation({ ...base, final: null, steps: [{ reply: long, asking: 'party', done: false, ms: 10 }] }, knowledge);
@@ -136,6 +152,17 @@ describe('summarize (쌓인 대화 요약 → 고칠 규칙 찾기)', () => {
     expect(s).toMatchObject({ conversations: 3, okRate: 0.33, acceptRate: 0.67, avgUserTurns: 2.67, avgMs: 1333 });
     expect(s.topIssues[0]).toEqual({ issue: '빼는 재료 위반', count: 2 });
     expect(s.byBackground['일본인 관광객(한국어 초급)']).toEqual({ conversations: 2, okRate: 0 });
+  });
+  it('손님 역할 오류는 직원 문제(topIssues)와 따로 센다 (예전 기록처럼 actorIssues가 없어도 됨)', () => {
+    const row = (issues: string[], actorIssues?: string[]) => ({ persona, score: { ok: issues.length === 0, issues, userTurns: 2, avgMs: 1000, accepted: true, ...(actorIssues ? { actorIssues } : {}) } });
+    const s = summarize([
+      row([], ['손님 역할 오류: 인원을 2명으로 말함']),
+      row([], ['손님 역할 오류: 인원을 4명으로 말함']),
+      row(['직원 말 60자 초과 1회']),
+    ] as any);
+    expect(s.okRate).toBe(0.67);
+    expect(s.topIssues).toEqual([{ issue: '직원 말 60자 초과', count: 1 }]);
+    expect(s.actorIssues).toEqual([{ issue: '손님 역할 오류', count: 2 }]);
   });
 });
 

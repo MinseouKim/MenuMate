@@ -343,7 +343,7 @@ describe('손님이 말한 빼야 할 재료는 서버가 직접 읽어 조건�
   it('excludeFromSpeech: 부정 표현이 바로 붙은 재료만 뺀다 (프론트 negatedTerms와 같은 규칙)', () => {
     const cases: [string, string[]][] = [
       ['새우 빼 주세요', ['새우']], ['새우는 빼고 소고기는 좋아요', ['새우']], ['계란 없이 해 주세요', ['계란']], ['굴은 싫어요', ['굴']],
-      ['돼지고기 못 먹어요', ['돼지고기']], ['돼지고기 안 먹어요', ['돼지고기']], ['해산물 말고 다른 거요', ['해산물']], ['오리랑 생선 빼 주세요', ['생선']],
+      ['돼지고기 못 먹어요', ['돼지고기']], ['돼지고기 안 먹어요', ['돼지고기']], ['해산물 말고 다른 거요', ['해산물']],
       ['소고기 좋아요', []], ['새우 좋아해요', []], ['매운 건 못 먹어요', []], ['둘이요', []], ['없어요', []],
     ];
     for (const [text, want] of cases) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(want)]);
@@ -353,6 +353,24 @@ describe('손님이 말한 빼야 할 재료는 서버가 직접 읽어 조건�
     for (const text of ['채식주의자예요', '저 채식이에요', '비건이에요', '고기 안 먹어요', '고기는 못 먹어요']) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(MEAT_SEAFOOD)]);
     for (const text of ['할랄 음식만 먹어요', '무슬림이에요']) expect([text, excludeFromSpeech(text)]).toEqual([text, ['돼지고기']]);
     for (const text of ['견과류 알레르기 있어요', '땅콩 알레르기요']) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(['견과류', '땅콩'])]);
+  });
+
+  it('excludeFromSpeech: 재료 목록 뒤에 부정 표현이 오면 목록 전체를 뺀다 (랑·이랑·하고·와·과·쉼표)', () => {
+    const cases: [string, string[]][] = [
+      ['오리랑 생선 빼 주세요', ['오리', '생선']], ['새우이랑 전복은 못 먹어요', ['새우', '전복']], ['계란하고 땅콩은 알레르기 있어요', ['계란', '땅콩', '견과류']],
+      ['새우와 굴 빼고요', ['새우', '굴']], ['소고기과 오리 말고요', ['소고기', '오리']], ['새우, 관자, 해삼 없이 해 주세요', ['새우', '관자', '해삼']],
+      ['새우랑 소고기 좋아요, 오리는 빼 주세요', ['오리']], ['생선이랑 밥 주세요', []],
+    ];
+    for (const [text, want] of cases) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(want)]);
+  });
+
+  it('excludeFromSpeech: 줄임말도 같은 재료로 (닭→닭고기, 돼지→돼지고기, 소·쇠고기→소고기, 달걀→계란), 닭고기를 닭으로 한 번 더 세지 않는다', () => {
+    const cases: [string, string[]][] = [
+      ['닭은 빼 주세요', ['닭고기']], ['닭고기 빼 주세요', ['닭고기']], ['돼지는 안 먹어요', ['돼지고기']], ['쇠고기 못 먹어요', ['소고기']],
+      ['달걀 알레르기 있어요', ['계란']], ['닭이랑 돼지 빼고요', ['닭고기', '돼지고기']], ['닭 요리 좋아요', []],
+    ];
+    for (const [text, want] of cases) expect([text, excludeFromSpeech(text)]).toEqual([text, want.length > 1 ? expect.arrayContaining(want) : want]);
+    expect(excludeFromSpeech('닭이랑 돼지 빼고요')).toHaveLength(2);
   });
 
   const asked = (userText: string) => [

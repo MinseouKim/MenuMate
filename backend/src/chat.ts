@@ -271,7 +271,13 @@ export function excludeMentioned(text: string): boolean {
 // ── 손님 말에서 빼야 할 재료 읽기. 프론트 prototype/parse.ts의 NEGATION·negatedTerms, recommendation.ts의 EXCLUDE_WORDS와 같은 규칙 (프론트와 따로 둠)
 const EXCLUDE_WORDS = ['해산물', '새우', '돼지고기', '소고기', '닭고기', '계란', '견과류', '오리', '생선', '굴', '전복', '해삼', '관자', '땅콩'];
 const NEGATION = '(?:은|는|이|가|을|를|도|랑|하고)?\\s*(?:없는|없이|없고|빼고|빼\\s*주|빼주|빼요|빼|제외|말고|알레르기|알러지|싫|못\\s*먹|안\\s*먹|넣지\\s*말)';
-const NEGATED = EXCLUDE_WORDS.map((w) => [w, new RegExp(`${w}${NEGATION}`)] as const);
+/** 재료 이름과 줄임말 → 정식 이름. "닭(고기)?"처럼 한 패턴이라 "닭고기"를 "닭"으로 한 번 더 세지 않는다 */
+const ALIASES: Record<string, string> = { 돼지고기: '돼지(?:고기)?', 소고기: '[소쇠]고기', 닭고기: '닭(?:고기)?', 계란: '계란|달걀', 견과류: '견과(?:류)?' };
+const TERMS = EXCLUDE_WORDS.map((w) => [w, new RegExp(`^(?:${ALIASES[w] ?? w})$`)] as const);
+const TERM = `(?:${EXCLUDE_WORDS.map((w) => ALIASES[w] ?? w).join('|')})`;
+/** "오리랑 생선 빼 주세요"처럼 랑·이랑·하고·와·과·쉼표로 이은 재료 목록 + 부정 표현이면 목록 전체 */
+const NEGATED_LIST = new RegExp(`(${TERM}(?:\\s*(?:이랑|랑|하고|와|과|,)\\s*${TERM})*)${NEGATION}`, 'g');
+const canonical = (word: string) => TERMS.find(([, re]) => re.test(word))?.[0] ?? null;
 const MEAT_AND_SEAFOOD = ['돼지고기', '소고기', '닭고기', '오리', '해산물'];
 /** "돼지고기 안 먹어요"의 고기는 채식이 아니므로 낱말 앞에 다른 글자가 붙은 고기는 세지 않는다 */
 const VEGETARIAN = /채식|비건|베지|vegan|vegetarian|(?<![가-힣])고기\s*(?:는|를|도)?\s*(?:안|못)\s*먹/i;
@@ -281,7 +287,10 @@ const NO_PORK = /할랄|무슬림|이슬람|halal|muslim/i;
  * 생활 표현: 채식·비건·고기 안 먹음 → 고기·해산물 전부, 할랄·무슬림 → 돼지고기, 견과류나 땅콩 하나를 피하면 둘 다.
  */
 export function excludeFromSpeech(text: string): string[] {
-  const out = new Set(NEGATED.filter(([, re]) => re.test(text)).map(([w]) => w));
+  const out = new Set<string>();
+  for (const [, list] of text.matchAll(NEGATED_LIST)) {
+    for (const [word] of list.matchAll(new RegExp(TERM, 'g'))) { const w = canonical(word); if (w) out.add(w); }
+  }
   if (VEGETARIAN.test(text)) MEAT_AND_SEAFOOD.forEach((w) => out.add(w));
   if (NO_PORK.test(text)) out.add('돼지고기');
   if (out.has('견과류') || out.has('땅콩')) { out.add('견과류'); out.add('땅콩'); }
