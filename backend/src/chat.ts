@@ -1,7 +1,7 @@
 // 대화형 추천: 우루루 직원처럼 짧게 묻고 답하며 손님 조건을 채우고, 충분해지면 메뉴 3개를 고른다.
 // LLM 호출은 LlmClient 뒤에 두어 테스트에서 바꾼다. 발화 원문은 로그에 남기지 않는다.
 import { GoogleGenAI, type ThinkingLevel } from '@google/genai';
-import type { Asking, ChatConditions, ChatRequest, ChatResponse, ConditionExtractionResponse, ContextResponse, Mood, PickReason } from './contracts.js';
+import type { Asking, ChatConditions, ChatRequest, ChatResponse, ChatTurn, ConditionExtractionResponse, ContextResponse, Mood, PickReason } from './contracts.js';
 import { AppError } from './errors.js';
 import type { KnowledgeMenu, MenuKnowledge } from './menuKnowledge.js';
 
@@ -119,15 +119,16 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     '',
     '말투 규칙:',
     '- 존댓말, 한 번에 문장 1~2개, 질문은 한 번에 하나만(물음표는 답변 끝에 한 번만). 글자 수 60자 이내.',
-    '- asking에는 reply 끝의 질문이 묻는 것을 넣습니다: party(인원), spicy(매운맛), kind(면·밥·딤섬 같은 종류), exclude(빼야 할 재료), other(그 밖, 예/아니요로 답할 질문). 손님 화면에 이 값에 맞는 답 버튼이 뜨므로 reply 질문과 꼭 일치해야 합니다. done=true면 other.',
+    '- asking에는 reply 끝의 질문이 묻는 것을 넣습니다: party(인원), spicy(매운맛), kind(면·밥·딤섬 같은 종류), exclude(못 드시는·빼야 할 재료), other(그 밖, 예/아니요로 답할 질문). 손님 화면에 이 값에 맞는 답 버튼이 뜨므로 reply 질문과 꼭 일치해야 합니다. done=true면 other.',
     '- 첫 인사("우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?")는 화면이 이미 했습니다. 다시 인사하지 말고, 날씨·시간 이야기로 대화를 시작하지 않습니다. 맨 끝의 "지금 상황"은 추천 이유에만 씁니다.',
-    '- 인원은 손님이 직접 말해야 압니다. 손님이 인원을 말하지 않았으면 "혼자 오셨군요"처럼 짐작하지 말고 인원 하나만 짧게 묻습니다(done=false). 인원을 알고 손님이 "아무거나", "추천해 줘"라고 하면 더 묻지 말고 바로 done=true로 추천합니다.',
+    '- 인원은 손님이 직접 말해야 압니다. 손님이 인원을 말하지 않았으면 "혼자 오셨군요"처럼 짐작하지 말고 인원 하나만 짧게 묻습니다(done=false). 인원을 알고 손님이 "아무거나", "추천해 줘"라고 하면 종류는 묻지 않습니다(못 드시는 재료를 아직 안 물었으면 그것만 묻고 추천).',
     '- 아래 메뉴 목록에 없는 음식·가격·재료는 절대 말하지 않습니다. 알레르기 안전은 보장하지 않으며 재료가 걱정되면 "직원에게 확인해 주세요"라고 안내합니다.',
     '- 손님이 말을 끊으면 직원 말 뒤에 "(끊김)"이 붙습니다. 그 질문은 손님이 다 못 들었을 수 있으니 손님 말을 먼저 따릅니다.',
     '- 손님 말에서 기분을 추정해 mood에 넣습니다: tired(지침·힘듦·위로가 필요), celebrate(기념·모임·기분 좋음), quick(바쁨·빨리), neutral(그 외). 모르면 null.',
     '',
-    '조건 파악 순서(이미 알면 건너뜀): 인원 → 매운맛 가능 여부 → 종류(면/밥/딤섬/요리 등) 또는 피하고 싶은 재료. 예산은 손님이 먼저 말할 때만 반영합니다.',
-    `- 인원과 (매운맛 또는 종류) 두 가지를 알면 done=true. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
+    '조건 파악 순서(손님이 이미 말한 것은 건너뛰고, 한 번에 여러 개 말하면 모두 반영): 인원 → 매운맛 → 못 드시는 재료 → 종류(면/밥/딤섬/요리 등). 예산은 손님이 먼저 말할 때만 반영합니다.',
+    `- 못 드시는 재료: 추천 전에 "${EXCLUDE_QUESTION}"처럼 한 번 묻습니다(asking=exclude). 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
+    `- done=true 조건: 인원을 알고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
     '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. done=false면 picks는 빈 배열.',
     '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "둘이 나눠 먹기 좋은 순한 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
     '- done=true일 때 reply는 고른 메뉴를 소개하는 평서문으로 끝냅니다. 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
@@ -211,9 +212,12 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   const mood = MOODS.includes(parsed.mood as Mood) ? (parsed.mood as Mood) : null;
   let reply = typeof parsed.reply === 'string' && parsed.reply.trim() ? parsed.reply.trim().slice(0, 200) : '';
 
-  // 인원을 들은 적이 없으면 추천하지 않는다. 몇 인분을 담을지 정할 수 없기 때문 (강제 종료만 1명으로 가정하고 알린다)
-  if (parsed.done === true && !forced && party === null) {
-    return { reply: PARTY_QUESTION, conditions, mood, picks: [], pickReasons: [], done: false, asking: 'party', heardSummary: summarize(conditions, false), partyAssumed: false, model: llm.model };
+  // 추천(done) 전에 꼭 알아야 할 것을 정한 순서(인원 → 못 드시는 재료 → 종류)로 확인하고, 빠졌으면 그 질문으로 되돌린다. 강제 종료는 예외
+  if (parsed.done === true && !forced) {
+    const missing = missingBeforeRecommend(turns, conditions, party !== null);
+    if (missing) {
+      return { reply: QUESTION[missing], conditions, mood, picks: [], pickReasons: [], done: false, asking: missing, heardSummary: summarize(conditions, party !== null), partyAssumed: false, model: llm.model };
+    }
   }
   const done = forced || parsed.done === true;
   const partyAssumed = done && party === null;
@@ -223,7 +227,8 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   const pickReasons = done ? checkPicks(proposed, conditions, knowledge, userTexts.join(' ')) : [];
   if (done) {
     const dropped = proposed.map(pickId).map((id) => knowledge.byId(id)).filter((m): m is KnowledgeMenu => !!m && !pickReasons.some((p) => p.id === m.id));
-    if (!reply || reply.includes('?') || dropped.some((m) => reply.includes(m.name))) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name));
+    const tooLong = [...reply].length > MAX_REPLY_CHARS;
+    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name))) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name));
   } else if (!reply) {
     reply = PARTY_QUESTION;
   }
@@ -236,6 +241,54 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
 const PARTY_QUESTION = '몇 분이서 드실 건가요?';
+const EXCLUDE_QUESTION = '알레르기나 채식·종교 때문에 못 드시는 재료 있으세요?';
+const KIND_QUESTION = '면, 밥, 딤섬, 요리 중에 어떤 종류가 좋으세요?';
+const QUESTION = { party: PARTY_QUESTION, exclude: EXCLUDE_QUESTION, kind: KIND_QUESTION } as const;
+/** 직원 말 한 번의 글자 수 한도 (TTS로 읽기 좋게, 시뮬레이션 채점 기준과 같음) */
+const MAX_REPLY_CHARS = 60;
+
+const SPICY_TALK = /맵|매운|매콤|spicy/i;
+const ANY_STRONG = /아무\s*거나|아무거|추천|알아서|골라\s*(주|줘)|뭐든|무엇이든|anything|recommend|whatever/i;
+const ANY_SOFT = /상관\s*없|모르겠|못\s*정했|다\s*좋아/;
+/** 손님이 종류는 상관없다고 했는지 ("아무거나", "추천해 줘"). "맵기는 상관없어요"처럼 매운맛·재료 이야기의 "상관없어요"는 빼고 */
+export function wantsAnything(text: string): boolean {
+  return ANY_STRONG.test(text) || (ANY_SOFT.test(text) && !SPICY_TALK.test(text) && !/재료|알레르기|빼/.test(text));
+}
+
+const DIET_TALK = /알레르기|알러지|채식|비건|베지|할랄|무슬림|종교|가리는|못\s*먹는\s*(거|것|게|재료|음식)|빼는\s*(거|것|재료)|allerg|vegan|vegetarian|halal/i;
+const INGREDIENT_TALK = /고기|돼지|닭|오리|해산물|해물|새우|게살|생선|오징어|조개|전복|해삼|관자|계란|달걀|땅콩|견과|우유|밀가루|글루텐|고수|마늘|오이|pork|beef|chicken|shrimp|seafood|peanut|nuts?\b|egg/i;
+const REFUSE_TALK = /빼|안\s*먹|못\s*먹|없이|싫|제외|without|don'?t eat|can'?t eat/i;
+/**
+ * 손님이 못 먹는 재료 이야기를 스스로 했는지 ("새우 빼 주세요", "채식해요", "못 먹는 거 없어요"도 말한 것).
+ * "매운 건 못 먹어요"는 매운맛 이야기라 아님. 재료 질문에 "없어요"라고 답한 것은 이 함수가 아니라 askedExclude(직원이 이미 물음)로 판단한다.
+ */
+export function excludeMentioned(text: string): boolean {
+  return DIET_TALK.test(text) || (INGREDIENT_TALK.test(text) && REFUSE_TALK.test(text)) || (/빼\s*(주|줘|고|서|면)/.test(text) && !SPICY_TALK.test(text));
+}
+
+/** 직원 말이 못 드시는 재료를 물었는지 ("매운 거 못 드시는 분"은 매운맛 질문이라 아님) */
+export function askedExclude(text: string): boolean {
+  return /재료|알레르기|알러지|채식|가리시는|못\s*드시는\s*(거|것|게|음식)|빼\s*(드릴|야|실)/.test(text);
+}
+/** 직원 말이 종류(면·밥·딤섬·요리)를 물었는지. "드시면,"의 면처럼 낱말 안의 글자는 세지 않는다 */
+export function askedKind(text: string): boolean {
+  return /종류|딤섬|어떤\s*메뉴|드시고\s*싶은|(?<![가-힣])(면|밥)\s*(이나|이랑|하고|과|요리|,|·|\/)|요리\s*(중|로|나)/.test(text);
+}
+
+/**
+ * 추천 전에 빠진 것 (없으면 null). 순서: 인원 → 못 드시는 재료 → 종류 (매운맛은 서버가 강제하지 않음).
+ * - 재료: 조건에 들어 있거나, 손님이 말했거나, 직원이 이미 물었으면 됨 (손님 답이 "없어요"·"아니요"여도 물었으니 됨)
+ * - 종류: 조건에 들어 있거나, 손님이 "아무거나"류로 말했거나, 직원이 이미 물었으면 됨 (답이 종류로 안 잡혀도 같은 질문을 되풀이하지 않게)
+ * - 손님이 말을 끊은 직원 말("(끊김)")은 다 못 들었을 수 있어 물은 것으로 치지 않는다
+ */
+function missingBeforeRecommend(turns: readonly ChatTurn[], c: ChatConditions, partyKnown: boolean): 'party' | 'exclude' | 'kind' | null {
+  if (!partyKnown) return 'party';
+  const userTexts = turns.filter((t) => t.role === 'user').map((t) => t.text);
+  const asked = turns.filter((t) => t.role === 'assistant' && !t.text.includes('(끊김)')).map((t) => t.text);
+  if (!c.exclude.length && !userTexts.some(excludeMentioned) && !asked.some(askedExclude)) return 'exclude';
+  if (c.kind === '상관없음' && !userTexts.some(wantsAnything) && !asked.some(askedKind)) return 'kind';
+  return null;
+}
 const DEFAULT_WHY = '말씀하신 조건에 맞는 메뉴예요';
 export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전복', '관자', '굴', '오징어', '조개'];
 
@@ -272,10 +325,16 @@ function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowl
 }
 
 const hasBatchim = (word: string) => { const code = word.charCodeAt(word.length - 1) - 0xac00; return code >= 0 && code < 11172 && code % 28 !== 0; };
-function recommendLine(names: string[]): string {
-  if (!names.length) return '말씀하신 조건으로 골라 봤어요. 화면에서 확인해 주세요.';
-  const last = names[names.length - 1];
-  return `말씀 듣고 ${names.join(', ')}${hasBatchim(last) ? '을' : '를'} 골라 봤어요. 화면에서 확인해 주세요.`;
+const PLAIN_RECOMMEND = '말씀하신 조건으로 골라 봤어요. 화면에서 확인해 주세요.';
+/** 추천할 때 직원이 하는 한 문장. 60자를 넘으면 앞 1~2개 이름 + "등"으로 줄인다 */
+export function recommendLine(names: string[]): string {
+  for (let n = names.length; n >= 1; n--) {
+    const more = n < names.length;
+    const head = names.slice(0, n).join(', ') + (more ? ' 등' : '');
+    const line = `말씀 듣고 ${head}${hasBatchim(more ? '등' : names[n - 1]) ? '을' : '를'} 골라 봤어요. 화면에서 확인해 주세요.`;
+    if ([...line].length <= MAX_REPLY_CHARS) return line;
+  }
+  return PLAIN_RECOMMEND;
 }
 
 const SPICY_SUMMARY = ['안 맵게', '조금 맵게', '맵게', '아주 맵게'];

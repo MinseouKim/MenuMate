@@ -105,6 +105,15 @@ describe('llmCustomer (Gemini가 손님 연기)', () => {
     expect(seen[0].system.join('\n')).toContain('일본인 관광객(한국어 초급)');
     expect(seen[0].system.join('\n')).toContain('3명');
   });
+  it('손님 설정의 인원은 아이까지 합친 총인원으로 분명하게 적는다 ("일행 3명(아이 포함)"을 손님 AI가 "아이 포함 네 명"으로 말함)', async () => {
+    const systems: string[] = [];
+    const llm = { model: 'f', async generateJson(system: readonly string[]) { systems.push(system.join('\n')); return JSON.stringify({ say: '셋이요', accept: null, why: null }); } };
+    await llmCustomer(llm)({ ...persona, party: 3, withKids: true }, [{ role: 'assistant', text: '몇 분이세요?' }], null, 'party');
+    await llmCustomer(llm)({ ...persona, party: 2, withKids: false }, [{ role: 'assistant', text: '몇 분이세요?' }], null, 'party');
+    expect(systems[0]).toContain('일행은 아이까지 모두 합쳐 3명');
+    expect(systems[0]).not.toContain('(아이 포함)');
+    expect(systems[1]).toContain('일행은 손님 본인까지 모두 합쳐 2명');
+  });
   it('추천을 받으면 메뉴 이름을 보여 주고 주문할지 묻는다', async () => {
     let last = '';
     const llm = { model: 'f', async generateJson(_s: readonly string[], messages: { role: 'user' | 'model'; text: string }[]) { last = messages.at(-1)!.text; return JSON.stringify({ say: '', accept: false, why: '새우가 들어가요' }); } };

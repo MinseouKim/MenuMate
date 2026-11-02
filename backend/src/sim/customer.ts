@@ -14,7 +14,8 @@ const SCHEMA = {
 function card(p: Persona): string {
   return [
     `나이 ${p.age}, 성별 ${p.gender}, 배경 ${p.background}. 말하는 방식: ${p.style}.`,
-    `일행 ${p.party}명${p.withKids ? '(아이 포함)' : ''}. 매운맛: ${p.spicy}. 빼야 할 재료: ${p.exclude.length ? p.exclude.join(', ') : '없음'}.`,
+    // 총인원을 분명히: "일행 3명(아이 포함)"을 손님 AI가 "아이 포함 네 명"으로 말한 적이 있음 (2026-11-03 회차)
+    `${p.party === 1 ? '혼자 왔음(총 1명)' : `일행은 ${p.withKids ? '아이' : '손님 본인'}까지 모두 합쳐 ${p.party}명`}. 매운맛: ${p.spicy}. 빼야 할 재료: ${p.exclude.length ? p.exclude.join(', ') : '없음'}.`,
     `먹고 싶은 것: ${p.want}.${p.budget ? ` 1인 예산 ${p.budget.toLocaleString('ko-KR')}원.` : ''}`,
   ].join('\n');
 }
