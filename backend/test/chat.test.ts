@@ -93,6 +93,20 @@ describe('converse', () => {
     expect(await ask('kind', true)).toBeNull();
   });
 
+  it('Gemini에 보내는 응답 형식이 asking을 반드시 채우게 한다 (빠지면 Gemini가 보내지 않아 화면이 늘 추정으로 돌아감)', async () => {
+    let sent: any;
+    const llm: LlmClient = {
+      model: 'fake',
+      async generateJson(_system, _messages, schema) {
+        sent = schema;
+        return JSON.stringify({ reply: '몇 분이세요?', conditions: {}, mood: null, picks: [], done: false, asking: 'party' });
+      },
+    };
+    await converse({ llm, knowledge }, { turns: [], conditions: {}, context: {} });
+    expect(sent.required).toContain('asking');
+    expect(sent.properties.asking.enum).toEqual(['party', 'spicy', 'kind', 'exclude', 'other']);
+  });
+
   it('조건 값을 정리한다 (범위 밖 kind·spicy·party)', async () => {
     const res = await converse(
       { llm: fakeLlm({ reply: 'x', conditions: { party: 50, spicy: 9, kind: '피자', texture: '', exclude: ['새우', '', '새우'], budget: -3, totalBudget: null }, mood: 'weird', picks: [], done: false }), knowledge },
