@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  askedExclude, askedKind, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMentioned, recommendLine, systemPrompt, wantsAnything,
+  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMentioned, recommendLine, systemPrompt, wantsAnything,
   type LlmClient,
 } from '../src/chat.js';
 import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
@@ -94,13 +94,14 @@ describe('converse', () => {
   it('asking: 질문 중이면 무엇을 묻는지 그대로, 모르는 값·추천 단계면 null', async () => {
     const ask = (asking: unknown, done = false) => converse(
       { llm: fakeLlm({ reply: '어떤 종류가 좋으세요?', conditions: {}, mood: null, picks: [], done, asking }), knowledge },
-      // 재료·종류를 손님이 이미 말해 추천이 막히지 않는 대화 (asking만 본다)
-      { turns: [{ role: 'user', text: '둘이요, 못 먹는 거 없고 아무거나 추천해 주세요' }], conditions: {}, context: {} },
+      // 매운맛·재료·종류를 손님이 이미 말해 추천이 막히지 않는 대화 (asking만 본다)
+      { turns: [{ role: 'user', text: '둘이요, 매운 거 괜찮고 못 먹는 거 없고 아무거나 추천해 주세요' }], conditions: {}, context: {} },
     ).then((r) => r.asking);
     expect(await ask('kind')).toBe('kind');
     expect(await ask('exclude')).toBe('exclude');
-    expect(await ask('budget')).toBeNull();
-    expect(await ask(undefined)).toBeNull();
+    // 모르는 값·누락이면 reply 마지막 물음으로 추정 (2026-11-03 오프라인 시험: asking 누락이 서버 검사를 빠져나감)
+    expect(await ask('budget')).toBe('kind');
+    expect(await ask(undefined)).toBe('kind');
     expect(await ask('kind', true)).toBeNull();
   });
 
@@ -119,12 +120,13 @@ describe('converse', () => {
   });
 
   // ── 2026-11-03 서버 보장 (설계: docs/superpowers/specs/2026-11-03-hands-free-voice-design.md 4-2)
-  // 추천(done)이 통과하려면 못 드시는 재료·종류를 이미 물은 대화여야 한다(시뮬레이션 뒤 규칙). 그래서 두 질문에 답한 뒤 userText를 말한 대화로 둔다.
+  // 추천(done)이 통과하려면 매운맛·못 드시는 재료·종류를 이미 물은 대화여야 한다(시뮬레이션 뒤 규칙). 그래서 두 질문에 답한 뒤 userText를 말한 대화로 둔다.
   const recommend = (answer: object, userText: string, conditions: object = {}) => converse(
     { llm: fakeLlm({ conditions: {}, mood: null, asking: 'other', ...answer }), knowledge },
     {
       turns: [
         { role: 'assistant', text: '어서 오세요! 몇 분이서 오셨어요?' }, { role: 'user', text: userText },
+        { role: 'assistant', text: '매운 음식도 잘 드시나요?' }, { role: 'user', text: '네 괜찮아요' },
         { role: 'assistant', text: '못 드시는 재료 있으세요?' }, { role: 'user', text: '없어요' },
         { role: 'assistant', text: '면, 밥, 딤섬 중에 어떤 종류가 좋으세요?' }, { role: 'user', text: '그냥 다 좋아요' },
       ],
@@ -378,7 +380,7 @@ describe('손님이 말한 빼야 할 재료는 서버가 직접 읽어 조건�
     { role: 'assistant' as const, text: '면, 밥, 딤섬 중에 어떤 종류가 좋으세요?' }, { role: 'user' as const, text: '아무거나요' },
   ];
   const run = (userText: string, llmExclude: string[]) => converse(
-    { llm: fakeLlm({ reply: '골라 봤어요.', conditions: { party: 2, exclude: llmExclude }, mood: null, picks: [{ id: 'noodle-1', why: 'a', heard: null }, { id: 'dimsum-1', why: 'b', heard: null }], done: true, asking: 'other' }), knowledge },
+    { llm: fakeLlm({ reply: '골라 봤어요.', conditions: { party: 2, spicy: 2, exclude: llmExclude }, mood: null, picks: [{ id: 'noodle-1', why: 'a', heard: null }, { id: 'dimsum-1', why: 'b', heard: null }], done: true, asking: 'other' }), knowledge },
     { turns: asked(userText), conditions: {}, context: {} },
   );
 
@@ -406,6 +408,70 @@ describe('손님이 말한 빼야 할 재료는 서버가 직접 읽어 조건�
   });
 });
 
+describe('오프라인 서버 검사 시험에서 나온 구멍 3가지 (2026-11-03)', () => {
+  type Turn = { role: 'user' | 'assistant'; text: string };
+  const talk = (...lines: string[]): Turn[] => [GREETING, ...lines].map((text, i) => ({ role: i % 2 === 0 ? 'assistant' : 'user', text }));
+  const answer = (o: object) => ({ reply: '모듬 딤섬 골라 봤어요.', conditions: { party: 2 }, mood: null, picks: [{ id: 'dimsum-1', why: '순해요', heard: null }], done: true, asking: 'other', ...o });
+  const chat = (turns: Turn[], o: object = {}) => converse({ llm: fakeLlm(answer(o)), knowledge }, { turns, conditions: {}, context: {} });
+
+  it('인원: 손님이 인원을 말했으면 LLM이 적은 인원보다 손님 말(마지막 값)을 따른다 (wrong-party 30건 모두 통과)', async () => {
+    const res = await chat(talk('둘이요'), { reply: '매운 건 괜찮으세요?', conditions: { party: 3 }, done: false, asking: 'spicy', picks: [] });
+    expect(res.conditions.party).toBe(2);
+    expect(res.heardSummary).toBe('2명');
+    const fixed = await chat(talk('한 명, 아니 세 명이요'), { reply: '매운 건 괜찮으세요?', conditions: { party: 1 }, done: false, asking: 'spicy', picks: [] });
+    expect(fixed.conditions.party).toBe(3);
+  });
+  it('인원: 손님이 인원을 말하지 않았으면 LLM 값을 그대로 둔다', async () => {
+    const res = await chat(talk('매운 거요'), { reply: '몇 분이세요?', conditions: { party: 3 }, done: false, asking: 'party', picks: [] });
+    expect(res.conditions.party).toBe(3);
+  });
+
+  it('askingOf: 프론트 layout.ts와 같은 규칙 — 마지막 물음 문장, 가장 뒤 낱말, "드시면"의 면 제외, 매운맛+"못 드시"는 spicy', () => {
+    const cases: [string, string][] = [
+      ['함께 오신 분은 몇 분이신가요?', 'party'], ['매운 음식도 괜찮으세요?', 'spicy'], ['면이 좋으세요, 밥이 좋으세요?', 'kind'], ['빼야 할 재료가 있을까요?', 'exclude'],
+      ['어떤 종류가 좋으신가요?', 'kind'], ['네, 이런 메뉴 어떠세요?', 'other'], ['어서 오세요!', 'other'],
+      ['화끈하게 매운 요리로 준비해 드릴게요, 면이나 밥 중에서 어떤 걸로 드시겠어요?', 'kind'], ['얼마나 매운 걸로 드릴까요? 면이나 밥 중 어떤 걸로 원하세요?', 'kind'],
+      ['그럼 안 매운 국물 요리로 원하시는 면이나 밥 종류가 있으실까요?', 'kind'], ['아이와 함께 드시기 좋은 안 매운 요리로 골라드릴게요. 어떤 종류가 좋으신가요?', 'kind'],
+      ['비 오는 저녁이네요, 따뜻한 국물 어떠세요? 몇 분이서 오셨나요?', 'party'], ['두 분이시군요! 매운 음식도 잘 드시나요?', 'spicy'],
+      ['일행분 중에 매운 거 못 드시는 분 있나요?', 'spicy'], ['매운 걸 드시면 괜찮으세요?', 'spicy'], ['혹시 못 드시는 재료 있으세요?', 'exclude'], ['돼지고기는 빼 드릴까요?', 'exclude'],
+    ];
+    for (const [text, want] of cases) expect([text, askingOf(text)]).toEqual([text, want]);
+    expect(askingOf('')).toBe('other');
+  });
+  it('asking 누락·잘못된 값이면 서버가 reply 마지막 물음으로 추정한다 (missing-asking 30건 모두 화면 답 버튼이 추정으로 돌아감)', async () => {
+    const ask = (asking: unknown, reply: string) => chat(talk('둘이요'), { reply, asking, done: false, picks: [], conditions: { party: 2 } }).then((r) => r.asking);
+    expect(await ask(undefined, '두 분이시군요! 매운 음식도 잘 드시나요?')).toBe('spicy');
+    expect(await ask('budget', '혹시 못 드시는 재료 있으세요?')).toBe('exclude');
+    expect(await ask(null, '네, 이런 메뉴 어떠세요?')).toBe('other');
+    expect(await ask('party', '매운 음식도 잘 드시나요?')).toBe('party'); // 맞는 값이 오면 LLM 값을 그대로
+  });
+
+  it('매운맛을 손님이 말하지도, 직원이 묻지도 않았는데 done이면 매운맛 질문으로 되돌린다 (early-done에서 안 맵게 손님에게 매운 메뉴)', async () => {
+    const res = await chat(talk('둘이요', '못 드시는 재료 있으세요?', '없어요, 아무거나요'));
+    expect(res).toMatchObject({ done: false, asking: 'spicy', picks: [] });
+    expect(res.reply).toMatch(/매운/);
+    expect(res.reply.endsWith('?')).toBe(true);
+  });
+  it('질문 순서는 인원 → 매운맛 → 재료 → 종류 (셋 다 모르면 매운맛부터)', async () => {
+    expect((await chat(talk('둘이요'))).asking).toBe('spicy');
+    expect((await chat(talk('둘이요', '매운 음식도 잘 드시나요?', '네'))).asking).toBe('exclude');
+  });
+  it('매운맛 질문에 "상관없어요·아무거나"로 답했어도 물은 것으로 치고 다시 묻지 않는다', async () => {
+    for (const a of ['상관없어요', '아무거나요', '음…']) {
+      const res = await chat(talk('둘이요', '매운 음식도 잘 드시나요?', a, '못 드시는 재료 있으세요?', '없어요, 아무거나 추천해 주세요'));
+      expect([a, res.done]).toEqual([a, true]);
+    }
+  });
+  it('손님이 매운맛을 먼저 말했거나 LLM이 매운맛을 조건에 넣었으면 묻지 않는다', async () => {
+    expect((await chat(talk('둘이요, 안 맵게 아무거나요', '못 드시는 재료 있으세요?', '없어요'))).done).toBe(true);
+    expect((await chat(talk('둘이요', '못 드시는 재료 있으세요?', '없어요, 아무거나요'), { conditions: { party: 2, spicy: 0 } })).done).toBe(true);
+  });
+  it('매운맛을 묻다 끊겼으면(끊김) 물은 것으로 치지 않는다', async () => {
+    const res = await chat(talk('둘이요', '매운 음식도 잘 드시나요? (끊김)', '없어요, 아무거나요'));
+    expect(res.asking).toBe('spicy');
+  });
+});
+
 describe('추천 답 길이 60자 이내 (시뮬레이션에서 추천 답이 60자를 넘음)', () => {
   const long = fromData([
     { id: 'a', name: '참깨소스로 맛을 낸 유자향 토마토 샐러드', price: 9000, category: 'salad', kind: '냉채/샐러드', spicy: 0, servingPeople: 2, quantityUnit: '1접시', ingredients: [], texture: [] },
@@ -413,7 +479,7 @@ describe('추천 답 길이 60자 이내 (시뮬레이션에서 추천 답이 60
     { id: 'c', name: '어향동고새우와 바오번 세트', price: 22000, category: 'seafood', kind: '해산물', spicy: 0, servingPeople: 2, quantityUnit: '1접시', ingredients: [], texture: [] },
   ]);
   const turns = [
-    { role: 'assistant' as const, text: GREETING }, { role: 'user' as const, text: '둘이요, 못 먹는 거 없고 아무거나요' },
+    { role: 'assistant' as const, text: GREETING }, { role: 'user' as const, text: '둘이요, 매운 거 괜찮고 못 먹는 거 없고 아무거나요' },
   ];
 
   it('done인데 reply가 60자를 넘으면 서버가 짧은 추천 문장으로 바꾼다', async () => {

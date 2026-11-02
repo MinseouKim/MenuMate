@@ -44,14 +44,14 @@ describe('Claude 자체 대화 시험 세션 (scripts/sim-step.ts의 핵심 로�
 
   it('applyStaff: 직원 원시 JSON을 그대로 돌려주는 대리 LLM으로 converse를 돌려 서버 검사를 적용하고 세션에 쌓는다', async () => {
     let s = addCustomerTurn(startSession('c1', 1, personas), '두 명이에요');
-    // 재료·종류를 모른 채 done + 없는 메뉴 id → 서버가 재료 질문으로 되돌림
+    // 매운맛·재료·종류를 모른 채 done + 없는 메뉴 id → 서버가 순서대로 첫 질문(매운맛)으로 되돌림
     const r1 = await applyStaff(s, raw({ reply: '짬뽕 어떠세요?', conditions: { party: 2 }, picks: [{ id: 'ghost', why: 'x', heard: null }], done: true }), knowledge);
-    expect(r1.response).toMatchObject({ done: false, asking: 'exclude', picks: [] });
+    expect(r1.response).toMatchObject({ done: false, asking: 'spicy', picks: [] });
     expect(r1.session.turns.at(-1)).toEqual({ role: 'assistant', text: r1.response.reply });
     expect(r1.session.steps).toHaveLength(1);
     expect(r1.session.conditions).toEqual(r1.response.conditions);
-    s = addCustomerTurn(r1.session, '없어요, 아무거나 추천해 주세요');
-    const r2 = await applyStaff(s, raw({ reply: '유니짜장 골라 봤어요.', conditions: { party: 2 }, picks: [{ id: 'noodle-2', why: '순해요', heard: null }], done: true }), knowledge);
+    s = addCustomerTurn(r1.session, '안 매운 걸로, 못 먹는 거 없고 아무거나 추천해 주세요');
+    const r2 = await applyStaff(s, raw({ reply: '유니짜장 골라 봤어요.', conditions: { party: 2, spicy: 0 }, picks: [{ id: 'noodle-2', why: '순해요', heard: null }], done: true }), knowledge);
     expect(r2.response).toMatchObject({ done: true, picks: ['noodle-2'] });
     expect(r2.session.final).toEqual(r2.response);
     expect(() => addCustomerTurn(r2.session, '더')).toThrow();
@@ -74,7 +74,7 @@ describe('Claude 자체 대화 시험 세션 (scripts/sim-step.ts의 핵심 로�
 
   it('finishRecord: 채점해 mode=claude 기록을 만든다 (추천을 받았을 때만 손님 평가)', async () => {
     let s = addCustomerTurn(startSession('c1', 1, personas), '두 명이에요, 못 먹는 거 없고 아무거나요');
-    s = (await applyStaff(s, raw({ reply: '유니짜장 골라 봤어요.', conditions: { party: 2 }, picks: [{ id: 'noodle-2', why: '순해요', heard: null }], done: true }), knowledge)).session;
+    s = (await applyStaff(s, raw({ reply: '유니짜장 골라 봤어요.', conditions: { party: 2, spicy: 0 }, picks: [{ id: 'noodle-2', why: '순해요', heard: null }], done: true }), knowledge)).session;
     const rec = finishRecord(s, true, '좋아요', knowledge, '2026-11-03T01:00:00Z');
     expect(rec).toMatchObject({ at: '2026-11-03T01:00:00Z', mode: 'claude', model: 'claude', customer: 'claude', persona: personas[0], verdict: { accept: true, why: '좋아요' }, error: null });
     expect(rec.score).toMatchObject({ ok: true, accepted: true });

@@ -70,15 +70,15 @@ describe('fuzz: 일부러 실수하는 가짜 직원 LLM (오프라인 서버 �
   });
 
   it('서버 검사가 막아야 하는 실수는 채점에서 문제가 남지 않는다 (막지 못하면 서버 검사 구멍)', async () => {
-    const caught: FuzzMistake[] = ['question-done', 'long-done', 'excluded-pick', 'spicy-pick', 'ghost-id', 'missing-exclude'];
+    const caught: FuzzMistake[] = ['question-done', 'long-done', 'wrong-party', 'excluded-pick', 'spicy-pick', 'ghost-id', 'missing-exclude', 'missing-asking'];
     for (const m of caught) {
       const index = FUZZ_MISTAKES.indexOf(m);
       const rec = await runOffline({ persona, index, knowledge });
       expect([m, rec.score.issues]).toEqual([m, []]);
     }
-    // 너무 이른 done: 매운맛은 서버가 강제하지 않으므로 매운맛 상관없는 손님으로 재료·종류 되돌림만 본다
-    const rec = await runOffline({ persona: { ...persona, spicy: '상관없음' }, index: FUZZ_MISTAKES.indexOf('early-done'), knowledge });
+    // 너무 이른 done: 서버가 매운맛 → 재료 → 종류 순으로 되돌린다 (매운맛 확인도 서버 보장, 2026-11-03 오프라인 시험 뒤)
+    const rec = await runOffline({ persona, index: FUZZ_MISTAKES.indexOf('early-done'), knowledge });
     expect(rec.score.issues).toEqual([]);
-    expect(rec.steps.slice(0, 2).map((s) => s.asking)).toEqual(['exclude', 'kind']);
+    expect(rec.steps.slice(0, 3).map((s) => s.asking)).toEqual(['spicy', 'exclude', 'kind']);
   });
 });

@@ -128,7 +128,7 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     '',
     '조건 파악 순서(손님이 이미 말한 것은 건너뛰고, 한 번에 여러 개 말하면 모두 반영): 인원 → 매운맛 → 못 드시는 재료 → 종류(면/밥/딤섬/요리 등). 예산은 손님이 먼저 말할 때만 반영합니다.',
     `- 못 드시는 재료: 추천 전에 "${EXCLUDE_QUESTION}"처럼 한 번 묻습니다(asking=exclude). 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
-    `- done=true 조건: 인원을 알고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
+    `- done=true 조건: 인원을 알고, 매운맛을 물었거나 손님이 말했고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
     '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. done=false면 picks는 빈 배열.',
     '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "둘이 나눠 먹기 좋은 순한 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
     '- done=true일 때 reply는 고른 메뉴를 소개하는 평서문으로 끝냅니다. 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
@@ -215,11 +215,12 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   // 알레르기 안전: LLM이 빠뜨려도 손님이 직접 말한 빼야 할 재료는 서버가 합친다 (LLM 값은 지우지 않음)
   conditions.exclude = [...new Set([...conditions.exclude, ...userTexts.flatMap(excludeFromSpeech)])];
   const party = userTexts.map(partyMentioned).filter((n): n is number => n !== null).at(-1) ?? null;
+  if (party !== null) conditions.party = party; // 손님이 말한 인원이 LLM이 적은 값보다 우선 (오프라인 시험: LLM이 틀린 인원을 그대로 내보냄)
   const forced = userTurns >= MAX_TURNS;
   const mood = MOODS.includes(parsed.mood as Mood) ? (parsed.mood as Mood) : null;
   let reply = typeof parsed.reply === 'string' && parsed.reply.trim() ? parsed.reply.trim().slice(0, 200) : '';
 
-  // 추천(done) 전에 꼭 알아야 할 것을 정한 순서(인원 → 못 드시는 재료 → 종류)로 확인하고, 빠졌으면 그 질문으로 되돌린다. 강제 종료는 예외
+  // 추천(done) 전에 꼭 알아야 할 것을 정한 순서(인원 → 매운맛 → 못 드시는 재료 → 종류)로 확인하고, 빠졌으면 그 질문으로 되돌린다. 강제 종료는 예외
   if (parsed.done === true && !forced) {
     const missing = missingBeforeRecommend(turns, conditions, party !== null);
     if (missing) {
@@ -239,7 +240,8 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   } else if (!reply) {
     reply = PARTY_QUESTION;
   }
-  const asking = !done && ASKINGS.includes(parsed.asking as Asking) ? (parsed.asking as Asking) : null;
+  // LLM이 asking을 빠뜨리거나 모르는 값을 주면 reply의 마지막 물음으로 추정 (화면 답 버튼이 맞게 뜨도록)
+  const asking = done ? null : ASKINGS.includes(parsed.asking as Asking) ? (parsed.asking as Asking) : askingOf(reply);
   return {
     reply, conditions, mood, picks: pickReasons.map((p) => p.id), pickReasons, done, asking,
     heardSummary: summarize(conditions, party !== null || partyAssumed), partyAssumed, model: llm.model,
@@ -248,9 +250,10 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
 const PARTY_QUESTION = '몇 분이서 드실 건가요?';
+const SPICY_QUESTION = '매운 음식도 잘 드시나요?';
 const EXCLUDE_QUESTION = '알레르기나 채식·종교 때문에 못 드시는 재료 있으세요?';
 const KIND_QUESTION = '면, 밥, 딤섬, 요리 중에 어떤 종류가 좋으세요?';
-const QUESTION = { party: PARTY_QUESTION, exclude: EXCLUDE_QUESTION, kind: KIND_QUESTION } as const;
+const QUESTION = { party: PARTY_QUESTION, spicy: SPICY_QUESTION, exclude: EXCLUDE_QUESTION, kind: KIND_QUESTION } as const;
 /** 직원 말 한 번의 글자 수 한도 (TTS로 읽기 좋게, 시뮬레이션 채점 기준과 같음) */
 const MAX_REPLY_CHARS = 60;
 
@@ -311,16 +314,47 @@ export function askedKind(text: string): boolean {
   return /종류|딤섬|어떤\s*메뉴|드시고\s*싶은|(?<![가-힣])(면|밥)\s*(이나|이랑|하고|과|요리|,|·|\/)|요리\s*(중|로|나)/.test(text);
 }
 
+/** 손님이 매운맛 이야기를 했는지 ("안 맵게", "매운 거 좋아요", "맵기는 상관없어요", "순한 거") */
+const spicyMentioned = (text: string) => /매운|맵|매콤|얼큰|순한|spicy/i.test(text);
+/** 직원 말이 매운맛을 물었는지 (손님이 "상관없어요·아무거나"로 답했어도 물은 것) */
+const askedSpicy = (text: string) => /매운|맵|매콤|얼큰/.test(text);
+
+// 직원 질문이 무엇을 묻는지 추정: 프론트 kiosk-next/layout.ts askingOf와 같은 규칙 (프론트와 따로 둠). '면'은 앞에 글자가 붙으면("드시면") 종류가 아님
+const ASK_WORDS: [Exclude<Asking, 'other'>, RegExp][] = [
+  ['party', /몇\s*분|몇\s*명|인원|혼자|일행/g],
+  ['spicy', /매운|맵|매콤|얼큰/g],
+  ['exclude', /빼|알레르기|재료|못\s*드시|안\s*드시/g],
+  ['kind', /(?<![가-힣])면|밥|딤섬|요리|종류|국물|고기|해산물|어떤\s*메뉴|뭐가|무엇을/g],
+];
+const lastIndex = (text: string, re: RegExp) => Math.max(-1, ...[...text.matchAll(re)].map((m) => m.index));
 /**
- * 추천 전에 빠진 것 (없으면 null). 순서: 인원 → 못 드시는 재료 → 종류 (매운맛은 서버가 강제하지 않음).
+ * 직원 말의 마지막 물음 문장이 무엇을 묻는지. 맞장구·상황 문장("화끈하게 매운 요리로 준비해 드릴게요")에 끌려가지 않도록
+ * 마지막 물음 문장에서 가장 뒤에 나온 낱말을 고른다. "매운 거 못 드시는 분"의 '못 드시'는 재료가 아니라 매운맛.
+ */
+export function askingOf(question: string | null): Asking {
+  if (!question) return 'other';
+  const sentences = question.match(/[^.!?。]+[.!?。]?/g)?.map((x) => x.trim()) ?? [];
+  const asked = sentences.filter((x) => x.endsWith('?')).at(-1) ?? question;
+  const spicyOnly = /매운|맵|매콤|얼큰/.test(asked) && !/빼|알레르기|재료/.test(asked);
+  const found = ASK_WORDS
+    .filter(([key]) => !(spicyOnly && key === 'exclude'))
+    .map(([key, re]) => [key, lastIndex(asked, re)] as const)
+    .filter(([, i]) => i >= 0);
+  return found.length ? found.reduce((a, b) => (b[1] > a[1] ? b : a))[0] : 'other';
+}
+
+/**
+ * 추천 전에 빠진 것 (없으면 null). 순서: 인원 → 매운맛 → 못 드시는 재료 → 종류.
+ * - 매운맛: 조건에 들어 있거나, 손님이 매운맛 이야기를 했거나, 직원이 이미 물었으면 됨 (답이 "상관없어요"여도 물었으니 됨)
  * - 재료: 조건에 들어 있거나, 손님이 말했거나, 직원이 이미 물었으면 됨 (손님 답이 "없어요"·"아니요"여도 물었으니 됨)
  * - 종류: 조건에 들어 있거나, 손님이 "아무거나"류로 말했거나, 직원이 이미 물었으면 됨 (답이 종류로 안 잡혀도 같은 질문을 되풀이하지 않게)
  * - 손님이 말을 끊은 직원 말("(끊김)")은 다 못 들었을 수 있어 물은 것으로 치지 않는다
  */
-function missingBeforeRecommend(turns: readonly ChatTurn[], c: ChatConditions, partyKnown: boolean): 'party' | 'exclude' | 'kind' | null {
+function missingBeforeRecommend(turns: readonly ChatTurn[], c: ChatConditions, partyKnown: boolean): 'party' | 'spicy' | 'exclude' | 'kind' | null {
   if (!partyKnown) return 'party';
   const userTexts = turns.filter((t) => t.role === 'user').map((t) => t.text);
   const asked = turns.filter((t) => t.role === 'assistant' && !t.text.includes('(끊김)')).map((t) => t.text);
+  if (c.spicy === null && !userTexts.some(spicyMentioned) && !asked.some(askedSpicy)) return 'spicy';
   if (!c.exclude.length && !userTexts.some(excludeMentioned) && !asked.some(askedExclude)) return 'exclude';
   if (c.kind === '상관없음' && !userTexts.some(wantsAnything) && !asked.some(askedKind)) return 'kind';
   return null;
