@@ -44,11 +44,12 @@ describe('loadConfig', () => {
   });
 
   it('대화 AI는 기본 Gemini, LLM_PROVIDER=claude면 Claude 키·모델을 읽는다', () => {
-    expect(loadConfig({}, base)).toMatchObject({ llmProvider: 'gemini', anthropicApiKey: null, claudeModel: 'claude-opus-5-5', anthropicFederation: false });
-    expect(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_API_KEY: ' sk-x ', CLAUDE_MODEL: 'claude-haiku-5-5' }, base))
-      .toMatchObject({ llmProvider: 'claude', anthropicApiKey: 'sk-x', claudeModel: 'claude-haiku-5-5' });
+    expect(loadConfig({}, base)).toMatchObject({ llmProvider: 'gemini', anthropicApiKey: null, claudeModel: 'claude-sonnet-5-5', claudeEffort: 'medium', anthropicFederation: false });
+    expect(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_API_KEY: ' sk-x ', CLAUDE_MODEL: 'claude-haiku-5-5', CLAUDE_EFFORT: 'low' }, base))
+      .toMatchObject({ llmProvider: 'claude', anthropicApiKey: 'sk-x', claudeModel: 'claude-haiku-5-5', claudeEffort: 'low' });
     expect(loadConfig({ ANTHROPIC_FEDERATION_RULE_ID: 'fdrl_1' }, base).anthropicFederation).toBe(true);
     expect(() => loadConfig({ LLM_PROVIDER: 'openai' }, base)).toThrow(/LLM_PROVIDER/);
+    expect(() => loadConfig({ CLAUDE_EFFORT: 'mid' }, base)).toThrow(/CLAUDE_EFFORT/);
   });
 
   it('잘못된 값이면 서버를 띄우기 전에 알려 준다', () => {

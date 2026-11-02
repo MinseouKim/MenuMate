@@ -6,7 +6,7 @@ import type { Config } from './config.js';
 export function createLlm(config: Config): LlmClient | null {
   if (config.llmProvider === 'claude') {
     if (!config.anthropicApiKey && !config.anthropicFederation) return null;
-    return claudeClient({ model: config.claudeModel, apiKey: config.anthropicApiKey });
+    return claudeClient({ model: config.claudeModel, effort: config.claudeEffort, apiKey: config.anthropicApiKey });
   }
   return config.geminiApiKey ? geminiClient(config.geminiApiKey, config.geminiModel) : null;
 }

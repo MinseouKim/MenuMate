@@ -42,7 +42,8 @@
 | `CORS_ORIGIN` | (빈 값 = 모두 허용) | 허용할 브라우저 출처, 쉼표 구분. 배포: `https://menumate-dl.vercel.app` (D96) |
 | `LLM_PROVIDER` | `gemini` | 대화형 추천 AI. `gemini` 또는 `claude` (D100). 다른 값이면 서버가 뜨기 전에 오류 |
 | `ANTHROPIC_API_KEY` | (없음) | `LLM_PROVIDER=claude`일 때. 2장 참고 |
-| `CLAUDE_MODEL` | `claude-opus-5-5` | 더 빠르고 싸게 `claude-haiku-5-5`(거절 시 대체 실행 없음), 중간 `claude-sonnet-5-5` |
+| `CLAUDE_MODEL` | `claude-sonnet-5-5` | 더 똑똑하게 `claude-opus-5-5`, 더 빠르고 싸게 `claude-haiku-5-5`(거절 시 대체 실행 없음) |
+| `CLAUDE_EFFORT` | `medium` | 생각하는 깊이 `low`/`medium`/`high`/`xhigh`/`max`. 높을수록 느리고 비싸다 |
 | `GEMINI_API_KEY` | (없음) | 대화형 추천 (D91). 2장 참고 |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | 가장 빠른 모델(키오스크 대기 시간 기준). 품질 우선이면 `gemini-3.8-flash` |
 | `GOOGLE_TTS_API_KEY` | (없음) | 음성 안내 (D92). 2장 참고 |

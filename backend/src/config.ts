@@ -1,6 +1,9 @@
 import path from 'node:path';
 import { resolveDatabaseUrl } from './env.js';
 
+export const CLAUDE_EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+export type ClaudeEffort = (typeof CLAUDE_EFFORTS)[number];
+
 export interface Config {
   port: number;
   host: string;
@@ -24,6 +27,8 @@ export interface Config {
   anthropicApiKey: string | null;
   anthropicFederation: boolean;
   claudeModel: string;
+  /** Claude가 생각하는 깊이. 높을수록 느리고 비싸다 */
+  claudeEffort: ClaudeEffort;
   /** Google Cloud Text-to-Speech. 키가 없으면 /api/tts는 503 */
   googleTtsApiKey: string | null;
   ttsVoice: string;
@@ -84,7 +89,9 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
     llmProvider: oneOf(env, 'LLM_PROVIDER', ['gemini', 'claude'] as const, 'gemini'),
     anthropicApiKey: secret(env, 'ANTHROPIC_API_KEY'),
     anthropicFederation: Boolean(secret(env, 'ANTHROPIC_FEDERATION_RULE_ID')),
-    claudeModel: env.CLAUDE_MODEL?.trim() || 'claude-opus-5-5',
+    // 2026-11-02 사용자 결정: Sonnet 5.5, 노력 중간 (D100)
+    claudeModel: env.CLAUDE_MODEL?.trim() || 'claude-sonnet-5-5',
+    claudeEffort: oneOf(env, 'CLAUDE_EFFORT', CLAUDE_EFFORTS, 'medium'),
     geminiApiKey: secret(env, 'GEMINI_API_KEY'),
     // 키오스크는 응답 속도가 중요해 기본은 가장 빠른 모델. 품질을 올리려면 GEMINI_MODEL=gemini-3.8-flash
     geminiModel: env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite',

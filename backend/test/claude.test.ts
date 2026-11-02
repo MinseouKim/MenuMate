@@ -54,7 +54,7 @@ const schema = { type: 'object', properties: { reply: { type: 'string' }, spicy:
 describe('claudeClient', () => {
   it('요청: 첫 메시지는 손님 차례로 맞추고, 고정 지시문만 캐시, JSON 형식 강제, temperature 없음', async () => {
     const api = fakeApi(answer('{"reply":"몇 분이세요?","spicy":null}'));
-    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-opus-5-5', fetchImpl: api.fetchImpl });
+    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-sonnet-5-5', effort: 'medium', fetchImpl: api.fetchImpl });
     const text = await llm.generateJson(
       ['규칙과 메뉴 목록', '지금 상황: 저녁'],
       [{ role: 'model', text: '어서 오세요! 몇 분이세요?' }, { role: 'user', text: '둘이요' }],
@@ -64,14 +64,14 @@ describe('claudeClient', () => {
 
     expect(text).toBe('{"reply":"몇 분이세요?","spicy":null}'); // 생각(thinking) 블록은 건너뛰고 답만
     const { body, headers } = api.sent[0];
-    expect(body.model).toBe('claude-opus-5-5');
+    expect(body.model).toBe('claude-sonnet-5-5');
     expect(body.messages.map((m: any) => m.role)).toEqual(['user', 'assistant', 'user']);
     expect(body.messages[1].content).toBe('어서 오세요! 몇 분이세요?');
     expect(body.system).toEqual([
       { type: 'text', text: '규칙과 메뉴 목록', cache_control: { type: 'ephemeral' } },
       { type: 'text', text: '지금 상황: 저녁' },
     ]);
-    expect(body.output_config).toEqual({ effort: 'low', format: { type: 'json_schema', schema: toClaudeSchema(schema) } });
+    expect(body.output_config).toEqual({ effort: 'medium', format: { type: 'json_schema', schema: toClaudeSchema(schema) } });
     expect(body).not.toHaveProperty('temperature');
     expect(body.fallbacks).toBe('default');
     expect(headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
@@ -80,7 +80,7 @@ describe('claudeClient', () => {
 
   it('Haiku는 서버 쪽 대체 실행(fallbacks)이 없어 보내지 않는다', async () => {
     const api = fakeApi(answer('{}'));
-    await claudeClient({ apiKey: 'sk-test', model: 'claude-haiku-5-5', fetchImpl: api.fetchImpl })
+    await claudeClient({ apiKey: 'sk-test', model: 'claude-haiku-5-5', effort: 'medium', fetchImpl: api.fetchImpl })
       .generateJson(['s'], [{ role: 'user', text: 'hi' }], schema, new AbortController().signal);
     expect(api.sent[0].body).not.toHaveProperty('fallbacks');
     expect(api.sent[0].headers.get('anthropic-beta') ?? '').not.toContain('server-side-fallback');
@@ -88,7 +88,7 @@ describe('claudeClient', () => {
 
   it('거절(refusal)이면 답을 쓰지 않고 실패로 돌린다 (converse가 CHAT_UNAVAILABLE로 바꿈)', async () => {
     const api = fakeApi(answer('', 'refusal'));
-    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-opus-5-5', fetchImpl: api.fetchImpl });
+    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-sonnet-5-5', effort: 'medium', fetchImpl: api.fetchImpl });
     await expect(llm.generateJson(['s'], [{ role: 'user', text: 'hi' }], schema, new AbortController().signal)).rejects.toThrow(/refusal/);
   });
 
@@ -96,7 +96,7 @@ describe('claudeClient', () => {
     const api = fakeApi(answer('{}'));
     const abort = new AbortController();
     abort.abort();
-    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-opus-5-5', fetchImpl: api.fetchImpl });
+    const llm = claudeClient({ apiKey: 'sk-test', model: 'claude-sonnet-5-5', effort: 'medium', fetchImpl: api.fetchImpl });
     await expect(llm.generateJson(['s'], [{ role: 'user', text: 'hi' }], schema, abort.signal)).rejects.toThrow();
     expect(api.sent).toHaveLength(0);
   });
@@ -108,7 +108,7 @@ describe('createLlm', () => {
     expect(createLlm(loadConfig({}, base))).toBeNull();
     expect(createLlm(loadConfig({ GEMINI_API_KEY: 'g' }, base))?.model).toBe('gemini-3.5-flash-lite');
     expect(createLlm(loadConfig({ LLM_PROVIDER: 'claude', GEMINI_API_KEY: 'g' }, base))).toBeNull();
-    expect(createLlm(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_API_KEY: 'sk' }, base))?.model).toBe('claude-opus-5-5');
-    expect(createLlm(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_FEDERATION_RULE_ID: 'fdrl_1', CLAUDE_MODEL: 'claude-sonnet-5-5' }, base))?.model).toBe('claude-sonnet-5-5');
+    expect(createLlm(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_API_KEY: 'sk' }, base))?.model).toBe('claude-sonnet-5-5');
+    expect(createLlm(loadConfig({ LLM_PROVIDER: 'claude', ANTHROPIC_FEDERATION_RULE_ID: 'fdrl_1', CLAUDE_MODEL: 'claude-opus-5-5' }, base))?.model).toBe('claude-opus-5-5');
   });
 });
