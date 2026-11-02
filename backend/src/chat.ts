@@ -14,8 +14,11 @@ const ASKINGS: readonly Asking[] = ['party', 'spicy', 'kind', 'exclude', 'other'
 export interface LlmMessage { role: 'user' | 'model'; text: string }
 export interface LlmClient {
   readonly model: string;
-  /** JSON 스키마에 맞는 문자열을 돌려준다 (파싱 전) */
-  generateJson(system: string, messages: LlmMessage[], schema: object, signal: AbortSignal): Promise<string>;
+  /**
+   * JSON 스키마에 맞는 문자열을 돌려준다 (파싱 전).
+   * system[0]은 요청마다 똑같은 지시문(규칙·메뉴 목록)이라 Claude가 캐시하고, 뒤 칸은 매번 바뀌는 상황이다.
+   */
+  generateJson(system: readonly string[], messages: LlmMessage[], schema: object, signal: AbortSignal): Promise<string>;
 }
 
 export function geminiClient(apiKey: string, model: string): LlmClient {
@@ -27,7 +30,7 @@ export function geminiClient(apiKey: string, model: string): LlmClient {
         model,
         contents: messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
         config: {
-          systemInstruction: system,
+          systemInstruction: system.join('\n\n'),
           responseMimeType: 'application/json',
           responseJsonSchema: schema,
           temperature: 0.7,
@@ -94,14 +97,15 @@ export function describeContext(ctx: ChatRequest['context']): string {
   return parts.length ? parts.join(' / ') : '상황 정보 없음';
 }
 
-export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context'], userTurns: number): string {
-  return [
+/** [고정 지시문(규칙·메뉴 목록), 이번 요청의 상황]. 고정 부분에 상황·턴 수를 넣으면 프롬프트 캐시가 매번 깨진다. */
+export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context'], userTurns: number): [string, string] {
+  const stable = [
     '당신은 중식당 "우루루 평촌본점"의 밝고 친절한 홀 직원입니다. 손님이 메뉴 80개 중에서 고르기 쉽도록 짧게 대화하며 조건을 파악합니다.',
     '',
     '말투 규칙:',
     '- 존댓말, 한 번에 문장 1~2개, 질문은 한 번에 하나만(물음표는 답변 끝에 한 번만). 글자 수 60자 이내.',
     '- asking에는 reply 끝의 질문이 묻는 것을 넣습니다: party(인원), spicy(매운맛), kind(면·밥·딤섬 같은 종류), exclude(빼야 할 재료), other(그 밖, 예/아니요로 답할 질문). 손님 화면에 이 값에 맞는 답 버튼이 뜨므로 reply 질문과 꼭 일치해야 합니다. done=true면 other.',
-    '- 첫 인사(대화 기록이 비어 있을 때)에는 아래 "지금 상황"을 자연스럽게 한 번만 녹이고, 그 뒤에 반드시 인원을 묻습니다. 예: "비 오는 저녁이네요, 따뜻한 국물 어떠세요? 몇 분이서 오셨어요?" 이후 턴에서는 상황을 반복하지 않습니다.',
+    '- 첫 인사(대화 기록이 비어 있을 때)에는 맨 끝의 "지금 상황"을 자연스럽게 한 번만 녹이고, 그 뒤에 반드시 인원을 묻습니다. 예: "비 오는 저녁이네요, 따뜻한 국물 어떠세요? 몇 분이서 오셨어요?" 이후 턴에서는 상황을 반복하지 않습니다.',
     '- 인원을 아직 모르는데 손님이 "아무거나", "추천해 줘"라고 하면 인원 하나만 짧게 묻고(done=false), 인원을 알면 바로 done=true로 추천합니다. 양을 몇 인분 담을지 정하려면 인원이 꼭 필요합니다.',
     '- 아래 메뉴 목록에 없는 음식·가격·재료는 절대 말하지 않습니다. 알레르기 안전은 보장하지 않으며 재료가 걱정되면 "직원에게 확인해 주세요"라고 안내합니다.',
     '- 인원을 아는 상태에서 손님이 "아무거나", "추천해 줘"라고 하면 더 묻지 말고 바로 done=true로 추천합니다.',
@@ -112,13 +116,12 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     '- done=true일 때 picks에 메뉴 id를 1~3개 넣습니다(목록의 id만, 손님 조건·상황·리뷰 키워드에 가장 맞는 것). done=false면 picks는 빈 배열.',
     '- conditions는 지금까지 파악한 전체 값입니다. 모르는 값: spicy=null, kind="상관없음", texture="상관없음", budget=null, totalBudget=null, exclude=[]. party 기본 1. spicy는 0(안 매움)~3(아주 매움).',
     `- kind는 다음 중 하나 또는 "상관없음": ${knowledge.kinds.join(', ')}.`,
-    `- 현재 손님 발화 수: ${userTurns}.`,
-    '',
-    `지금 상황: ${describeContext(ctx)}`,
     '',
     '메뉴 목록 (id | 이름 | 종류 | 가격 | 맵기 | 인분 | 재료 | 식감 | 표시 | 리뷰 키워드):',
     ...knowledge.lines(),
   ].join('\n');
+  const volatile = [`지금 상황: ${describeContext(ctx)}`, `현재 손님 발화 수: ${userTurns}.`].join('\n');
+  return [stable, volatile];
 }
 
 const BLANK: ChatConditions = { party: 1, spicy: null, kind: '상관없음', texture: '상관없음', exclude: [], budget: null, totalBudget: null };
@@ -206,7 +209,7 @@ export async function extractConditions(deps: ChatDeps, utterance: string): Prom
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
   try {
-    const text = await deps.llm.generateJson(system, [{ role: 'user', text: utterance.slice(0, 500) }], EXTRACT_SCHEMA, abort.signal);
+    const text = await deps.llm.generateJson([system], [{ role: 'user', text: utterance.slice(0, 500) }], EXTRACT_SCHEMA, abort.signal);
     const p = JSON.parse(text) as Partial<ConditionExtractionResponse['conditions']>;
     const spicy = p.spicy_level === null || p.spicy_level === undefined ? null : (Math.min(3, Math.max(0, Math.round(p.spicy_level))) as 0 | 1 | 2 | 3);
     return {

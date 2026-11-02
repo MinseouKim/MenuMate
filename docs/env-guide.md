@@ -16,7 +16,8 @@
 
 | 키 | 발급처 | 없으면 |
 |----|--------|--------|
-| `GEMINI_API_KEY` | Google AI Studio | `/api/chat`·`/api/condition-extraction`이 503 → 프론트는 규칙 해석으로 진행 |
+| `GEMINI_API_KEY` | Google AI Studio | (`LLM_PROVIDER=gemini`일 때) `/api/chat`·`/api/condition-extraction`이 503 → 프론트는 규칙 해석으로 진행 |
+| `ANTHROPIC_API_KEY` | Claude Console (서비스 계정 키 권장) | (`LLM_PROVIDER=claude`일 때) 위와 같이 503. Render 무료 플랜은 ID 페더레이션(Managed OIDC, Pro 이상)이 없어 API 키를 쓴다 (D100) |
 | `GOOGLE_TTS_API_KEY` | Google Cloud 콘솔 → Text-to-Speech API 활성화 → API 키 (키 제한에 이 API 포함) | `/api/tts`가 503 → 프론트는 브라우저 TTS로 진행 |
 | (없음) 날씨 | Open-Meteo는 비상업 용도에 키가 필요 없다 | 실패 시 날씨 null |
 
@@ -39,6 +40,9 @@
 | `PAYMENT_SIM_DELAY_MS` | `1500` | 결제 중 화면을 보여 줄 지연 시간 |
 | `TZ` | `Asia/Seoul` | 주문번호 날짜·시간대(`/api/context`) 기준 |
 | `CORS_ORIGIN` | (빈 값 = 모두 허용) | 허용할 브라우저 출처, 쉼표 구분. 배포: `https://menumate-dl.vercel.app` (D96) |
+| `LLM_PROVIDER` | `gemini` | 대화형 추천 AI. `gemini` 또는 `claude` (D100). 다른 값이면 서버가 뜨기 전에 오류 |
+| `ANTHROPIC_API_KEY` | (없음) | `LLM_PROVIDER=claude`일 때. 2장 참고 |
+| `CLAUDE_MODEL` | `claude-opus-5-5` | 더 빠르고 싸게 `claude-haiku-5-5`(거절 시 대체 실행 없음), 중간 `claude-sonnet-5-5` |
 | `GEMINI_API_KEY` | (없음) | 대화형 추천 (D91). 2장 참고 |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | 가장 빠른 모델(키오스크 대기 시간 기준). 품질 우선이면 `gemini-3.8-flash` |
 | `GOOGLE_TTS_API_KEY` | (없음) | 음성 안내 (D92). 2장 참고 |

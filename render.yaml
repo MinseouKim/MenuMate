@@ -22,6 +22,12 @@ services:
         value: Asia/Seoul
       - key: CORS_ORIGIN            # Vercel 키오스크 주소. 여러 개면 쉼표로
         value: https://menumate-dl.vercel.app
+      - key: LLM_PROVIDER          # gemini(기본) 또는 claude. Claude로 바꿀 때 대시보드에서 claude로
+        value: gemini
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_MODEL
+        value: claude-opus-5-5
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL          # 가장 빠른 모델. 품질 우선이면 gemini-3.8-flash
