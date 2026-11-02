@@ -41,19 +41,24 @@ const stateFile = path.join(OUT, 'state.json');
 const state: { next: number } = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : { next: 0 };
 const personas = makePersonas(1000, PERSONA_SEED);
 
-// 모든 LLM 호출을 한 줄로 세워 간격을 두고, 마지막 오류 문장(한도 종류 판단용)을 기억합니다.
+// 모든 LLM 호출을 한 줄로 세워 간격을 두고, 마지막 오류 문장(한도 종류 판단용)과 실제 호출 시간(쉬는 시간 제외)을 기억합니다.
 let lastError = '';
+let callMs = 0;
 const gemini = geminiClient(key, model, { thinking });
 const llm: LlmClient = {
   model,
   async generateJson(...args) {
     await sleep(PACE_MS);
-    try { return await gemini.generateJson(...args); } catch (e) { lastError = e instanceof Error ? e.message : String(e); throw e; }
+    const t0 = performance.now();
+    try { return await gemini.generateJson(...args); } catch (e) { lastError = e instanceof Error ? e.message : String(e); throw e; } finally { callMs += performance.now() - t0; }
   },
 };
 const timeOfDay = (h: number): ContextResponse['timeOfDay'] => (h < 11 ? 'morning' : h < 14 ? 'lunch' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night');
-const staff = (turns: Parameters<typeof converse>[1]['turns'], conditions: Parameters<typeof converse>[1]['conditions']) =>
-  converse({ llm, knowledge, log: { warn: (m) => { lastError = m; } } }, { turns, conditions, context: { timeOfDay: timeOfDay(new Date().getHours()), crowd: 'low' } });
+const staff = async (turns: Parameters<typeof converse>[1]['turns'], conditions: Parameters<typeof converse>[1]['conditions']) => {
+  callMs = 0;
+  const r = await converse({ llm, knowledge, log: { warn: (m) => { lastError = m; } } }, { turns, conditions, context: { timeOfDay: timeOfDay(new Date().getHours()), crowd: 'low' } });
+  return { ...r, ms: callMs };
+};
 const actors = { gemini: llmCustomer(llm, knowledge), script: scriptedCustomer(knowledge, PERSONA_SEED) };
 
 const day = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });

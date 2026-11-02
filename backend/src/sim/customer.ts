@@ -35,9 +35,10 @@ const WANT_SAY: Record<string, string> = {
 };
 /** 배경 말투로 바꿉니다 (사투리·서툰 한국어·영어 섞기) */
 function accent(s: string, background: string, n: number): string {
-  if (background.includes('경상도')) return s.replace(/(이에요|예요|요)$/, '이라예');
-  if (background.includes('전라도')) return s.replace(/(이에요|예요|요)$/, '이랑께요');
-  if (background.includes('충청도')) return `음… ${s.replace(/(이에요|예요|요)$/, '이유')}`;
+  // "두 명이에요" → 이라예/이랑께/이유, "못 먹어요" → 예/잉/유 (어미에 맞춰 바꿈, 2026-11-03 첫 회차에서 "못 먹어이유"로 나와 고침)
+  if (background.includes('경상도')) return s.replace(/(이에요|예요)$/, '이라예').replace(/요$/, '예');
+  if (background.includes('전라도')) return s.replace(/(이에요|예요)$/, '이랑께').replace(/요$/, '요잉');
+  if (background.includes('충청도')) return s.replace(/(이에요|예요)$/, '이유').replace(/요$/, '유');
   if (background.includes('중국인')) return s.replace(/(이에요|예요)$/, ' 이에요').replace('는 빼', ' 빼');
   if (background.includes('베트남')) return s.replace(/(\S+) 명이에요/, '$1 사람 있어요');
   if (background.includes('미국인')) return `${['', 'Just me', 'Two', 'Three', 'Four', 'Five', 'Six'][Math.min(n, 6)] || 'Um'}… ${s}`;
@@ -62,7 +63,7 @@ export function scriptedCustomer(knowledge: MenuKnowledge, seed: number): Custom
       other: ['네', '아무거나 추천해 주세요', '네, 좋아요'][k],
     };
     let say = accent(base[asking ?? 'other'] ?? base.other, p.background, p.party);
-    if (p.style.includes('결정')) say = `음… ${say}`;
+    if (p.style.includes('결정') || p.background.includes('느린 말투')) say = `음… ${say}`;
     if (p.style.includes('서두름')) say = `${say}, 빨리요`;
     return { say };
   };

@@ -149,3 +149,25 @@ describe('scriptedCustomer (예시 답변 손님: 손님 쪽 토큰 0)', () => {
     expect(await c(p, [], staffReply({ done: true, picks: ['noodle-2'] }), null)).toMatchObject({ accept: true });
   });
 });
+
+describe('2026-11-03 첫 회차에서 고친 것', () => {
+  it('응답 시간은 직원 AI가 실제로 걸린 시간(staff가 알려 준 ms)으로 잰다 (요청 사이 쉬는 시간 제외)', async () => {
+    let t = 0;
+    const rec = await runPersona({
+      persona, greeting: '어서 오세요',
+      customer: async () => ({ say: '둘이요' }),
+      staff: async () => { t += 6000; return { ...staffReply({ reply: '골랐어요.', done: true, picks: ['noodle-2'] }), ms: 1500 }; },
+      now: () => t,
+    });
+    expect(rec.steps[0].ms).toBe(1500);
+  });
+  it('예시 답변 사투리가 어색하게 겹치지 않는다', async () => {
+    const c = scriptedCustomer(knowledge, 1);
+    const p = { ...persona, background: '한국인(충청도 사투리, 느린 말투)', style: '결정을 잘 못함', spicy: '못 먹음' as const };
+    const say = (await c(p, [{ role: 'assistant', text: '?' }], null, 'spicy')).say;
+    expect(say).toBe('음… 매운 건 못 먹어유');
+    const g = { ...persona, background: '한국인(경상도 사투리)', style: '무뚝뚝함', party: 2, withKids: false };
+    expect((await c(g, [], null, 'party')).say).toBe('두 명이라예');
+    expect((await c({ ...g, spicy: '못 먹음' as const }, [], null, 'spicy')).say).toBe('매운 건 못 먹어예');
+  });
+});

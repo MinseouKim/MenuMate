@@ -5,7 +5,8 @@ import type { Persona } from './personas.js';
 export interface CustomerTurn { say: string; accept?: boolean | null; why?: string | null }
 /** final이 있으면 추천을 받은 뒤의 평가(주문하겠는가). asking: 직원의 마지막 질문이 묻는 것(예시 답변 손님이 씀) */
 export type Customer = (persona: Persona, turns: ChatTurn[], final: ChatResponse | null, asking: Asking | null) => Promise<CustomerTurn>;
-export type Staff = (turns: ChatTurn[], conditions: Partial<ChatConditions>) => Promise<ChatResponse>;
+/** ms: 직원 AI가 실제로 걸린 시간(요청 사이 쉬는 시간 제외). 없으면 runPersona가 잰 시간 */
+export type Staff = (turns: ChatTurn[], conditions: Partial<ChatConditions>) => Promise<ChatResponse & { ms?: number }>;
 export interface Step { reply: string; asking: Asking | null; done: boolean; ms: number }
 export interface SimRecord {
   persona: Persona;
@@ -28,8 +29,8 @@ export async function runPersona(opts: {
     const c = await customer(persona, turns, null, steps.length ? steps[steps.length - 1].asking ?? 'other' : 'party'); // 첫인사는 인원 질문
     turns.push({ role: 'user', text: c.say });
     const t0 = now();
-    const r = await staff(turns, conditions);
-    steps.push({ reply: r.reply, asking: r.asking, done: r.done, ms: Math.round(now() - t0) });
+    const { ms, ...r } = await staff(turns, conditions);
+    steps.push({ reply: r.reply, asking: r.asking, done: r.done, ms: Math.round(ms ?? now() - t0) });
     turns.push({ role: 'assistant', text: r.reply });
     conditions = r.conditions;
     if (r.done) final = r;
