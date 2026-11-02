@@ -21,6 +21,9 @@ const OUT = path.join(ROOT, 'eval/sim');
 const PACE_MS = 4500;          // 무료 분당 한도에 걸리지 않게 요청 사이 간격
 const MINUTE_WAIT_MS = 65_000; // 분당 한도에 걸리면 쉬는 시간
 const PERSONA_SEED = 2026;
+/** 한 회차 최대 대화 수 (SIM_MAX 또는 --max N, 2026-11-03 팀장: 10분마다 20건) */
+const argMax = process.argv.indexOf('--max');
+const MAX_PER_RUN = Number(argMax >= 0 ? process.argv[argMax + 1] : process.env.SIM_MAX) || Infinity;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const log = (msg: string) => console.log(`[sim ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}] ${msg}`);
 
@@ -65,8 +68,8 @@ const day = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
 const outFile = path.join(OUT, 'conversations', `${day}.jsonl`);
 let done = 0;
 let minuteHits = 0;
-log(`시작: 모델 ${model}, 손님 #${state.next + 1}부터`);
-for (;;) {
+log(`시작: 모델 ${model}, 손님 #${state.next + 1}부터${MAX_PER_RUN < Infinity ? `, 최대 ${MAX_PER_RUN}건` : ''}`);
+while (done < MAX_PER_RUN) {
   const persona = personas[state.next % personas.length];
   const actor = state.next % 2 === 0 ? 'gemini' : 'script';
   lastError = '';
