@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { GeminiThinking } from './chat.js';
 import { resolveDatabaseUrl } from './env.js';
 
 export const CLAUDE_EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
@@ -23,6 +24,8 @@ export interface Config {
   llmProvider: 'gemini' | 'claude';
   geminiApiKey: string | null;
   geminiModel: string;
+  /** Gemini 생각 깊이. null이면 보내지 않음(모델 기본) */
+  geminiThinking: GeminiThinking | null;
   /** Claude API 키. Render Pro의 ID 페더레이션(ANTHROPIC_FEDERATION_RULE_ID 등)을 쓰면 비워 둔다 */
   anthropicApiKey: string | null;
   anthropicFederation: boolean;
@@ -95,6 +98,7 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
     geminiApiKey: secret(env, 'GEMINI_API_KEY'),
     // 키오스크는 응답 속도가 중요해 기본은 가장 빠른 모델. 품질을 올리려면 GEMINI_MODEL=gemini-3.8-flash
     geminiModel: env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash-lite',
+    geminiThinking: env.GEMINI_THINKING?.trim() ? oneOf(env, 'GEMINI_THINKING', ['minimal', 'low', 'medium', 'high'] as const, 'minimal') : null,
     googleTtsApiKey: secret(env, 'GOOGLE_TTS_API_KEY'),
     ttsVoice: env.TTS_VOICE?.trim() || 'ko-KR-Chirp3-HD-Leda',
     weatherLat: num(env, 'WEATHER_LAT', 37.3943),

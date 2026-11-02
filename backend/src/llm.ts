@@ -8,5 +8,5 @@ export function createLlm(config: Config): LlmClient | null {
     if (!config.anthropicApiKey && !config.anthropicFederation) return null;
     return claudeClient({ model: config.claudeModel, effort: config.claudeEffort, apiKey: config.anthropicApiKey });
   }
-  return config.geminiApiKey ? geminiClient(config.geminiApiKey, config.geminiModel) : null;
+  return config.geminiApiKey ? geminiClient(config.geminiApiKey, config.geminiModel, { thinking: config.geminiThinking }) : null;
 }
