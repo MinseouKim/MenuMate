@@ -207,6 +207,8 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 
   const conditions = normalizeConditions({ ...prior, ...(parsed.conditions ?? {}) }, knowledge);
   const userTexts = turns.filter((t) => t.role === 'user').map((t) => t.text);
+  // 알레르기 안전: LLM이 빠뜨려도 손님이 직접 말한 빼야 할 재료는 서버가 합친다 (LLM 값은 지우지 않음)
+  conditions.exclude = [...new Set([...conditions.exclude, ...userTexts.flatMap(excludeFromSpeech)])];
   const party = userTexts.map(partyMentioned).filter((n): n is number => n !== null).at(-1) ?? null;
   const forced = userTurns >= MAX_TURNS;
   const mood = MOODS.includes(parsed.mood as Mood) ? (parsed.mood as Mood) : null;
@@ -264,6 +266,26 @@ const REFUSE_TALK = /빼|안\s*먹|못\s*먹|없이|싫|제외|without|don'?t ea
  */
 export function excludeMentioned(text: string): boolean {
   return DIET_TALK.test(text) || (INGREDIENT_TALK.test(text) && REFUSE_TALK.test(text)) || (/빼\s*(주|줘|고|서|면)/.test(text) && !SPICY_TALK.test(text));
+}
+
+// ── 손님 말에서 빼야 할 재료 읽기. 프론트 prototype/parse.ts의 NEGATION·negatedTerms, recommendation.ts의 EXCLUDE_WORDS와 같은 규칙 (프론트와 따로 둠)
+const EXCLUDE_WORDS = ['해산물', '새우', '돼지고기', '소고기', '닭고기', '계란', '견과류', '오리', '생선', '굴', '전복', '해삼', '관자', '땅콩'];
+const NEGATION = '(?:은|는|이|가|을|를|도|랑|하고)?\\s*(?:없는|없이|없고|빼고|빼\\s*주|빼주|빼요|빼|제외|말고|알레르기|알러지|싫|못\\s*먹|안\\s*먹|넣지\\s*말)';
+const NEGATED = EXCLUDE_WORDS.map((w) => [w, new RegExp(`${w}${NEGATION}`)] as const);
+const MEAT_AND_SEAFOOD = ['돼지고기', '소고기', '닭고기', '오리', '해산물'];
+/** "돼지고기 안 먹어요"의 고기는 채식이 아니므로 낱말 앞에 다른 글자가 붙은 고기는 세지 않는다 */
+const VEGETARIAN = /채식|비건|베지|vegan|vegetarian|(?<![가-힣])고기\s*(?:는|를|도)?\s*(?:안|못)\s*먹/i;
+const NO_PORK = /할랄|무슬림|이슬람|halal|muslim/i;
+/**
+ * 손님 말 한 마디에서 빼야 할 재료. 부정 표현이 바로 붙은 재료만 ("새우는 빼고 소고기는 좋아요"의 소고기는 아님).
+ * 생활 표현: 채식·비건·고기 안 먹음 → 고기·해산물 전부, 할랄·무슬림 → 돼지고기, 견과류나 땅콩 하나를 피하면 둘 다.
+ */
+export function excludeFromSpeech(text: string): string[] {
+  const out = new Set(NEGATED.filter(([, re]) => re.test(text)).map(([w]) => w));
+  if (VEGETARIAN.test(text)) MEAT_AND_SEAFOOD.forEach((w) => out.add(w));
+  if (NO_PORK.test(text)) out.add('돼지고기');
+  if (out.has('견과류') || out.has('땅콩')) { out.add('견과류'); out.add('땅콩'); }
+  return [...out];
 }
 
 /** 직원 말이 못 드시는 재료를 물었는지 ("매운 거 못 드시는 분"은 매운맛 질문이라 아님) */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  askedExclude, askedKind, converse, describeContext, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMentioned, recommendLine, systemPrompt, wantsAnything,
+  askedExclude, askedKind, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMentioned, recommendLine, systemPrompt, wantsAnything,
   type LlmClient,
 } from '../src/chat.js';
 import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
@@ -333,6 +333,58 @@ describe('손님 말·직원 말 판단 (재료·종류 질문 생략 여부)', 
     expect(askedKind('어떤 메뉴를 드시고 싶으세요?')).toBe(true);
     expect(askedKind('매운 음식도 잘 드시나요?')).toBe(false);
     expect(askedKind('몇 분이서 드실 건가요?')).toBe(false);
+  });
+});
+
+describe('손님이 말한 빼야 할 재료는 서버가 직접 읽어 조건에 합친다 (LLM이 exclude를 빠뜨리면 알레르기 재료가 추천에 남음)', () => {
+  const sorted = (a: string[]) => [...a].sort();
+  const MEAT_SEAFOOD = ['돼지고기', '소고기', '닭고기', '오리', '해산물'];
+
+  it('excludeFromSpeech: 부정 표현이 바로 붙은 재료만 뺀다 (프론트 negatedTerms와 같은 규칙)', () => {
+    const cases: [string, string[]][] = [
+      ['새우 빼 주세요', ['새우']], ['새우는 빼고 소고기는 좋아요', ['새우']], ['계란 없이 해 주세요', ['계란']], ['굴은 싫어요', ['굴']],
+      ['돼지고기 못 먹어요', ['돼지고기']], ['돼지고기 안 먹어요', ['돼지고기']], ['해산물 말고 다른 거요', ['해산물']], ['오리랑 생선 빼 주세요', ['생선']],
+      ['소고기 좋아요', []], ['새우 좋아해요', []], ['매운 건 못 먹어요', []], ['둘이요', []], ['없어요', []],
+    ];
+    for (const [text, want] of cases) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(want)]);
+  });
+
+  it('excludeFromSpeech: 생활 표현 — 채식·비건·고기 안 먹음은 고기·해산물 전부, 할랄·무슬림은 돼지고기, 견과류·땅콩 알레르기는 둘 다', () => {
+    for (const text of ['채식주의자예요', '저 채식이에요', '비건이에요', '고기 안 먹어요', '고기는 못 먹어요']) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(MEAT_SEAFOOD)]);
+    for (const text of ['할랄 음식만 먹어요', '무슬림이에요']) expect([text, excludeFromSpeech(text)]).toEqual([text, ['돼지고기']]);
+    for (const text of ['견과류 알레르기 있어요', '땅콩 알레르기요']) expect([text, sorted(excludeFromSpeech(text))]).toEqual([text, sorted(['견과류', '땅콩'])]);
+  });
+
+  const asked = (userText: string) => [
+    { role: 'assistant' as const, text: GREETING }, { role: 'user' as const, text: userText },
+    { role: 'assistant' as const, text: '면, 밥, 딤섬 중에 어떤 종류가 좋으세요?' }, { role: 'user' as const, text: '아무거나요' },
+  ];
+  const run = (userText: string, llmExclude: string[]) => converse(
+    { llm: fakeLlm({ reply: '골라 봤어요.', conditions: { party: 2, exclude: llmExclude }, mood: null, picks: [{ id: 'noodle-1', why: 'a', heard: null }, { id: 'dimsum-1', why: 'b', heard: null }], done: true, asking: 'other' }), knowledge },
+    { turns: asked(userText), conditions: {}, context: {} },
+  );
+
+  it('LLM이 exclude를 비워 보내도 손님이 "새우 빼 주세요"라고 했으면 새우(해산물) 든 pick을 뺀다', async () => {
+    const res = await run('둘이요, 새우는 빼 주세요', []);
+    expect(res.conditions.exclude).toContain('새우');
+    expect(res.picks).toEqual(['dimsum-1']);
+    expect(res.heardSummary).toContain('새우 빼고');
+  });
+
+  it('LLM이 넣은 exclude는 지우지 않고 합친다', async () => {
+    const res = await run('둘이요, 새우는 빼 주세요', ['계란']);
+    expect(sorted(res.conditions.exclude)).toEqual(sorted(['계란', '새우']));
+  });
+
+  it('채식 손님이면 LLM이 놓쳐도 돼지고기 든 메뉴를 빼고 추천한다 (시뮬레이션: 채식 손님에게 유니짜장)', async () => {
+    const res = await run('둘이요, 저 채식주의자예요', []);
+    expect(res.picks).toEqual(['dimsum-1']);
+  });
+
+  it('좋다고 말한 재료는 빼지 않는다 ("새우 좋아해요")', async () => {
+    const res = await run('둘이요, 새우 좋아해요, 못 먹는 거 없어요', []);
+    expect(res.conditions.exclude).toEqual([]);
+    expect(res.picks).toEqual(['noodle-1', 'dimsum-1']);
   });
 });
 
