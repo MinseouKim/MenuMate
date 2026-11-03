@@ -65,9 +65,11 @@ describe('v3 API', () => {
   });
 
   it('POST /api/chat — 답변과 조건', async () => {
-    const r = await app.inject({ method: 'POST', url: '/api/chat', payload: { turns: [], conditions: {}, context: {} } });
+    const r = await app.inject({ method: 'POST', url: '/api/chat', payload: { turns: [{ role: 'assistant', text: '어서 오세요!' }, { role: 'user', text: '매운 거 좋아요' }], conditions: {}, context: {} } });
     expect(r.statusCode).toBe(200);
-    expect(r.json()).toMatchObject({ reply: '몇 분이세요?', done: false, picks: [], model: 'fake' });
+    expect(r.json()).toMatchObject({ reply: '몇 분이세요?', done: false, picks: [], pickReasons: [], heardSummary: null, partyAssumed: false, model: 'fake' });
+    const greet = await app.inject({ method: 'POST', url: '/api/chat', payload: { turns: [], conditions: {}, context: {} } });
+    expect(greet.json()).toMatchObject({ asking: 'party', model: 'template' });
   });
 
   it('POST /api/chat — turns 형식이 틀리면 400', async () => {

@@ -2,7 +2,7 @@ import type { Conditions, Menu, Recommendation } from './types';
 import { negatedTerms, NOODLE, parseBudget, parseParty, stripNegated } from './parse';
 // 프로토타입용 규칙 모듈. 서버 LLM·DB를 호출하지 않습니다.
 // extra: 직원 AI(서버 대화)가 고른 메뉴 id와 날씨·시간대. 없으면 예전과 똑같이 동작합니다.
-export interface RecommendExtra { picks?: string[]; context?: { timeOfDay?: string; crowd?: string; weather?: { rainy: boolean; cold: boolean; hot: boolean; label?: string } | null } | null }
+export interface RecommendExtra { picks?: string[]; pickReasons?: PickReason[]; context?: { timeOfDay?: string; crowd?: string; weather?: { rainy: boolean; cold: boolean; hot: boolean; label?: string } | null } | null }
 const WARM=['soup','noodle'],COOL=['cold'],QUICK=['noodle','rice'];
 /** 상황 보정: 비·추위 → 국물·면, 더위 → 냉채, 점심·붐빌 때 → 조리가 빠른 식사. 점수 2 이하라 손님이 말한 조건을 이기지 않습니다. */
 export function contextBonus(m: Menu, ctx: RecommendExtra['context']): {score: number; reason: string} | null {
@@ -13,6 +13,31 @@ export function contextBonus(m: Menu, ctx: RecommendExtra['context']): {score: n
   if(w?.hot&&COOL.includes(m.category))return {score:2,reason:'더운 날 시원하게 드시기 좋아요'};
   if((ctx.crowd==='high'||ctx.timeOfDay==='lunch')&&QUICK.includes(m.category))return {score:1,reason:'지금처럼 바쁠 때 빨리 나오는 메뉴예요'};
   return null;
+}
+/** 직원 AI가 대화로 고른 메뉴와 그 이유 (서버 /api/chat pickReasons). 순서 = 추천 순위 */
+export interface PickReason { id: string; why: string; heard: string | null; review: string | null }
+const GENERIC='현재 조건으로 선택할 수 있는 메뉴예요';
+/**
+ * 대화로 고른 메뉴가 1순위부터 자리를 먼저 차지합니다(가점이 아니라 자리). 그 메뉴를 인원만큼 담은 단품을 먼저, 없으면 그 메뉴가 든 가장 좋은 조합.
+ * 후보(candidates)는 이미 빼는 재료·품절·맵기·예산 검증을 통과한 것만이라, 조건을 어긴 pick은 자연히 빠집니다. 남은 자리는 규칙 추천으로 채웁니다.
+ */
+function talkFirst(talk: PickReason[],candidates: Recommendation[],picked: Recommendation[],sorted: Recommendation[],menus: Menu[]): Recommendation[] {
+ const out: Recommendation[]=[];
+ const ruled=[...picked,...sorted];
+ const single=(r: Recommendation,id: string)=>!r.set&&r.lines.length===1&&r.lines[0].id===id;
+ for(const t of talk){
+  if(out.length===3)break;
+  const best=candidates.filter(r=>r.lines.some(l=>l.id===t.id)).sort((a,b)=>Number(single(b,t.id))-Number(single(a,t.id))||b.score-a.score)[0];
+  if(!best||out.some(o=>o.lines.some(l=>l.id===t.id)))continue;
+  out.push({...best,main:menus.find(m=>m.id===t.id)??best.main,reasons:[t.heard?`‘${t.heard}’라고 하셔서 ${t.why}`:t.why,...best.reasons.filter(x=>x!==GENERIC)],talk:{heard:t.heard,why:t.why,review:t.review}});
+ }
+ if(!out.length)return picked; // 고른 메뉴가 없거나 모두 조건에 걸리면 규칙 추천 그대로
+ for(const r of ruled){
+  if(out.length===3)break;
+  if(out.includes(r)||r.lines.some(l=>out.some(o=>o.lines.some(x=>x.id===l.id))))continue;
+  out.push(r);
+ }
+ return out;
 }
 export const KIND_OPTIONS=['면','밥','베이징덕/생선','딤섬','야채','냉채/샐러드','스프/탕','치킨','돼지고기','소고기','해산물'];
 export const EXCLUDE_OPTIONS=['해산물','새우','돼지고기','소고기','닭고기','계란','견과류'];
@@ -157,7 +182,7 @@ export const KioskAI = {
   // 한상 구성만 3개가 되지 않도록, 단품·두 메뉴 조합이 있으면 하나는 꼭 넣습니다.
   const simple=sorted.find(r=>!r.set);
   if(!lightPool.length&&simple&&!picked.some(r=>!r.set)){if(picked.length===3)picked.pop();picked.push(simple);}
-  return picked;
+  return talkFirst(extra.pickReasons??[],candidates,picked,sorted,menus);
  }
 };
 

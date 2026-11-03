@@ -2,7 +2,7 @@
 // 여기서는 "어떤 일이 일어나면 상태가 어떻게 바뀌는가"만 정합니다. 그래서 브라우저 없이 테스트할 수 있습니다.
 import type { FaceGroup } from '../prototype/ageAssist';
 import * as Cart from './cart';
-import type { Asking, ChatReply, ChatTurn, Conditions, Dialog, KioskContext, Line, Mode, Mood, Order, Prefs, Recommendation, Screen } from './types';
+import type { Asking, ChatReply, ChatTurn, PickReason, Conditions, Dialog, KioskContext, Line, Mode, Mood, Order, Prefs, Recommendation, Screen } from './types';
 
 /** 직원 AI와 나눈 대화. 서버가 없으면 failed=true 가 되어 예전 길(말하기 → 확인 → 추천)로 갑니다. */
 export interface ChatState {
@@ -15,9 +15,13 @@ export interface ChatState {
   done: boolean;
   /** 마지막 질문이 묻는 것(서버가 알려 줄 때만). 화면의 터치 답 버튼이 이 값을 따릅니다. */
   asking: Asking | null;
+  /** 대화로 고른 메뉴의 이유(순서 = 추천 순위), 들은 조건 한 줄, 인원을 몰라 1명으로 가정했는지 (2026-11-03) */
+  pickReasons: PickReason[];
+  heardSummary: string | null;
+  partyAssumed: boolean;
   context: KioskContext | null;
 }
-const NO_CHAT: ChatState = { turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, context: null };
+const NO_CHAT: ChatState = { turns: [], pending: false, failed: false, mood: null, picks: [], done: false, asking: null, pickReasons: [], heardSummary: null, partyAssumed: false, context: null };
 
 export interface SessionState {
   screen: Screen;
@@ -73,6 +77,12 @@ export type Action =
   | { type: 'staff-called' }
   | { type: 'chat/context'; context: KioskContext | null }
   | { type: 'chat/user'; text: string }
+  /** 가게 첫인사를 서버 없이 바로 */
+  | { type: 'chat/greet'; text: string }
+  /** 답을 기다리는 중에 손님이 이어 말함: 마지막 손님 말에 합쳐 다시 보냅니다 */
+  | { type: 'chat/amend'; text: string }
+  /** 손님이 직원 말을 끊음 */
+  | { type: 'chat/interrupted' }
   | { type: 'chat/pending'; on: boolean }
   | { type: 'chat/assistant'; reply: ChatReply }
   | { type: 'chat/failed' }
@@ -179,13 +189,33 @@ export function reducer(state: SessionState, action: Action): SessionState {
       const raw = [state.conditions.raw, text].filter(Boolean).join(' ');
       return { ...state, chat: { ...state.chat, turns: [...state.chat.turns, { role: 'user', text }], pending: true }, conditions: { ...state.conditions, raw } };
     }
+    case 'chat/greet':
+      return { ...state, chat: { ...state.chat, turns: [{ role: 'assistant', text: action.text }], pending: false, failed: false, asking: 'party' } };
+    case 'chat/amend': {
+      const text = action.text.trim();
+      const turns = [...state.chat.turns];
+      const last = turns.length - 1;
+      if (!text || turns[last]?.role !== 'user') return state;
+      turns[last] = { role: 'user', text: `${turns[last].text} ${text}` };
+      return { ...state, chat: { ...state.chat, turns, pending: true }, conditions: { ...state.conditions, raw: [state.conditions.raw, text].filter(Boolean).join(' ') } };
+    }
+    case 'chat/interrupted': {
+      const turns = [...state.chat.turns];
+      const last = turns.length - 1;
+      if (turns[last]?.role !== 'assistant') return state;
+      turns[last] = { ...turns[last], interrupted: true };
+      return { ...state, chat: { ...state.chat, turns } };
+    }
     case 'chat/pending':
       return { ...state, chat: { ...state.chat, pending: action.on } };
     case 'chat/assistant': {
       const { reply } = action;
       return {
         ...state,
-        chat: { ...state.chat, turns: [...state.chat.turns, { role: 'assistant', text: reply.reply }], pending: false, mood: reply.mood, picks: reply.picks, done: reply.done, asking: reply.asking ?? null },
+        chat: {
+          ...state.chat, turns: [...state.chat.turns, { role: 'assistant', text: reply.reply }], pending: false, mood: reply.mood, picks: reply.picks, done: reply.done, asking: reply.asking ?? null,
+          pickReasons: reply.pickReasons ?? [], heardSummary: reply.heardSummary ?? null, partyAssumed: reply.partyAssumed ?? false,
+        },
         conditions: { ...state.conditions, ...reply.conditions },
         aiUsed: true,
       };

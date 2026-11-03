@@ -4,6 +4,7 @@
  * 불러오는 데 몇 초 걸려서 필요할 때(Web Speech가 안 될 때)만 불러온다.
  */
 import { config } from '../../config';
+import { isHallucination, speechLike } from './whisperFilter';
 const MODEL = 'whisper-base';
 const MODEL_ROOT = config.sttModelRoot.endsWith('/') ? config.sttModelRoot : `${config.sttModelRoot}/`;
 
@@ -29,23 +30,12 @@ export function loadWhisper(): Promise<Asr> {
   return loading;
 }
 
-// 소리가 없을 때 Whisper가 지어내기 쉬운 문장
-const HALLUCINATIONS = [/시청해 주셔서/, /시청해주셔서/, /구독과 좋아요/, /구독 ?좋아요/, /MBC 뉴스/, /자막 제공/, /감사합니다\.?$/];
-
-/** 16kHz 모노 샘플을 한국어 문장으로. 소리가 없거나 지어낸 문장이면 빈 문자열 */
+/** 16kHz 모노 샘플을 한국어 문장으로. 소리가 없으면 빈 문자열. 지어낸 문장 거르기는 whisperFilter(isHallucination)가 한다 */
 export async function transcribeLocal(audio: Float32Array): Promise<string> {
-  if (isSilent(audio)) return '';
+  if (!speechLike(audio)) return '';
   const asr = await loadWhisper();
   const out = await asr(audio, { language: 'korean', task: 'transcribe' });
   const text = (Array.isArray(out) ? out[0]?.text : out.text)?.replace(/\s+/g, ' ').trim() ?? '';
   if (!/[가-힣0-9]/.test(text)) return '';
-  return HALLUCINATIONS.some(re => re.test(text)) && text.length < 24 ? '' : text;
-}
-
-/** 소리가 거의 없으면 받아 적지 않는다. 조용한 소리를 Whisper가 말로 지어내는 것을 막는다 */
-const SILENCE_PEAK = 0.02;
-function isSilent(audio: Float32Array): boolean {
-  let peak = 0;
-  for (let i = 0; i < audio.length; i++) { const v = Math.abs(audio[i]); if (v > peak) peak = v; }
-  return peak < SILENCE_PEAK;
+  return isHallucination(text) ? '' : text;
 }

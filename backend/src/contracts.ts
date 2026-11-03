@@ -97,6 +97,8 @@ export interface ChatConditions {
 }
 export interface ChatTurn { role: 'user' | 'assistant'; text: string }
 export type Mood = 'tired' | 'celebrate' | 'quick' | 'neutral';
+/** 추천 이유: why는 LLM이 쓴 한 문장, heard는 그 근거가 된 손님 말(실제로 한 말일 때만), review는 리뷰 한 줄 */
+export interface PickReason { id: string; why: string; heard: string | null; review: string | null }
 /** 직원 AI 질문이 묻는 것: 인원, 매운맛, 종류, 빼는 재료, 그 밖(예/아니요) */
 export type Asking = 'party' | 'spicy' | 'kind' | 'exclude' | 'other';
 /** POST /api/chat */
@@ -117,6 +119,12 @@ export interface ChatResponse {
   done: boolean;
   /** reply 끝의 질문이 무엇을 묻는지. 프론트가 이 값에 맞는 터치 답 버튼을 띄운다. done이거나 모르면 null */
   asking: Asking | null;
+  /** picks와 같은 순서(= 추천 순위)의 이유. 조건을 어긴 메뉴는 서버가 이미 뺐다 */
+  pickReasons: PickReason[];
+  /** 지금까지 들은 조건 한 줄 (예: "2명 · 안 맵게 · 면 · 새우 빼고"). 인원은 손님이 말했을 때만 */
+  heardSummary: string | null;
+  /** 인원을 끝내 못 듣고 강제로 추천해 1명으로 가정했으면 true (화면에 "1인 기준" 표시) */
+  partyAssumed: boolean;
   /** 서버가 쓴 모델. 디버그용 */
   model: string;
 }

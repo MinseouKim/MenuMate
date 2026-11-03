@@ -3,6 +3,7 @@ import { AudioRecorder, recorderSupported } from "./audioRecorder";
 import { loadWhisper, transcribeLocal } from "./localWhisper";
 import type { SttCallbacks, SttProvider } from "./types";
 import { WebSpeechSttProvider } from "./webSpeechSttProvider";
+import { isHallucination, speechLike } from "./whisperFilter";
 
 // 브라우저 음성 인식이 못 쓰는 경우: 인터넷 없음(network), 서비스 막힘, 언어 미지원
 const FALLBACK_CODES = new Set(["network", "service-not-allowed", "language-not-supported"]);
@@ -47,7 +48,7 @@ export class HybridSttProvider implements SttProvider {
     if (s.local) { void loadWhisper().catch(() => undefined); return; }
 
     this.web.start({
-      onInterim: t => { if (!s.local) cb.onInterim?.(t); },
+      onInterim: (t, final) => { if (!s.local) cb.onInterim?.(t, final); },
       onResult: t => { if (!s.local) { clearTimeout(s.watchdog); cb.onResult(t); } },
       onError: (message, code) => {
         if (s.local) return;
@@ -97,10 +98,13 @@ export class HybridSttProvider implements SttProvider {
     try {
       const audio = await this.recorder.stop();
       if (this.session !== s) return;
-      const text = audio.length < MIN_SAMPLES ? "" : await transcribeLocal(audio);
+      // 짧거나 말소리로 보기 어려운 녹음은 받아 적지 않고, Whisper가 지어낸 문장(영상 끝인사 등)은 손님 말로 넘기지 않는다
+      const heard = audio.length < MIN_SAMPLES || !speechLike(audio) ? "" : await transcribeLocal(audio);
       if (this.session !== s) return;
+      const text = isHallucination(heard) ? "" : heard;
       if (text) s.cb.onResult(text);
-      else s.cb.onError("말씀을 듣지 못했어요. 다시 눌러서 말씀해 주세요.", "no-speech");
+      // 코드 없는 "못 들음"은 Web Speech 의 무음과 같게 다룬다: 버튼으로 들을 때는 안내, 핸즈프리는 오류 없이 다시 듣기
+      else s.cb.onError("말씀을 듣지 못했어요. 다시 눌러서 말씀해 주세요.");
     } catch {
       if (this.session !== s) return;
       s.cb.onError("음성 인식을 시작하지 못했어요. '메뉴판에서 직접 고르기'로 이어서 주문해 주세요.", "local-failed");

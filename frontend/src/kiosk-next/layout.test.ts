@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { askingOf, resolveRecommendLayout } from './layout';
 
 describe('resolveRecommendLayout', () => {
-  it('주소 ?rec= 가 환경 변수보다 우선하고, 둘 다 없으면 a', () => {
+  it('주소 ?rec= 가 환경 변수보다 우선하고, 둘 다 없으면 board (2026-11-03 팀장 선택: 1안 주문 확인 보드)', () => {
     expect(resolveRecommendLayout('?rec=b', 'c')).toBe('b');
     expect(resolveRecommendLayout('?x=1', 'c')).toBe('c');
-    expect(resolveRecommendLayout('', undefined)).toBe('a');
-    expect(resolveRecommendLayout('?rec=zzz', 'nope')).toBe('a');
+    expect(resolveRecommendLayout('', undefined)).toBe('board');
+    expect(resolveRecommendLayout('?rec=zzz', 'nope')).toBe('board');
     expect(resolveRecommendLayout('?rec=C', ' B ')).toBe('c');
+    expect(resolveRecommendLayout('?rec=a', 'board')).toBe('a');
+    expect(resolveRecommendLayout('?rec=Board', undefined)).toBe('board');
   });
 });
 

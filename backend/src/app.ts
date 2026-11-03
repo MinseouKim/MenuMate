@@ -6,6 +6,7 @@ import type {
   CreateOrderRequest, HealthResponse, PaymentRequest, MenuResponse, QuestionsResponse, RecommendationRequest, RecommendationResponse, TtsRequest,
 } from './contracts.js';
 import { converse, extractConditions, type LlmClient } from './chat.js';
+import { chatRecorder, liveResponse } from './chatRecord.js';
 import { createLlm } from './llm.js';
 import type { Config } from './config.js';
 import { buildContext, openMeteo, type WeatherSource } from './context.js';
@@ -113,6 +114,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   else app.log.info(`대화형 추천 AI: ${llm.model}`);
   if (!synthesizer.available) app.log.warn('GOOGLE_TTS_API_KEY가 없어 음성 합성(/api/tts)은 503으로 답합니다.');
   const chatDeps = { llm, knowledge, log: app.log };
+  const recordChat = chatRecorder(config.chatRecordDir, { log: app.log });
+  if (recordChat) app.log.info(`실사용 대화 기록 켜짐: ${config.chatRecordDir}`);
 
   app.setErrorHandler((err: FastifyError, req, reply) => {
     if (err instanceof AppError) return reply.status(err.status).send(errorBody(err.code));
@@ -175,9 +178,20 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return reply.send(audio);
   });
 
-  app.post<{ Body: ChatRequest }>('/api/chat', { schema: chatSchema }, async (req): Promise<ChatResponse> =>
-    converse(chatDeps, { turns: req.body.turns, conditions: req.body.conditions ?? {}, context: req.body.context ?? {} }),
-  );
+  app.post<{ Body: ChatRequest }>('/api/chat', { schema: chatSchema }, async (req): Promise<ChatResponse> => {
+    const body = { turns: req.body.turns, conditions: req.body.conditions ?? {}, context: req.body.context ?? {} };
+    const t0 = performance.now();
+    const ms = () => Math.round(performance.now() - t0);
+    try {
+      const res = await converse(chatDeps, body);
+      // 기록은 실패해도 던지지 않는다 (chatRecord.ts). 대화 글자·조건·응답만, 상황(context)·IP는 남기지 않음
+      await recordChat?.({ turns: body.turns, conditions: body.conditions, response: liveResponse(res), ms: ms() });
+      return res;
+    } catch (e) {
+      await recordChat?.({ turns: body.turns, conditions: body.conditions, error: e instanceof AppError ? e.code : 'INTERNAL', ms: ms() });
+      throw e;
+    }
+  });
 
   app.post<{ Body: ConditionExtractionRequest }>(
     '/api/condition-extraction',

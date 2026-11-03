@@ -50,6 +50,10 @@ describe('loadConfig', () => {
     expect(loadConfig({ ANTHROPIC_FEDERATION_RULE_ID: 'fdrl_1' }, base).anthropicFederation).toBe(true);
     expect(() => loadConfig({ LLM_PROVIDER: 'openai' }, base)).toThrow(/LLM_PROVIDER/);
     expect(() => loadConfig({ CLAUDE_EFFORT: 'mid' }, base)).toThrow(/CLAUDE_EFFORT/);
+    // Gemini 생각 깊이: 비우면 보내지 않음(모델 기본), 값은 실측하며 고른다
+    expect(loadConfig({}, base).geminiThinking).toBeNull();
+    expect(loadConfig({ GEMINI_THINKING: 'minimal' }, base).geminiThinking).toBe('minimal');
+    expect(() => loadConfig({ GEMINI_THINKING: 'off' }, base)).toThrow(/GEMINI_THINKING/);
   });
 
   it('잘못된 값이면 서버를 띄우기 전에 알려 준다', () => {

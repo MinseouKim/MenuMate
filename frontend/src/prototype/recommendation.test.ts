@@ -152,6 +152,34 @@ describe('KioskAI.recommend extra (직원 AI picks · 상황 보정)', () => {
     const r2 = KioskAI.recommend({ ...base, party: 2, kind: '냉채/샐러드' }, menus, { context: hot });
     expect(r2.some(r => r.reasons.includes('더운 날 시원하게 드시기 좋아요'))).toBe(true);
   });
+  // 2026-11-03 말로 추천 v2: 직원 AI가 대화로 고른 메뉴가 1순위, 규칙 엔진은 검증만 (설계 4-3)
+  it('직원 AI가 고른 메뉴가 키워드·종류 점수가 더 높은 메뉴보다 1순위', () => {
+    const c = { ...KioskAI.extract('짬뽕 먹고 싶어요'), party: 1, kind: '면' };
+    const r = KioskAI.recommend(c, menus, { pickReasons: [{ id: 'rice-3', why: '담백하게 드시기 좋아요', heard: null, review: null }] });
+    expect(r[0].main.id).toBe('rice-3');
+  });
+  it('1순위 이유는 손님 말 인용 + 직원 AI 이유, 리뷰는 따로 담는다', () => {
+    const c = { ...KioskAI.extract('둘이서 담백한 거'), party: 2 };
+    const r = KioskAI.recommend(c, menus, { pickReasons: [{ id: 'rice-3', why: '담백하게 드시기 좋아요', heard: '담백한 거', review: '고슬고슬해요' }] });
+    expect(r[0].reasons[0]).toBe('‘담백한 거’라고 하셔서 담백하게 드시기 좋아요');
+    expect(r[0].talk).toEqual({ heard: '담백한 거', why: '담백하게 드시기 좋아요', review: '고슬고슬해요' });
+    expect(r[0].lines).toContainEqual({ id: 'rice-3', quantity: 2 }); // 1인분 메뉴를 둘이면 2개
+  });
+  it('손님 말 인용이 없으면 이유는 직원 AI 문장만', () => {
+    const r = KioskAI.recommend({ ...KioskAI.extract(''), party: 1 }, menus, { pickReasons: [{ id: 'noodle-1', why: '순한 짜장이에요', heard: null, review: null }] });
+    expect(r[0].reasons[0]).toBe('순한 짜장이에요');
+  });
+  it('picks 순서가 곧 순위: 고른 메뉴 둘이면 1·2순위', () => {
+    // 혼자면 원래 짜장 → 볶음밥 순으로 보여 주므로, 반대로 고르면 그 순서를 따라야 한다
+    const r = KioskAI.recommend({ ...KioskAI.extract(''), party: 1 }, menus, { pickReasons: [{ id: 'rice-3', why: 'a', heard: null, review: null }, { id: 'noodle-1', why: 'b', heard: null, review: null }] });
+    expect(r.map(x => x.main.id).slice(0, 2)).toEqual(['rice-3', 'noodle-1']);
+    expect(r).toHaveLength(3);
+  });
+  it('빼 달라는 재료가 든 pick은 직원 AI가 골라도 추천하지 않는다', () => {
+    const c = { ...KioskAI.extract('새우 빼 주세요'), party: 2 };
+    const r = KioskAI.recommend(c, menus, { pickReasons: [{ id: 'dimsum-5', why: 'a', heard: null, review: null }] });
+    expect(r.some(x => x.lines.some(l => l.id === 'dimsum-5'))).toBe(false);
+  });
   it('extra가 없으면 예전과 같은 결과', () => {
     const a = KioskAI.recommend({ ...base, party: 2, kind: '딤섬' }, menus);
     const b = KioskAI.recommend({ ...base, party: 2, kind: '딤섬' }, menus, {});

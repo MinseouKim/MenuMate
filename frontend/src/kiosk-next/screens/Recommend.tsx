@@ -1,14 +1,15 @@
 // 말로 추천(간편주문) 길의 네 화면: 이용 안내 → 말하기(직원 AI와 대화) → 이해한 내용 확인 → 추천 결과.
 // 직원 AI 서버가 있으면 말하기 화면이 대화로 바뀌고, 조건이 충분해지면 확인 화면 없이 바로 추천 결과로 갑니다.
-// 대화·결과 화면은 3안(layout.ts: a 직원과 마주 앉기 / b 눌러서 답하기 / c 한눈에 정리) 중 하나로 그립니다. 상태·로직은 같고 그리는 방식만 다릅니다.
+// 대화·결과 화면은 layout.ts 의 안(board 주문 확인 보드 = 기본 / 비교용 a 직원과 마주 앉기 · b 눌러서 답하기 · c 한눈에 정리)으로 그립니다. 상태·로직은 같고 그리는 방식만 다릅니다.
 // 직원 AI의 말과 질문은 서버(Gemini)가 손님 말에 맞춰 만듭니다. 화면의 버튼은 "말 대신 누르는" 입력 지름길일 뿐 정해진 답이 아닙니다.
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { explain } from '../../prototype/parse';
 import { EXCLUDE_OPTIONS, EXCLUDE_WORDS, KIND_OPTIONS, KIND_WORDS } from '../../prototype/recommendation';
 import { askingOf, recommendLayout, type Asking } from '../layout';
-import { lastAssistant, type Kiosk } from '../useKiosk';
+import type { ChatState } from '../session';
+import { lastAssistant, NEEDS_STAFF_CHECK, needsStaffCheck, type Kiosk } from '../useKiosk';
 import { useSpeechInput } from '../useSpeechInput';
-import { whenSilent } from '../speech';
+import { onSpeakingChange, speakingText, stopSpeaking } from '../speech';
 import { Photo } from '../ui/Photo';
 import { money, type Conditions, type KioskContext, type Recommendation } from '../types';
 
@@ -82,28 +83,44 @@ const CARDS: Record<Asking, { big: string; label: string; say: string }[]> = {
   ],
 };
 
-/** 말하기(STT)와 "직원 AI가 말을 마치면 마이크 자동 시작"을 세 안이 같이 씁니다. */
+/** "네 명 이상이에요" 뒤 직원이 정확한 인원을 다시 물을 때의 답 (2026-11-03 팀장 요청) */
+const PARTY_EXACT = ['네 명이에요', '다섯 명이에요', '여섯 명이에요', '일곱 명 이상이에요'];
+const PARTY_EXACT_CARDS = PARTY_EXACT.map((say, i) => ({ big: ['4', '5', '6', '7+'][i], label: say.replace(/이에요$/, ''), say }));
+/** 손님이 "N명 이상/넘어요/넘게"라고 했는지 */
+const ROUGH_PARTY = /이상|넘어|넘게|넘는/;
+
+/** 지금 질문에 맞는 터치 답(문장 버튼과 안2 카드). 인원을 다시 묻는데 직전 손님 말이 "~이상"이면 정확한 인원으로 */
+export function answerChoices(asking: Asking, lastUser: string | null) {
+  if (asking === 'party' && lastUser && ROUGH_PARTY.test(lastUser)) return { replies: PARTY_EXACT, cards: PARTY_EXACT_CARDS };
+  return { replies: REPLIES[asking], cards: CARDS[asking] };
+}
+
+/**
+ * 말하기(STT)를 세 안이 같이 씁니다. 직원 AI와 대화할 때는 핸즈프리(2026-11-03 설계 4-1):
+ * 대화가 시작되면 바로 듣기 시작하고(직원이 말하는 중에도), 말끝을 알아서 끝내고 다시 듣습니다. 손님이 끼어들면 직원 말을 멈춥니다.
+ */
 function useTalk(kiosk: Kiosk) {
   const { act, state } = kiosk;
-  const speech = useSpeechInput(act.submit);
   const { chat } = state;
   const talking = state.mode === 'recommend' && !chat.failed;
+  const speech = useSpeechInput(act.submit, { handsFree: talking, large: state.prefs.large, onBargeIn: act.interrupted });
   const assistant = lastAssistant(state);
-  const spokenFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!talking || !assistant || chat.pending || chat.done || spokenFor.current === assistant) return;
-    spokenFor.current = assistant;
-    let alive = true;
-    void whenSilent().then(() => { if (alive && !speech.listening) speech.start(); });
-    return () => { alive = false; };
-  }, [assistant, talking, chat.pending, chat.done]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (talking && assistant && !chat.done && !speech.listening) speech.start();
+  }, [talking, assistant !== null, chat.done]); // eslint-disable-line react-hooks/exhaustive-deps
+  /** 화면 아무 곳이나 누르면 직원 말을 멈춥니다 (말로 끼어들기가 안 될 때 가장 확실한 방법) */
+  const hush = () => { if (speakingText()) { stopSpeaking(); act.interrupted(); } };
   // 서버가 질문 종류를 알려 주면 그대로, 옛 서버면 문장으로 추정합니다.
-  return { speech, talking, assistant, asking: chat.asking ?? askingOf(assistant), chat, ctxLine: contextLine(chat.context) };
+  const asking = chat.asking ?? askingOf(assistant);
+  const lastUser = [...chat.turns].reverse().find(t => t.role === 'user')?.text ?? null;
+  const { replies, cards } = answerChoices(asking, lastUser);
+  return { speech, talking, assistant, asking, replies, cards, lastUser, chat, ctxLine: contextLine(chat.context), hush };
 }
 
 export function Input({ kiosk }: { kiosk: Kiosk }) {
   const talk = useTalk(kiosk);
   if (!talk.talking) return <LegacyInput kiosk={kiosk} talk={talk} />;
+  if (recommendLayout === 'board') return <ChatBoard kiosk={kiosk} talk={talk} />;
   if (recommendLayout === 'b') return <ChatB kiosk={kiosk} talk={talk} />;
   if (recommendLayout === 'c') return <ChatC kiosk={kiosk} talk={talk} />;
   return <ChatA kiosk={kiosk} talk={talk} />;
@@ -111,12 +128,12 @@ export function Input({ kiosk }: { kiosk: Kiosk }) {
 
 type Talk = ReturnType<typeof useTalk>;
 
-/** 말하기 버튼. 세 안에서 크기만 다르고 동작은 같습니다. */
+/** 말하기 버튼. 세 안에서 크기만 다르고 동작은 같습니다. 생각 중에도 누를 수 있습니다(이어 말하면 앞말과 합침). */
 function TalkButton({ talk, idle, className = '' }: { talk: Talk; idle: string; className?: string }) {
-  const { speech, chat } = talk;
+  const { speech } = talk;
   return (
     <>
-      <button className={`kx-talk ${className} ${speech.listening ? 'listening' : ''}`} aria-pressed={speech.listening} disabled={chat.pending} onClick={speech.toggle}>
+      <button className={`kx-talk ${className} ${speech.listening ? 'listening' : ''}`} aria-pressed={speech.listening} onClick={speech.toggle}>
         {speech.listening && <span className="kx-wave" aria-hidden="true"><i /><i /><i /><i /><i /></span>}
         <span>{speech.listening ? '듣고 있어요 · 눌러서 끝내기' : idle}</span>
         <small>{speech.listening ? (speech.heard ? `“${speech.heard}”` : '다 말씀하셨으면 한 번 더 눌러 주세요') : '말을 마치면 한 번 더 눌러 주세요'}</small>
@@ -133,10 +150,10 @@ const Avatar = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => <span classNa
 // ── 안 1 · 직원과 마주 앉기: 큰 말풍선, 전폭 말하기 버튼 ─────────────────────────
 function ChatA({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
   const { act } = kiosk;
-  const { chat, assistant, asking, ctxLine } = talk;
+  const { chat, assistant, ctxLine } = talk;
   const lastUser = [...chat.turns].reverse().find(t => t.role === 'user')?.text ?? null;
   return (
-    <div className="kx-page kx-rec kx-rec-a">
+    <div className="kx-page kx-rec kx-rec-a" onPointerDown={talk.hush}>
       <div className="kx-rec-head"><span className="kx-eyebrow">직원 AI와 대화</span>{ctxLine && <span className="kx-context">{ctxLine}</span>}</div>
       <section className="kx-staff">
         <Avatar size="lg" />
@@ -151,7 +168,7 @@ function ChatA({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
       <TalkButton talk={talk} idle="눌러서 대답하기" className="kx-talk-wide" />
       <div className="kx-examples">
         <span className="kx-muted">말 대신 눌러서 답하기</span>
-        <div className="kx-replies">{REPLIES[asking].map(t => <button key={t} className="kx-btn kx-btn-ghost" disabled={chat.pending} onClick={() => act.submit(t)}>{t}</button>)}</div>
+        <div className="kx-replies">{talk.replies.map(t => <button key={t} className="kx-btn kx-btn-ghost" onClick={() => act.submit(t)}>{t}</button>)}</div>
       </div>
       <div className="kx-actions"><button className="kx-btn kx-btn-quiet" onClick={() => act.go('menu')}>메뉴판에서 직접 고르기</button></div>
     </div>
@@ -161,12 +178,12 @@ function ChatA({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
 // ── 안 2 · 눌러서 답하기: 질문에 맞는 큰 선택 카드가 주 경로, 말하기는 보조 ───────────
 function ChatB({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
   const { act } = kiosk;
-  const { chat, assistant, asking, ctxLine } = talk;
+  const { chat, assistant, ctxLine } = talk;
   const answered = chat.turns.filter(t => t.role === 'user').length;
   // 첫 문장(상황 인사)과 질문을 나눠, 질문만 크게 보여 줍니다.
   const [lead, question] = splitQuestion(assistant);
   return (
-    <div className="kx-page kx-rec kx-rec-b">
+    <div className="kx-page kx-rec kx-rec-b" onPointerDown={talk.hush}>
       <div className="kx-dots" aria-label="질문 진행">
         {[0, 1, 2].map(i => <i key={i} className={i < answered ? 'on' : ''} />)}
         <span>{chat.done ? '질문 끝' : `질문 ${Math.min(answered + 1, 3)} / 3`}{ctxLine ? ` · ${ctxLine}` : ''}</span>
@@ -179,8 +196,8 @@ function ChatB({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
         </div>
       </section>
       <div className="kx-cards">
-        {CARDS[asking].map(c => (
-          <button key={c.say} className="kx-card" disabled={chat.pending} onClick={() => act.submit(c.say)}>
+        {talk.cards.map(c => (
+          <button key={c.say} className="kx-card" onClick={() => act.submit(c.say)}>
             <strong>{c.big}</strong>{c.label && <span>{c.label}</span>}
           </button>
         ))}
@@ -189,8 +206,156 @@ function ChatB({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
       <div className="kx-grow" />
       <TalkButton talk={talk} idle="말로 대답할게요" className="kx-talk-soft" />
       <div className="kx-replies kx-replies-2">
-        <button className="kx-btn kx-btn-quiet" disabled={chat.pending} onClick={() => act.submit('아무거나 추천해 주세요')}>아무거나 추천해 주세요</button>
+        <button className="kx-btn kx-btn-quiet" onClick={() => act.submit('아무거나 추천해 주세요')}>아무거나 추천해 주세요</button>
         <button className="kx-btn kx-btn-quiet" onClick={() => act.go('menu')}>그냥 메뉴 볼래요</button>
+      </div>
+    </div>
+  );
+}
+
+// ── 주문 확인 보드 (기본, 2026-11-03 팀장 선택 1안) ───────────────────────────────
+// 대화: 흑칠 보드에 들은 조건 네 칸을 채워 가며, 직원 말 한 줄과 손님 말 자막을 아래에 둡니다. 핸즈프리라 말하기 버튼이 없습니다.
+const STORE = '우루루 평촌본점';
+const SPICY_WORD = ['안 맵게', '조금 맵게', '맵게', '아주 맵게'];
+
+/** 직원 음성이 나오는 중인지(화면이 다시 그려지도록 speech 의 시작·끝 알림을 구독) */
+const useStaffSpeaking = () => useSyncExternalStore(onSpeakingChange, speakingText) !== '';
+
+/** 직원 AI 답을 기다린 시간: 0 = 1초 미만(표시 안 바꿈, 깜빡임 방지), 1 = 생각 중, 2 = 4초 넘음 */
+function useThinking(pending: boolean): 0 | 1 | 2 {
+  const [phase, setPhase] = useState<0 | 1 | 2>(0);
+  useEffect(() => {
+    if (!pending) return;
+    const a = setTimeout(() => setPhase(1), 1000);
+    const b = setTimeout(() => setPhase(2), 4000);
+    return () => { clearTimeout(a); clearTimeout(b); setPhase(0); };
+  }, [pending]);
+  return pending ? phase : 0;
+}
+
+type BoardState = 'off' | 'speaking' | 'thinking' | 'listening';
+const STATE_ICON: Record<BoardState, ReactNode> = {
+  // 색만으로 구분하지 않도록 상태마다 모양이 다른 표시를 둡니다: 스피커 / 점 셋 / 파형 / 빗금 그은 마이크
+  speaking: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9v6h4l5 4V5L8 9zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12" /></svg>,
+  thinking: <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.2" /><circle cx="12" cy="12" r="2.2" /><circle cx="19" cy="12" r="2.2" /></svg>,
+  listening: <span className="kx-wave kx-wave-sm"><i /><i /><i /><i /></span>,
+  off: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5a3 3 0 0 1 6 0v6M15 13a3 3 0 0 1-6-2M5 11a7 7 0 0 0 12 5M19 11a7 7 0 0 1-.4 2.3M12 18v3M3 3l18 18" /></svg>,
+};
+
+/** 상태 배지 (2026-11-03 설계 4-4): 마이크 꺼짐 > 직원 말하는 중 > 생각 중(1초 뒤·4초 넘으면 메뉴 찾는 중) > 듣고 있어요 */
+function BoardStatus({ talk }: { talk: Talk }) {
+  const staff = useStaffSpeaking();
+  const thinking = useThinking(talk.chat.pending);
+  const { speech } = talk;
+  const [state, text]: [BoardState, string] = speech.off || speech.error ? ['off', '마이크 꺼짐']
+    : staff ? ['speaking', '직원이 말하는 중 · 말씀하시면 멈춰요']
+      : thinking ? ['thinking', thinking === 2 ? '메뉴 찾고 있어요' : '생각 중이에요']
+        : ['listening', '듣고 있어요'];
+  return (
+    <span role="status" aria-label="대화 상태" className={`kx-board-status is-${state}`}>
+      <span className="kx-board-status-icon" aria-hidden="true">{STATE_ICON[state]}</span>{text}
+    </span>
+  );
+}
+
+type Slot = Exclude<Asking, 'other'>;
+/** 지금까지 들은 조건 네 칸. 값이 없으면 null. 물었고 손님이 답했는데 조건이 비었으면 "상관없음/없음"으로 채웁니다. */
+function boardSlots(c: Conditions, chat: ChatState): { key: Slot; label: string; value: string | null }[] {
+  const turns = chat.turns;
+  const lastAi = turns.map(t => t.role).lastIndexOf('assistant');
+  const asked = (i: number) => (i === lastAi && chat.asking ? chat.asking : askingOf(turns[i].text));
+  const answered = (key: Slot) => turns.some((t, i) => t.role === 'assistant' && turns[i + 1]?.role === 'user' && asked(i) === key);
+  return [
+    { key: 'party', label: '인원', value: answered('party') || c.party > 1 ? `${c.party}명` : null },
+    { key: 'spicy', label: '맵기', value: c.spicy !== null ? SPICY_WORD[c.spicy] ?? null : answered('spicy') ? '상관없음' : null },
+    { key: 'kind', label: '종류', value: c.kind !== '상관없음' ? c.kind : answered('kind') ? '상관없음' : null },
+    { key: 'exclude', label: '빼기', value: c.exclude.length ? c.exclude.join('·') : answered('exclude') ? '없음' : null },
+  ];
+}
+
+const MIC_ICON = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3" /></svg>;
+/** "직접 말할게요"에서 말이 없으면 이만큼 뒤 원래 화면으로 */
+const DIRECT_IDLE_MS = 8000;
+
+/**
+ * "직접 말할게요" (2026-11-03 팀장 요청): 버튼 답이 안 맞을 때 손님이 자기 말로 답하는 길을 눈에 보이게 합니다.
+ * 누르면 직원 말을 멈추고 마이크를 켜며, 손님 말이 넘어가면(대화에 손님 말이 더해지면) 닫힙니다. 8초 동안 말이 없어도 닫힙니다.
+ */
+function useDirectSpeech(talk: Talk) {
+  const { speech } = talk;
+  const userTurns = talk.chat.turns.filter(t => t.role === 'user').length;
+  /** 열 때의 손님 말 수. 손님 말이 하나 더해지면 저절로 닫힌 것으로 봅니다 */
+  const [openedAt, setOpenedAt] = useState<number | null>(null);
+  const on = openedAt === userTurns;
+  useEffect(() => {
+    if (!on || speech.heard) return;
+    const t = setTimeout(() => setOpenedAt(null), DIRECT_IDLE_MS);
+    return () => clearTimeout(t);
+  }, [on, speech.heard]);
+  const open = () => {
+    talk.hush();
+    if (speech.off) speech.resume();
+    else if (!speech.listening) speech.start();
+    setOpenedAt(userTurns);
+  };
+  return { on, open, close: () => setOpenedAt(null) };
+}
+
+function ChatBoard({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
+  const { act, state } = kiosk;
+  const { chat, assistant, asking, speech, lastUser } = talk;
+  const caption = speech.heard || lastUser;
+  const direct = useDirectSpeech(talk);
+  return (
+    <div className="kx-page kx-board" onPointerDown={talk.hush}>
+      <div className="kx-board-top">
+        <span className="kx-board-store">{STORE}</span>
+        <BoardStatus talk={talk} />
+      </div>
+      <section className="kx-board-sheet" aria-label="지금까지 들은 주문">
+        <h1>지금까지 들은 주문</h1>
+        <ul>
+          {boardSlots(state.conditions, chat).map(s => {
+            const now = !chat.done && asking === s.key;
+            return (
+              <li key={s.key} className={now ? 'is-asking' : s.value ? 'is-filled' : 'is-empty'}>
+                <span className="kx-board-label">{s.label}</span>
+                <strong>{now ? '지금 묻는 중…' : s.value ?? '아직'}</strong>
+                {!now && s.value ? <span className="kx-board-check" aria-label="확인됨">✓</span> : <span />}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <div className="kx-board-talk">
+        <p className="kx-board-staff" aria-live="polite"><b>직원</b> {assistant ?? '잠시만요…'}</p>
+        {caption && !direct.on && (
+          <p className="kx-board-me"><b>손님</b> <q className={speech.heard ? 'is-interim' : undefined}>{caption}</q></p>
+        )}
+        {speech.error && <p role="alert" className="kx-alert">{speech.error}</p>}
+      </div>
+      {direct.on ? (
+        <div className="kx-board-direct">
+          <div role="status" aria-label="직접 말하기" className="kx-board-direct-panel">
+            <span className="kx-board-direct-icon" aria-hidden="true">{MIC_ICON}</span>
+            <strong>듣고 있어요. 편하게 말씀해 주세요</strong>
+            {speech.heard && <q className="is-interim">{speech.heard}</q>}
+          </div>
+          <button type="button" className="kx-board-direct-cancel" onClick={direct.close}>버튼으로 답할게요</button>
+        </div>
+      ) : (
+        <>
+          <div className="kx-board-replies">
+            {talk.replies.map(t => <button key={t} type="button" className="kx-board-reply" onClick={() => act.submit(t)}>{t}</button>)}
+          </div>
+          <button type="button" className="kx-board-speak" onClick={direct.open}>
+            <span aria-hidden="true">{MIC_ICON}</span>직접 말할게요
+          </button>
+        </>
+      )}
+      <div className="kx-board-links">
+        <button type="button" onClick={() => act.go('menu')}>메뉴판에서 직접 고르기</button>
+        <button type="button" onClick={speech.off ? speech.resume : speech.stop}>{speech.off ? '마이크 켜기' : '마이크 끄기'}</button>
       </div>
     </div>
   );
@@ -238,7 +403,7 @@ function ChatC({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
   const recent = chat.turns.slice(-2);
   const hasUser = chat.turns.some(t => t.role === 'user');
   return (
-    <div className="kx-page kx-rec kx-rec-c">
+    <div className="kx-page kx-rec kx-rec-c" onPointerDown={talk.hush}>
       <section className="kx-summary">
         <div className="kx-summary-head"><span>지금까지 이해한 것</span>{ctxLine && <span className="kx-summary-ctx">{ctxLine}</span>}</div>
         <Summary c={state.conditions} asking={asking} hasUser={hasUser} />
@@ -254,16 +419,16 @@ function ChatC({ kiosk, talk }: { kiosk: Kiosk; talk: Talk }) {
       {asking === 'kind' && (
         <div className="kx-kinds">
           {Object.entries(KIND_ICON).map(([k, d]) => (
-            <button key={k} className="kx-kind" disabled={chat.pending} onClick={() => act.submit(k === '딤섬·요리' ? '딤섬이나 요리요' : `${k} 요리요`)}>
+            <button key={k} className="kx-kind" onClick={() => act.submit(k === '딤섬·요리' ? '딤섬이나 요리요' : `${k} 요리요`)}>
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d={d} /></svg><span>{k}</span>
             </button>
           ))}
         </div>
       )}
-      {asking !== 'kind' && <div className="kx-replies">{REPLIES[asking].map(t => <button key={t} className="kx-btn kx-btn-ghost" disabled={chat.pending} onClick={() => act.submit(t)}>{t}</button>)}</div>}
+      {asking !== 'kind' && <div className="kx-replies">{talk.replies.map(t => <button key={t} className="kx-btn kx-btn-ghost" onClick={() => act.submit(t)}>{t}</button>)}</div>}
       <TalkButton talk={talk} idle="눌러서 대답하기" className="kx-talk-row" />
       <div className="kx-replies kx-replies-2">
-        <button className="kx-btn kx-btn-quiet" disabled={chat.pending} onClick={() => act.submit('아무거나 추천해 주세요')}>아무거나 추천해 주세요</button>
+        <button className="kx-btn kx-btn-quiet" onClick={() => act.submit('아무거나 추천해 주세요')}>아무거나 추천해 주세요</button>
         <button className="kx-btn kx-btn-quiet" onClick={() => act.go('menu')}>메뉴판에서 직접 고르기</button>
       </div>
     </div>
@@ -406,6 +571,7 @@ export function Results({ kiosk }: { kiosk: Kiosk }) {
   const { state } = kiosk;
   const c = state.conditions;
   const sub = [`${c.party}명`, c.spicy === 0 ? '안 매운 메뉴' : c.exclude.length ? `${c.exclude.join(', ')} 제외` : '선택한 취향 기준', contextLine(state.chat.context)].filter(Boolean).join(' · ');
+  if (recommendLayout === 'board') return <ResultsBoard kiosk={kiosk} />;
   if (recommendLayout === 'b') return <ResultsB kiosk={kiosk} sub={sub} />;
   if (recommendLayout === 'c') return <ResultsC kiosk={kiosk} />;
   return <ResultsA kiosk={kiosk} sub={sub} />;
@@ -498,6 +664,94 @@ function ResultsC({ kiosk }: { kiosk: Kiosk }) {
         <div className="kx-quote"><span className="kx-quote-tag">실제 리뷰</span><span>“{quote.summary ?? quote.quote}” · {quoteName} · {quote.platform} {quote.date}</span></div>
       )}
       <ResultActions kiosk={kiosk} />
+    </div>
+  );
+}
+
+// 결과: 들은 조건 칩(누르면 고치기) → 1순위 큰 카드 → 2·3순위 한 줄. 큰 글씨 모드는 1순위만 먼저 보입니다.
+function heardChips(c: Conditions, chat: ChatState): string[] {
+  const parts = chat.heardSummary
+    ? chat.heardSummary.split(' · ').map(p => p.trim()).filter(Boolean)
+    : [
+      `${c.party}명`,
+      c.spicy !== null ? SPICY_WORD[c.spicy] ?? null : null,
+      c.kind !== '상관없음' ? c.kind : null,
+      c.exclude.length ? `${c.exclude.join('·')} 빼고` : null,
+      c.totalBudget ? `총 ${money(c.totalBudget)} 이하` : c.budget ? `1인 ${money(c.budget)} 이하` : null,
+    ].filter((p): p is string => !!p);
+  // 인원을 몰라 1명으로 가정했으면 "1명" 대신 고칠 수 있다는 칩을 앞에 둡니다.
+  return chat.partyAssumed ? ['1인 기준 · 눌러서 고치기', ...parts.filter(p => !/^\d+명$/.test(p))] : parts;
+}
+
+/** 1순위 이유: 손님 말을 인용("‘…’라고 하셔서 …"), 없으면 직원 AI가 준 이유, 그것도 없으면 규칙 추천 이유 */
+const whyOf = (r: Recommendation) => (r.talk ? (r.talk.heard ? `‘${r.talk.heard}’라고 하셔서 ${r.talk.why}` : r.talk.why) : r.reasons[0] ?? null);
+
+function ResultsBoard({ kiosk }: { kiosk: Kiosk }) {
+  const { state, act } = kiosk;
+  const { results, conditions: c, chat } = state;
+  const [more, setMore] = useState(false);
+  // 빼는 재료가 있어 추천이 비면 직원 확인으로 안내합니다. 이때는 "더 이야기하기" 대신 조건 고치기.
+  const staffCheck = needsStaffCheck(state);
+  const canTalk = !chat.failed && chat.turns.length > 0 && !staffCheck;
+  const [first, ...rest] = results;
+  const showRest = rest.length > 0 && (!state.prefs.large || more);
+  const review = first ? first.talk?.review ?? (kiosk.catalog.reviews(first.main.id)?.reviews[0]?.summary ?? null) : null;
+  return (
+    <div className="kx-page kx-board kx-board-result">
+      <div className="kx-board-top">
+        <span className="kx-board-store">{STORE}</span>
+        <h1 className="kx-board-title">{staffCheck ? '직원 확인이 필요해요' : '들은 대로 골랐어요'}</h1>
+      </div>
+      <div className="kx-board-chips" role="group" aria-label="들은 조건 (누르면 고치기)">
+        {heardChips(c, chat).map((t, i) => <button key={`${i}-${t}`} type="button" className="kx-chip" onClick={() => act.go('review')}>{t}</button>)}
+        <span className="kx-chip-hint" aria-hidden="true">누르면 고쳐요</span>
+      </div>
+      {first ? (
+        <article className="kx-pick1" aria-label="1순위">
+          <div className="kx-pick1-photos">
+            {first.lines.slice(0, 2).map(l => <ResultPhoto key={l.id} kiosk={kiosk} id={l.id} className="kx-pick1-img" />)}
+          </div>
+          <div className="kx-pick1-body">
+            <div className="kx-pick1-head"><span className="kx-rank-badge">1순위</span><h2>{titleOf(first, kiosk)}</h2></div>
+            {whyOf(first) && <p className="kx-pick1-why">{whyOf(first)}</p>}
+            {review && <p className="kx-pick1-review">리뷰 “{review}”</p>}
+            <strong className="kx-price">{money(first.total)}</strong>
+            <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={() => act.takeResult(first)}>이걸로 담기</button>
+          </div>
+        </article>
+      ) : staffCheck ? (
+        <section className="kx-board-staffcheck" aria-label="직원 확인 안내">
+          <p>{NEEDS_STAFF_CHECK}</p>
+          {/* 바로 직원을 부릅니다(알림음). 부른 뒤에는 버튼 대신 안내를 보여 거듭 부르지 않게 합니다. */}
+          {state.staffCalled
+            ? <p role="status" className="kx-board-called">직원을 불렀어요. 잠시만 기다려 주세요</p>
+            : <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={act.callStaff}>직원에게 물어보기</button>}
+        </section>
+      ) : EMPTY}
+      {showRest && (
+        <ul className="kx-pick-rest" aria-label="다른 추천">
+          {rest.map((r, i) => {
+            const title = titleOf(r, kiosk);
+            const why = r.talk?.why ?? r.reasons.find(x => !x.startsWith('현재 조건'));
+            return (
+              <li key={`${i}-${r.main.id}`} className="kx-pick-row">
+                <ResultPhoto kiosk={kiosk} id={r.main.id} className="kx-pick-row-img" />
+                <div className="kx-pick-row-body">
+                  <b>{i + 2} · {title}</b>
+                  <span>{why && <><span className="kx-pick-row-why">{why}</span><span aria-hidden="true">·</span></>}<span className="kx-pick-row-price">{money(r.total)}</span></span>
+                </div>
+                <button type="button" className="kx-pick-row-take" aria-label={`${title} 담기`} onClick={() => act.takeResult(r)}>담기</button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {rest.length > 0 && !showRest && <button type="button" className="kx-btn kx-btn-ghost kx-pick-more" onClick={() => setMore(true)}>다른 추천 보기</button>}
+      <div className="kx-board-links kx-board-links-end">
+        <button type="button" onClick={() => act.go(canTalk ? 'input' : 'review')}>{canTalk ? '더 이야기하기' : '조건 고치기'}</button>
+        <button type="button" onClick={() => act.go('menu')}>메뉴판에서 고르기</button>
+      </div>
+      <p className="kx-board-allergy">알레르기가 있으면 주문 전에 직원에게 꼭 알려 주세요.</p>
     </div>
   );
 }
