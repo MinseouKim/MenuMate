@@ -141,10 +141,11 @@ ol.pipe li span { font-size: 25px; color: var(--muted); line-height: 1.4; }
 .lessons h3 { font-size: 40px; font-family: var(--display); font-weight: 400; }
 .lessons p { font-size: 29px; color: var(--muted); }
 .pill { background: #3a2018; border: 2px solid #5a3a2c; border-radius: 999px; padding: 18px 30px; font-size: 28px; color: var(--paper); }
-.shots .shot { transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .35s; position: relative; z-index: 1; }
-.shots .shot:nth-child(1) { transform-origin: 0% 55%; } .shots .shot:nth-child(2) { transform-origin: 50% 55%; } .shots .shot:nth-child(3) { transform-origin: 100% 55%; }
-.slide[data-step="1"] .shots .shot:nth-child(1), .slide[data-step="2"] .shots .shot:nth-child(2), .slide[data-step="3"] .shots .shot:nth-child(3) { transform: scale(1.25); z-index: 3; }
-.slide[data-step="1"] .shots .shot:not(:nth-child(1)), .slide[data-step="2"] .shots .shot:not(:nth-child(2)), .slide[data-step="3"] .shots .shot:not(:nth-child(3)) { opacity: .28; }
+.shots .shot { transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .35s; position: relative; z-index: 1; }
+.shots .shot.zoom { z-index: 5; }
+.shots .shot.zoom .cap { opacity: 0; }
+.shots .shot.zoom .phone { box-shadow: 0 30px 90px rgba(42,21,16,.45); }
+.slide[data-step="1"] .shots .shot:not(.zoom), .slide[data-step="2"] .shots .shot:not(.zoom), .slide[data-step="3"] .shots .shot:not(.zoom) { opacity: .15; }
 </style>
 </head>
 <body>
@@ -332,12 +333,26 @@ let at = 0;
 try { at = Math.min(slides.length - 1, Math.max(0, Number(location.hash.slice(1)) - 1 || 0)); } catch {}
 function fit() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(-50%, -50%) scale(${k})`; }
 let step = 0;
-function setStep(n) { step = n; const s = slides[at]; if (s.dataset.steps) s.dataset.step = String(n); }
+function setStep(n) { step = n; const s = slides[at]; if (!s.dataset.steps) return; s.dataset.step = String(n); zoomShot(s, n); }
+/* 5장: n번째 화면을 무대 가운데로 옮겨 화면 높이 거의 가득(약 990px)으로 키운다 */
+function zoomShot(slide, n) {
+  const shots = [...slide.querySelectorAll('.shots .shot')];
+  shots.forEach(el => { el.classList.remove('zoom'); el.style.transform = ''; });
+  const el = shots[n - 1]; if (!el) return;
+  const k = slide.getBoundingClientRect().width / 1920;
+  const sr = slide.getBoundingClientRect(), er = el.getBoundingClientRect(), pr = el.querySelector('.phone').getBoundingClientRect();
+  const ox = (pr.left - er.left + pr.width / 2) / k, oy = (pr.top - er.top + pr.height / 2) / k;
+  const cx = (pr.left - sr.left + pr.width / 2) / k, cy = (pr.top - sr.top + pr.height / 2) / k;
+  const scale = 990 / (pr.height / k);
+  el.style.transformOrigin = `${ox}px ${oy}px`;
+  el.classList.add('zoom');
+  el.style.transform = `translate(${960 - cx}px, ${540 - cy}px) scale(${scale})`;
+}
 function next() { const max = Number(slides[at].dataset.steps || 0); if (step < max) setStep(step + 1); else show(at + 1); }
 function prev() { if (step > 0) setStep(step - 1); else show(at - 1); }
 function show(i) {
   at = Math.min(slides.length - 1, Math.max(0, i));
-  step = 0; slides.forEach(x => { if (x.dataset.steps) x.dataset.step = '0'; });
+  step = 0; slides.forEach(x => { if (x.dataset.steps) { x.dataset.step = '0'; x.querySelectorAll('.shots .shot').forEach(el => { el.classList.remove('zoom'); el.style.transform = ''; }); } });
   slides.forEach((s, j) => s.classList.toggle('on', j === at));
   bar.style.width = `${((at + 1) / slides.length) * 100}%`;
   notes.innerHTML = NOTES[at] ? `<strong>${at + 1}. ${slides[at].dataset.title}</strong><br>${NOTES[at]}` : '';
