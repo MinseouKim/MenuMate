@@ -46,3 +46,10 @@ services:
         value: "126.9568"
       - key: PAYMENT_SIM_DELAY_MS
         value: "1500"
+      # 프론트 빌드용 VITE_* (빌드 때 읽힘). 없으면 config.ts 기본값이 들어가 Vercel 키오스크와 동작이 달라진다 — 값은 frontend/.env.example 기준
+      - key: VITE_AI_MIN_CONFIDENCE
+        value: "0.6"
+      - key: VITE_AI_NO_FACE_GRACE_MS
+        value: "1500"
+      - key: VITE_RECEIPT_BASE_URL   # 영수증 QR을 Vercel이 아닌 이 서버의 receipt.html로
+        value: /receipt.html
