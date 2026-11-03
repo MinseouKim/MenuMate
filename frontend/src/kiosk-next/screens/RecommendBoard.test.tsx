@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 
-const voice = vi.hoisted(() => ({ speaking: '', listeners: new Set<() => void>(), stopSpeaking: vi.fn(), spoken: [] as string[] }));
+const voice = vi.hoisted(() => ({ speaking: '', listeners: new Set<() => void>(), stopSpeaking: vi.fn(), spoken: [] as string[], chime: vi.fn() }));
 const staffSays = (text: string) => { voice.speaking = text; voice.listeners.forEach(f => f()); };
 vi.mock('../speech', () => ({
   speak: async (text: string) => { voice.spoken.push(text); },
@@ -14,7 +14,7 @@ vi.mock('../speech', () => ({
   onSilence: () => () => {},
   onSpeakingChange: (f: () => void) => { voice.listeners.add(f); return () => { voice.listeners.delete(f); }; },
   whenSilent: async () => {},
-  chime: () => {},
+  chime: () => voice.chime(),
   prefetchSpeech: () => {},
 }));
 
@@ -78,7 +78,7 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 });
 beforeEach(() => {
-  voice.speaking = ''; voice.listeners.clear(); voice.stopSpeaking.mockClear(); voice.spoken = [];
+  voice.speaking = ''; voice.listeners.clear(); voice.stopSpeaking.mockClear(); voice.spoken = []; voice.chime.mockClear();
   Object.assign(mic, { listening: true, heard: '', error: '', notice: '', off: false });
   mic.stop.mockClear(); mic.resume.mockClear();
 });
@@ -219,9 +219,12 @@ describe('주문 확인 보드 · 추천 결과', () => {
     expect(screen.getByRole('button', { name: '메뉴판에서 고르기' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '더 이야기하기' })).not.toBeInTheDocument();
     expect(voice.spoken.at(-1)).toContain('재료를 확인 중인 메뉴가 많아 바로 추천하기 어려워요');
+    // 2026-11-03 PM: 메뉴판 사용법 팝업을 여는 대신 바로 직원을 부르고(알림음), 버튼 자리에 호출했다는 안내를 보인다(중복 호출 방지)
     await user.click(screen.getByRole('button', { name: '직원에게 물어보기' }));
-    expect(screen.getByRole('dialog')).toHaveTextContent('도움이 필요하세요?');
-    expect(within(screen.getByRole('dialog')).getByRole('button', { name: '직원 호출하기' })).toBeInTheDocument();
+    expect(voice.chime).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByText('직원을 불렀어요. 잠시만 기다려 주세요')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '직원에게 물어보기' })).not.toBeInTheDocument();
   });
 
   it('빼는 재료 없이 추천이 없으면 예전처럼 조건을 고치라고만 안내한다', async () => {

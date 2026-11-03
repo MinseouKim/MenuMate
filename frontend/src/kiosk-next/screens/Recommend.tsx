@@ -663,7 +663,10 @@ function ResultsBoard({ kiosk }: { kiosk: Kiosk }) {
       ) : staffCheck ? (
         <section className="kx-board-staffcheck" aria-label="직원 확인 안내">
           <p>{NEEDS_STAFF_CHECK}</p>
-          <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={() => act.open({ kind: 'help' })}>직원에게 물어보기</button>
+          {/* 바로 직원을 부릅니다(알림음). 부른 뒤에는 버튼 대신 안내를 보여 거듭 부르지 않게 합니다. */}
+          {state.staffCalled
+            ? <p role="status" className="kx-board-called">직원을 불렀어요. 잠시만 기다려 주세요</p>
+            : <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={act.callStaff}>직원에게 물어보기</button>}
         </section>
       ) : EMPTY}
       {showRest && (

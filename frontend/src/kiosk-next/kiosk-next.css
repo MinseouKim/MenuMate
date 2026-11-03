@@ -530,6 +530,7 @@ button.kx-tile { cursor: pointer; }
 /* 빼는 재료가 있어 추천이 비었을 때: 직원 확인 안내 + 큰 직원 호출 버튼 */
 .kx-board-staffcheck { display: flex; flex-direction: column; gap: calc(var(--u) * 28); padding: calc(var(--u) * 40) calc(var(--u) * 36); border: calc(var(--u) * 8) solid var(--lacquer); border-radius: calc(var(--u) * 40); background: var(--paper); }
 .kx-board .kx-board-staffcheck p { font-size: calc(var(--f) * 44); font-weight: 700; line-height: 1.45; }
+.kx-board .kx-board-staffcheck .kx-board-called { display: grid; place-items: center; min-height: calc(var(--u) * 152); padding: 0 calc(var(--u) * 24); border-radius: calc(var(--u) * 32); background: var(--lacquer); color: var(--ivory); font-size: calc(var(--f) * 40); text-align: center; }
 
 /* 2·3순위 한 줄 */
 .kx-pick-rest { display: flex; flex-direction: column; gap: calc(var(--u) * 20); }
