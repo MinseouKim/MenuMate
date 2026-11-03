@@ -10,7 +10,7 @@ import { catalog as defaultCatalog, type Catalog } from './catalog';
 import * as Cart from './cart';
 import { defaultRecommender, type Recommender } from './recommender';
 import { createInitialState, lineOf, reducer, type SessionState } from './session';
-import { ACKS, GREETING, wakeServer } from './chatClient';
+import { ACKS, GREETING, ackFor, wakeServer } from './chatClient';
 import { chime, prefetchSpeech, speak, stopSpeaking } from './speech';
 import { useFaceSignals } from './useFaceSignals';
 import { money, type ChatTurn, type Conditions, type Dialog, type Menu, type PaymentResult, type PickReason, type Prefs, type Recommendation, type Screen } from './types';
@@ -228,7 +228,8 @@ export function useKiosk({ catalog = defaultCatalog, recommender = defaultRecomm
       const trimmed = text.trim();
       if (!trimmed) return;
       dispatch({ type: 'chat/user', text: trimmed });
-      void speak(ACKS[state.chat.turns.length % ACKS.length]);
+      const ack = ackFor(state.chat.turns);
+      if (ack) void speak(ack);
       chatSend([...state.chat.turns, { role: 'user', text: trimmed }], trimmed);
     },
     /** 생각 중에 손님이 이어 말함: 진행 중인 요청은 버리고 합친 문장으로 다시 묻습니다 */

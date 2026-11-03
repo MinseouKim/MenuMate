@@ -29,8 +29,13 @@ async function post<T>(path: string, body: unknown, timeoutMs: number): Promise<
 
 /** 가게 첫인사. 서버를 기다리지 않고 화면이 바로 말합니다 (서버 backend/src/chat.ts GREETING과 같은 문장, 2026-11-03 설계 4-1) */
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
-/** 손님 말이 끝나자마자 내는 짧은 맞장구. 직원 AI가 생각하는 동안 조용하지 않게 합니다 (음성은 미리 받아 둠) */
-export const ACKS = ['네!', '네, 알겠어요.', '좋아요!'];
+/** 손님 말이 끝나자마자 내는 짧은 맞장구. 직원 AI가 생각하는 동안 조용하지 않게 합니다 (음성은 미리 받아 둠).
+ *  기계적인 "네, 알겠어요."는 뺐습니다(2026-11-03 팀장) */
+export const ACKS = ['네!', '아, 그러시군요.'];
+/** 이번 손님 말 직전까지의 대화로 맞장구를 고릅니다. 첫 질문(인원)에 답한 뒤에는 직원 답이 바로 반겨 주므로 맞장구 없이 null */
+export function ackFor(turns: readonly { role: string; text: string }[]): string | null {
+  return turns.some(t => t.role === 'user') ? ACKS[turns.length % ACKS.length] : null;
+}
 
 export const fetchContext = (): Promise<KioskContext | null> =>
   config.chatServer ? post<KioskContext>('/api/context', undefined, CONTEXT_TIMEOUT_MS) : Promise.resolve(null);
