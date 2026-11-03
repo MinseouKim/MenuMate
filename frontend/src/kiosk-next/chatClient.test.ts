@@ -15,6 +15,7 @@ describe('ackFor', () => {
     const acks = [3, 5, 7].map(n => ackFor([...turns, ...Array.from({ length: n - 3 }, () => turns[2])]));
     expect(acks.every(a => typeof a === 'string' && a.length > 0)).toBe(true);
     expect(acks).not.toContain('네, 알겠어요.');
+    expect(acks).not.toContain('아, 그러시군요.');
   });
 
   it('손님이 답할 때마다 맞장구가 바뀐다 (같은 말 반복 금지)', () => {
