@@ -34,7 +34,9 @@ export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이�
 export const ACKS = ['네!', '아, 그러시군요.'];
 /** 이번 손님 말 직전까지의 대화로 맞장구를 고릅니다. 첫 질문(인원)에 답한 뒤에는 직원 답이 바로 반겨 주므로 맞장구 없이 null */
 export function ackFor(turns: readonly { role: string; text: string }[]): string | null {
-  return turns.some(t => t.role === 'user') ? ACKS[turns.length % ACKS.length] : null;
+  // 손님 답 수로 돌린다 (대화 길이는 손님이 답할 때마다 늘 홀수라 같은 맞장구만 나왔음)
+  const answered = turns.filter(t => t.role === 'user').length;
+  return answered ? ACKS[answered % ACKS.length] : null;
 }
 
 export const fetchContext = (): Promise<KioskContext | null> =>

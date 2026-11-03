@@ -16,6 +16,14 @@ describe('ackFor', () => {
     expect(acks.every(a => typeof a === 'string' && a.length > 0)).toBe(true);
     expect(acks).not.toContain('네, 알겠어요.');
   });
+
+  it('손님이 답할 때마다 맞장구가 바뀐다 (같은 말 반복 금지)', () => {
+    const before = (answers: number) => [
+      { role: 'assistant', text: '몇 분이서 오셨어요?' },
+      ...Array.from({ length: answers }, () => [{ role: 'user', text: '네' }, { role: 'assistant', text: '다음 질문?' }]).flat(),
+    ];
+    expect(ackFor(before(1))).not.toBe(ackFor(before(2)));
+  });
 });
 
 describe('toServerTurns', () => {
