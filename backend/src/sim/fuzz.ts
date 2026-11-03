@@ -66,14 +66,19 @@ function honest(knowledge: MenuKnowledge, userTexts: string[], asked: string[], 
     const sameKind = ok.filter((m) => kind === '상관없음' || m.kind === kind);
     return (sameKind.length ? sameKind : ok).slice(0, 3);
   };
+  const excluded = excludedSet(exclude);
   /** 조건에 맞는 1인분 메뉴 하나 (share-single 실수용) */
-  const single = () => knowledge.menus.find((m) => m.servingPeople <= 1 && fits(m, excludedSet(exclude)));
-  return { next, conditions, choose, single, excluded: excludedSet(exclude), spicy };
+  const single = () => knowledge.menus.find((m) => m.servingPeople <= 1 && fits(m, excluded));
+  return { next, conditions, choose, single, excluded, spicy };
 }
 
-/** 일부러 실수하는 가짜 직원 LLM (mistake=null이면 실수 없는 기준 직원). 받은 대화만 보고 답 JSON을 만든다. seed: 메뉴 고르는 순서 */
-export function fuzzLlm(knowledge: MenuKnowledge, mistake: FuzzMistake | null, seed = 0): LlmClient {
+/**
+ * 일부러 실수하는 가짜 직원 LLM (mistake=null이면 실수 없는 기준 직원). 받은 대화만 보고 답 JSON을 만든다. seed: 메뉴 고르는 순서.
+ * skipped: 손님 조건 때문에 실수를 넣지 못한 까닭 (share-single인데 조건에 맞는 1인분 메뉴가 없음). 그때는 실수 없이 답한다 — 통과로 세면 서버 검사를 시험한 셈이 아니므로
+ */
+export function fuzzLlm(knowledge: MenuKnowledge, mistake: FuzzMistake | null, seed = 0): LlmClient & { skipped: string | null } {
   return {
+    skipped: null,
     model: 'offline-fuzz',
     async generateJson(_system, messages) {
       const talk = messages.filter((m) => !m.text.startsWith('[지금까지'));
@@ -94,13 +99,18 @@ export function fuzzLlm(knowledge: MenuKnowledge, mistake: FuzzMistake | null, s
       if (mistake === 'excluded-pick') first(knowledge.menus.find((m) => m.ingredients.some((i) => h.excluded.includes(i))));
       if (mistake === 'spicy-pick') first(knowledge.menus.find((m) => m.spicy > 0));
       if (mistake === 'ghost-id') menus = [{ id: 'ghost-404', name: '없는 메뉴' }, ...menus].slice(0, 3);
-      if (mistake === 'share-single') first(h.choose(h.excluded).find((m) => m.servingPeople <= 1) ?? h.single());
+      let share = mistake === 'share-single';
+      if (share) {
+        const single = h.choose(h.excluded).find((m) => m.servingPeople <= 1) ?? h.single();
+        if (single) first(single);
+        else { share = false; this.skipped = 'share-single: 손님 조건에 맞는 1인분 메뉴가 없어 실수를 넣지 못함'; }
+      }
       const name = menus[0]?.name ?? '추천 메뉴';
-      const reply = mistake === 'share-single' ? `둘이 나눠 먹기 좋은 ${name} 골라 봤어요.`
+      const reply = share ? `둘이 나눠 먹기 좋은 ${name} 골라 봤어요.`
         : mistake === 'question-done' ? `${name} 어떠세요?`
         : mistake === 'long-done' ? `말씀 잘 들었습니다. 오늘 같은 날 일행분들과 함께 편안하게 나눠 드시기 정말 좋은 ${name}를 정성껏 골라 봤어요. 천천히 보시고 마음에 드시면 담아 주세요.`
           : `말씀 듣고 ${name} 골라 봤어요.`;
-      const why = mistake === 'share-single' ? '둘이 나눠 먹기 좋은 메뉴예요' : '말씀하신 조건에 맞아요';
+      const why = share ? '둘이 나눠 먹기 좋은 메뉴예요' : '말씀하신 조건에 맞아요';
       return JSON.stringify({ reply, conditions, mood: null, picks: menus.map((m) => ({ id: m.id, why, heard: null })), done: true, asking: 'other' });
     },
   };
@@ -116,5 +126,6 @@ export async function runOffline(opts: { persona: Persona; index: number; knowle
     staff: (turns, conditions) => converse({ llm, knowledge }, { turns, conditions, context: {} }),
   });
   const score = scoreConversation(rec, knowledge);
-  return { at: opts.at ?? new Date().toISOString(), model: 'offline-fuzz', mode: 'offline-fuzz' as const, customer: 'script', fuzz: mistake, ...rec, score };
+  // 실수를 못 넣은 대화는 그 실수로 세지 않는다 (fuzz 없음 → 요약의 실수별 통과율에서 빠짐). 까닭은 fuzzSkipped에 남김
+  return { at: opts.at ?? new Date().toISOString(), model: 'offline-fuzz', mode: 'offline-fuzz' as const, customer: 'script', fuzz: llm.skipped ? null : mistake, ...(llm.skipped ? { fuzzSkipped: llm.skipped } : {}), ...rec, score };
 }

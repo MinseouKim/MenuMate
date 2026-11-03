@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMention, partyMentioned, recommendLine, sharesSingle, systemPrompt, wantsAnything,
+  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMention, partyMentioned, recommendLine, replySharesSingle, sharesSingle, systemPrompt, wantsAnything,
   type LlmClient,
 } from '../src/chat.js';
 import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
@@ -657,12 +657,12 @@ describe('1인분 메뉴를 "나눠 먹기"로 소개하지 않기 (2026-11-03 �
       { id: 'noodle-1', why: '둘이 나눠 먹기 좋은 얼큰한 짬뽕이에요', heard: null },
     ];
     const two = await recommend({ reply: '골라 봤어요.', picks });
-    expect(two.pickReasons.map((p) => p.why)).toEqual(['셋이 나눠 먹기 좋은 딤섬이에요', '한 분에 하나씩 드시기 좋은 메뉴예요']);
+    expect(two.pickReasons.map((p) => p.why)).toEqual(['셋이 나눠 먹기 좋은 딤섬이에요', '얼큰한 짬뽕이에요']); // 나눠 먹기 마디만 덜어 냄
     for (const why of ['함께 나눠 드시기 좋아요', '둘이 같이 나눠 먹는 짬뽕이에요', 'share하기 좋은 짬뽕']) {
       const r = await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why, heard: null }] });
       expect([why, r.pickReasons[0].why]).toEqual([why, '한 분에 하나씩 드시기 좋은 메뉴예요']);
     }
-    const one = await recommend({ reply: '골라 봤어요.', picks: [picks[1]] }, 1);
+    const one = await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why: '둘이 나눠 먹는 짬뽕이에요', heard: null }] }, 1);
     expect(one.pickReasons[0].why).toBe('말씀하신 조건에 맞는 메뉴예요');
     const ok = await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why: '얼큰하고 든든한 짬뽕이에요', heard: null }] });
     expect(ok.pickReasons[0].why).toBe('얼큰하고 든든한 짬뽕이에요');
@@ -680,6 +680,53 @@ describe('1인분 메뉴를 "나눠 먹기"로 소개하지 않기 (2026-11-03 �
     expect(sharesSingle('나눠 먹기 좋은 모듬 딤섬이에요', [dimsum])).toBe(false);
     expect(sharesSingle('얼큰한 짬뽕이에요', [noodle])).toBe(false);
     expect(sharesSingle('두 분이 나눠 드시기 좋아요', [noodle])).toBe(true); // why는 이름이 없어도 그 메뉴 이야기
+  });
+
+  // 코드 리뷰(2026-11-03)에서 찾은 구멍: 줄여 부른 이름("짜장"), 넓은 나눠 먹기 말, 섞인 추천의 오탐, why 통째 교체
+  const mixed = fromData([
+    { id: 'noodle-1', name: '짬뽕', price: 11000, category: 'noodle', kind: '면', spicy: 2, servingPeople: 1, quantityUnit: '1그릇', ingredients: [], ingredientsChecked: true, texture: [] },
+    { id: 'noodle-2', name: '원심 유니짜장', price: 8000, category: 'noodle', kind: '면', spicy: 0, servingPeople: 1, quantityUnit: '1그릇', ingredients: [], ingredientsChecked: true, texture: [] },
+    { id: 'dish-1', name: '생등심 탕수육', price: 25000, category: 'dish', kind: '요리', spicy: 0, servingPeople: 3, quantityUnit: '1접시', ingredients: [], ingredientsChecked: true, texture: [] },
+  ]);
+  const [jjamppong, jjajang, tangsuyuk] = ['noodle-1', 'noodle-2', 'dish-1'].map((id) => mixed.byId(id)!);
+  const recommendMixed = (reply: string, ids: string[]) => converse(
+    { llm: fakeLlm({ reply, conditions: { party: 2, spicy: 2, kind: '상관없음' }, mood: null, asking: 'other', done: true, picks: ids.map((id) => ({ id, why: '좋아요', heard: null })) }), knowledge: mixed },
+    { turns: [{ role: 'assistant', text: GREETING }, { role: 'user', text: '둘이요, 매운 거 좋아요, 아무거나' }, { role: 'assistant', text: '못 드시는 재료 있으세요?' }, { role: 'user', text: '없어요' }], conditions: {}, context: {} },
+  );
+
+  it('나눠 먹기 말: "두 분이서 함께", "다 같이", "둘이 함께 즐기기", "2인이 같이 먹기"도 잡고, "한 분에 하나씩"·곁들임 "같이"는 아님', () => {
+    for (const t of ['두 분이서 함께 드시기 좋은 짬뽕이에요', '다 같이 드시기 좋은 짬뽕이에요', '둘이 함께 즐기기 좋은 짬뽕이에요', '2인이 같이 먹기 좋은 짬뽕이에요', '일행분들과 함께 드시기 좋아요']) {
+      expect([t, sharesSingle(t, [jjamppong])]).toEqual([t, true]);
+    }
+    for (const t of ['한 분에 하나씩 드시기 좋은 짬뽕이에요', '두 분이 각각 하나씩 드시기 좋아요', '탕수육과 같이 드시기 좋은 짬뽕이에요', '바다 같이 시원한 짬뽕이에요']) {
+      expect([t, sharesSingle(t, [jjamppong])]).toEqual([t, false]);
+    }
+  });
+  it('고른 메뉴가 모두 1인분이면 이름이 없거나 줄여 불러도("짜장") 나눠 먹기 말이 나오면 서버 추천 문장으로 바꾼다', async () => {
+    expect(replySharesSingle('둘이 나눠 먹기 좋은 순한 짜장 골라 봤어요.', [jjajang])).toBe(true);
+    expect(replySharesSingle('두 분이서 함께 드시기 좋게 골라 봤어요.', [jjajang, jjamppong])).toBe(true);
+    const res = await recommendMixed('둘이 나눠 먹기 좋은 순한 짜장 골라 봤어요.', ['noodle-2']);
+    expect(res.reply).not.toMatch(/나눠/);
+    expect(res.reply).toContain('원심 유니짜장');
+  });
+  it('섞인 추천: 나눠 먹기 말이 붙은 메뉴만 본다 ("탕수육은 나눠 드시고 짬뽕은 한 분에 하나씩"은 그대로)', async () => {
+    const fine = '탕수육은 나눠 드시고 짬뽕은 한 분에 하나씩 드세요!';
+    expect(replySharesSingle(fine, [tangsuyuk, jjamppong])).toBe(false);
+    expect((await recommendMixed(fine, ['dish-1', 'noodle-1'])).reply).toBe(fine);
+    expect(replySharesSingle('나눠 드시기 좋은 탕수육과 얼큰한 짬뽕 골라 봤어요.', [tangsuyuk, jjamppong])).toBe(false);
+    expect(replySharesSingle('바삭한 탕수육, 둘이 함께 즐기기 좋은 짜장 골라 봤어요.', [tangsuyuk, jjajang])).toBe(true);
+    expect(replySharesSingle('짬뽕은 나눠 드시고 탕수육도 드세요!', [tangsuyuk, jjamppong])).toBe(true);
+    expect(replySharesSingle('나눠 먹기 좋고 바삭한 탕수육이랑 짬뽕 골라 봤어요.', [tangsuyuk, jjamppong])).toBe(false); // 마디에 메뉴가 없으면 다음 마디의 첫 메뉴
+    const bad = await recommendMixed('탕수육이랑 다 같이 드시기 좋은 짬뽕 골라 봤어요.', ['dish-1', 'noodle-1']);
+    expect(bad.reply).not.toMatch(/같이/);
+  });
+  it('1인분 메뉴 why는 나눠 먹기 마디만 덜고, 남는 게 마땅치 않으면 기본 이유로', async () => {
+    const whyOf = async (why: string) => (await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why, heard: null }] })).pickReasons[0].why;
+    expect(await whyOf('나눠 먹기 좋은 얼큰한 짬뽕이에요')).toBe('얼큰한 짬뽕이에요');
+    expect(await whyOf('두 분이서 함께 드시기 좋은 얼큰한 짬뽕이에요')).toBe('얼큰한 짬뽕이에요');
+    expect(await whyOf('둘이 나눠 먹기 좋고 든든한 짬뽕이에요')).toBe('든든한 짬뽕이에요');
+    expect(await whyOf('얼큰해서 둘이 나눠 먹기 좋아요')).toBe('한 분에 하나씩 드시기 좋은 메뉴예요');
+    expect(await whyOf('나눠 먹는 짬뽕이에요')).toBe('한 분에 하나씩 드시기 좋은 메뉴예요');
   });
 });
 

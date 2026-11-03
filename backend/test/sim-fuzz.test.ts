@@ -72,12 +72,24 @@ describe('fuzz: 일부러 실수하는 가짜 직원 LLM (오프라인 서버 �
     expect(rec.score).toBeDefined();
   });
 
+  it('share-single: 손님 조건에 맞는 1인분 메뉴가 없으면 그냥 통과로 세지 않고 건너뜀을 남긴다 (서버 검사를 시험하지 못한 대화)', async () => {
+    // 테스트 메뉴의 1인분은 모두 돼지고기나 계란이 들어감
+    const noSingle: Persona = { ...persona, exclude: ['계란', '돼지고기'], want: '상관없음' };
+    const rec = await runOffline({ persona: noSingle, index: FUZZ_MISTAKES.indexOf('share-single'), knowledge });
+    expect(rec).toMatchObject({ fuzz: null, fuzzSkipped: expect.stringContaining('share-single') });
+    expect(rec.final?.reply).not.toMatch(/나눠/);
+    const shared = await runOffline({ persona, index: FUZZ_MISTAKES.indexOf('share-single'), knowledge });
+    expect(shared).toMatchObject({ fuzz: 'share-single' });
+    expect(shared).not.toHaveProperty('fuzzSkipped');
+    expect(shared.final?.pickReasons[0].why).not.toMatch(/나눠/); // 서버 검사가 실제로 고침
+  });
+
   it('서버 검사가 막아야 하는 실수는 채점에서 문제가 남지 않는다 (막지 못하면 서버 검사 구멍)', async () => {
     const caught: FuzzMistake[] = ['question-done', 'long-done', 'wrong-party', 'excluded-pick', 'spicy-pick', 'ghost-id', 'missing-exclude', 'missing-asking', 'share-single'];
     for (const m of caught) {
       const index = FUZZ_MISTAKES.indexOf(m);
       const rec = await runOffline({ persona, index, knowledge });
-      expect([m, rec.score.issues]).toEqual([m, []]);
+      expect([m, rec.fuzz, rec.score.issues]).toEqual([m, m, []]); // 실수를 실제로 넣었는데(건너뜀 아님) 문제가 남지 않음
     }
     // 너무 이른 done: 서버가 매운맛 → 재료 → 종류 순으로 되돌린다 (매운맛 확인도 서버 보장, 2026-11-03 오프라인 시험 뒤)
     const rec = await runOffline({ persona, index: FUZZ_MISTAKES.indexOf('early-done'), knowledge });

@@ -1,6 +1,6 @@
 // 시뮬레이션 대화 자동 채점 (Byte by Yum!의 자동 채점을 규칙으로 가볍게). 사람이 문제 목록을 보고 프롬프트·서버 검사를 고칩니다.
-import { askedExclude, askedKind, excludeMentioned, MAX_TURNS, menuWords, partyMention, SEAFOOD, sharesSingle, wantsAnything } from '../chat.js';
-import type { MenuKnowledge } from '../menuKnowledge.js';
+import { askedExclude, askedKind, excludeMentioned, MAX_TURNS, partyMention, SEAFOOD, wantsAnything } from '../chat.js';
+import type { KnowledgeMenu, MenuKnowledge } from '../menuKnowledge.js';
 import type { Persona } from './personas.js';
 import type { SimRecord } from './run.js';
 
@@ -32,6 +32,27 @@ export function violations(p: ScorePersona, picks: string[], knowledge: MenuKnow
   return out;
 }
 
+/**
+ * 채점용 나눠 먹기 말. 서버 검사(chat.ts SHARE_TALK·replySharesSingle)와 일부러 따로, 더 넓게 둔다: 같은 규칙이면 서버 검사가 놓친 걸 채점도 못 잡음.
+ * 여럿이라는 말 없이 "같이 드시기", "함께 즐기기"만 있어도 나눠 먹기로 본다
+ */
+const SHARE_BROAD = /나눠|나누어|나눌|셰어|share|(함께|같이)\s*(\S+\s+)?(드시|드실|드셔|먹|즐기|즐길|즐겨)|(둘|셋|넷|여럿|[두세네]\s*분|[2-9]\s*인)이서/i;
+/** 이름을 부르는 말: 낱말마다 그대로와 끝 두 글자("유니짜장"→"짜장", "간짜장"→"짜장"), 별칭 */
+const callWords = (m: KnowledgeMenu) => [...m.aliases, ...m.name.split(/\s+/).flatMap((w) => [w, ...([...w].length >= 3 ? [[...w].slice(-2).join('')] : [])])].filter((w) => [...w].length >= 2);
+/** 1인분 메뉴를 나눠 먹기로 소개한 메뉴 이름: why에 나눠 먹기 말, 고른 메뉴가 모두 1인분인데 추천 답에 나눠 먹기 말, 추천 답의 나눠 먹기 말과 같은 마디에 1인분 메뉴 이름 */
+function sharedSingles(final: NonNullable<SimRecord['final']>, knowledge: MenuKnowledge): Set<string> {
+  const shared = new Set<string>();
+  const picks = final.picks.map((id) => knowledge.byId(id)).filter((m) => !!m);
+  for (const pr of final.pickReasons ?? []) { const m = knowledge.byId(pr.id); if (m && m.servingPeople <= 1 && SHARE_BROAD.test(pr.why)) shared.add(m.name); }
+  if (!SHARE_BROAD.test(final.reply)) return shared;
+  const singles = picks.filter((m) => m.servingPeople <= 1);
+  if (singles.length && singles.length === picks.length) for (const m of singles) shared.add(m.name);
+  for (const clause of final.reply.split(/[.!?。,]|(?<=고|며|면서|지만)\s/)) {
+    if (SHARE_BROAD.test(clause)) for (const m of singles) if (callWords(m).some((w) => clause.includes(w))) shared.add(m.name);
+  }
+  return shared;
+}
+
 export function scoreConversation(rec: Omit<SimRecord, 'error' | 'persona'> & { persona: ScorePersona; error?: string | null }, knowledge: MenuKnowledge): Score {
   const issues: string[] = [];
   const actorIssues: string[] = [];
@@ -51,10 +72,7 @@ export function scoreConversation(rec: Omit<SimRecord, 'error' | 'persona'> & { 
     else if (saidParty === null && final.conditions.party !== p.party) issues.push(`인원 틀림: ${final.conditions.party}명 (실제 ${p.party}명)`);
     if (final.reply.includes('?')) issues.push('추천하면서 질문으로 끝남');
     // 1인분 메뉴(면·밥 한 그릇)를 "나눠 먹기"로 소개 (2026-11-03 팀장 지적: 2명에게 1인분 유니짜장을 "둘이 나눠 먹기 좋은")
-    const shared = new Set<string>();
-    for (const pr of final.pickReasons ?? []) { const m = knowledge.byId(pr.id); if (m && sharesSingle(pr.why, [m])) shared.add(m.name); }
-    for (const m of final.picks.map((id) => knowledge.byId(id)).filter((x) => !!x)) if (menuWords(m).some((w) => final.reply.includes(w)) && sharesSingle(final.reply, [m])) shared.add(m.name);
-    for (const name of shared) issues.push(`1인분 메뉴를 나눠 먹기로 소개: ${name}`);
+    for (const name of sharedSingles(final, knowledge)) issues.push(`1인분 메뉴를 나눠 먹기로 소개: ${name}`);
     // PM 결정(2026-11-03): 강제 종료가 아니면 추천 전에 못 드시는 재료와 종류를 확인한다. 손님이 먼저 말했거나 직원이 물었으면 됨
     const userTexts = rec.turns.filter((t) => t.role === 'user').map((t) => t.text);
     const asked = rec.turns.filter((t) => t.role === 'assistant' && t.text !== final.reply && !t.text.includes('(끊김)')).map((t) => t.text);
