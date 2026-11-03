@@ -82,6 +82,16 @@ describe('scoreConversation (자동 채점)', () => {
     expect(s.issues).toEqual(expect.arrayContaining(['빼는 재료 위반: 짬뽕', '안 맵게 원했는데 매운 메뉴: 짬뽕', '인원 틀림: 1명 (실제 2명)']));
     expect(s.ok).toBe(false);
   });
+  it('1인분 메뉴를 나눠 먹기로 소개하면 문제로 적는다 (why·추천 답)', () => {
+    const final = staffReply({
+      reply: '둘이 나눠 먹기 좋은 유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'],
+      pickReasons: [{ id: 'noodle-2', why: '둘이 나눠 먹기 좋은 순한 짜장이에요', heard: null, review: null }],
+      conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' },
+    });
+    const turns = [{ role: 'user' as const, text: '두 명이요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '없어요' }];
+    const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 1 }] }, knowledge);
+    expect(s.issues).toEqual(['1인분 메뉴를 나눠 먹기로 소개: 유니짜장']);
+  });
   it('조건을 지킨 추천이면 문제 없음, 턴 수·평균 응답 시간도 남긴다', () => {
     // 재료를 묻고(ASKED_EXCLUDE) 종류(면)를 안 뒤의 추천 — 새 채점 규칙(재료·종류 확인 없이 추천)에 걸리지 않게
     const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' } });

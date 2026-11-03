@@ -54,6 +54,9 @@ describe('fuzz: 일부러 실수하는 가짜 직원 LLM (오프라인 서버 �
     expect(ids(await lateRaw('excluded-pick'))[0]).toBe('noodle-3'); // 계란
     expect(ids(await lateRaw('spicy-pick'))[0]).toBe('noodle-1'); // 매운 짬뽕
     expect(ids(await lateRaw('ghost-id'))[0]).toMatch(/^ghost/);
+    const share = await lateRaw('share-single'); // 1인분 메뉴를 나눠 먹기로 소개
+    expect(share.picks[0].why).toMatch(/나눠/);
+    expect(share.reply).toMatch(/나눠/);
     const missing = await lateRaw('missing-exclude');
     expect(missing.conditions.exclude).toEqual([]);
     expect(ids(missing)).toContain('noodle-3');
@@ -70,7 +73,7 @@ describe('fuzz: 일부러 실수하는 가짜 직원 LLM (오프라인 서버 �
   });
 
   it('서버 검사가 막아야 하는 실수는 채점에서 문제가 남지 않는다 (막지 못하면 서버 검사 구멍)', async () => {
-    const caught: FuzzMistake[] = ['question-done', 'long-done', 'wrong-party', 'excluded-pick', 'spicy-pick', 'ghost-id', 'missing-exclude', 'missing-asking'];
+    const caught: FuzzMistake[] = ['question-done', 'long-done', 'wrong-party', 'excluded-pick', 'spicy-pick', 'ghost-id', 'missing-exclude', 'missing-asking', 'share-single'];
     for (const m of caught) {
       const index = FUZZ_MISTAKES.indexOf(m);
       const rec = await runOffline({ persona, index, knowledge });

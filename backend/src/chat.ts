@@ -135,7 +135,8 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     `- 못 드시는 재료: 추천 전에 "알레르기나 채식으로 못 드시는 재료 있으세요?"처럼 한 번 묻습니다(asking=exclude). 반응 한마디와 합쳐 60자를 넘지 않게 짧게 묻습니다. 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
     `- done=true 조건: 인원을 알고, 매운맛을 물었거나 손님이 말했고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
     '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. 손님이 빼야 할 재료를 말했으면 재료가 "확인 안 됨"인 메뉴도 고르지 않습니다. 손님이 예산을 말하지 않았으면 3개를 비슷한 가격으로만 고르지 말고 저렴한 메뉴를 하나 이상 섞습니다(예산을 말했으면 1인 예산 안에서). done=false면 picks는 빈 배열.',
-    '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "둘이 나눠 먹기 좋은 순한 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
+    '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "맵지 않고 부드러워 부담 없는 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
+    '- 메뉴 목록의 인분이 1인분인 메뉴(면·밥 한 그릇 등)는 why·reply에서 "나눠 먹기", "둘이 함께", "같이 나눠"라고 말하지 않습니다. 일행이 여럿이면 한 분에 하나씩 드시는 메뉴로 소개합니다(수량은 화면이 인원에 맞춰 정함). 나눠 먹는 표현은 2인분 이상인 요리·딤섬 세트 등에만 씁니다.',
     '- done=true일 때 reply는 손님이 한 말을 짚어 고른 메뉴를 소개하고 따뜻하게 마무리하는 평서문입니다(예: "안 맵고 든든한 유니짜장으로 골라 봤어요. 맛있게 드세요!"). 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
     '- conditions는 지금까지 파악한 전체 값입니다. 모르는 값: spicy=null, kind="상관없음", texture="상관없음", budget=null, totalBudget=null, exclude=[]. party는 손님이 말한 인원(모르면 1).',
     '- spicy 값: 못 먹음·안 맵게=0, 조금·약간=1, 좋아함·매운 거=2, 아주 매운 거=3, "상관없어요"=null(물어본 것으로 치고 다시 묻지 않음).',
@@ -252,7 +253,8 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
     const dropped = proposed.map(pickId).map((id) => knowledge.byId(id)).filter((m): m is KnowledgeMenu => !!m && !pickReasons.some((p) => p.id === m.id));
     const tooLong = [...reply].length > MAX_REPLY_CHARS;
     const picked = pickReasons.map((p) => knowledge.byId(p.id)!);
-    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name)) || mentionsUnpicked(reply, picked, knowledge)) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name), { spicy: conditions.spicy, mood });
+    const sharedSingle = sharesSingle(reply, picked.filter((m) => menuWords(m).some((w) => reply.includes(w))));
+    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name)) || mentionsUnpicked(reply, picked, knowledge) || sharedSingle) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name), { spicy: conditions.spicy, mood });
   } else if (!reply) {
     reply = PARTY_QUESTION;
   }
@@ -382,6 +384,13 @@ function missingBeforeRecommend(turns: readonly ChatTurn[], c: ChatConditions, p
   return null;
 }
 const DEFAULT_WHY = '말씀하신 조건에 맞는 메뉴예요';
+const EACH_WHY = '한 분에 하나씩 드시기 좋은 메뉴예요';
+/** 나눠 먹기 표현 ("나눠 먹기", "함께 나눠", "share", "둘이 함께 먹기") */
+const SHARE_TALK = /나눠|나누어|셰어|share|(둘|셋|넷|여럿)이서?\s*(함께|같이)\s*(드시|먹)/i;
+/** 1인분 메뉴를 나눠 먹기로 말하는지. menus: 이 말이 가리키는 메뉴(why면 그 메뉴, reply면 이름이 나온 고른 메뉴). 인분은 menus.json의 servingPeople */
+export function sharesSingle(text: string, menus: readonly KnowledgeMenu[]): boolean {
+  return SHARE_TALK.test(text) && menus.some((m) => m.servingPeople <= 1);
+}
 export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전복', '관자', '굴', '오징어', '조개'];
 
 const PARTY_WORDS: [RegExp, number][] = [
@@ -424,7 +433,8 @@ function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowl
     const unknown = m && m.ingredients.length === 0 && !m.ingredientsChecked;
     if (!m || m.soldOut || out.some((o) => o.id === m.id) || m.ingredients.some((i) => excluded.includes(i)) || (excluded.length && unknown) || (c.spicy === 0 && m.spicy > 0)) continue;
     const raw = typeof p === 'object' && p ? (p as { why?: unknown; heard?: unknown }) : {};
-    const why = typeof raw.why === 'string' && raw.why.trim() && !raw.why.includes('?') ? raw.why.trim().slice(0, 40) : DEFAULT_WHY;
+    let why = typeof raw.why === 'string' && raw.why.trim() && !raw.why.includes('?') ? raw.why.trim().slice(0, 40) : DEFAULT_WHY;
+    if (sharesSingle(why, [m])) why = c.party > 1 ? EACH_WHY : DEFAULT_WHY; // 1인분 메뉴를 "나눠 먹기"로 소개하지 않음
     const heard = typeof raw.heard === 'string' && raw.heard.trim().length <= 20 && squash(said).includes(squash(raw.heard)) && raw.heard.trim() ? raw.heard.trim() : null;
     out.push({ id: m.id, why, heard, review: m.reviewQuote });
     if (out.length === 3) break;
@@ -434,7 +444,7 @@ function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowl
 
 const hasBatchim = (word: string) => { const code = word.charCodeAt(word.length - 1) - 0xac00; return code >= 0 && code < 11172 && code % 28 !== 0; };
 /** 메뉴를 부르는 말: 전체 이름, 별칭, 3글자 이상인 마지막 낱말("소고기 우육탕면"의 우육탕면) */
-const menuWords = (m: KnowledgeMenu) => [m.name, ...m.aliases, ...[m.name.split(/\s+/).at(-1) ?? ''].filter((w) => [...w].length >= 3 && w !== m.name)];
+export const menuWords = (m: KnowledgeMenu) => [m.name, ...m.aliases, ...[m.name.split(/\s+/).at(-1) ?? ''].filter((w) => [...w].length >= 3 && w !== m.name)];
 /** 추천 답이 고르지 않은 메뉴를 이름으로 말하는지 (고른 메뉴와 겹치는 낱말은 제외). 실측: 게살스프를 고르고 "우육탕면으로 골라 봤어요" */
 function mentionsUnpicked(reply: string, picked: readonly KnowledgeMenu[], knowledge: MenuKnowledge): boolean {
   const pickedWords = picked.flatMap(menuWords);

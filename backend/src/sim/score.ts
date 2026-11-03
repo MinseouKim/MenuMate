@@ -1,5 +1,5 @@
 // 시뮬레이션 대화 자동 채점 (Byte by Yum!의 자동 채점을 규칙으로 가볍게). 사람이 문제 목록을 보고 프롬프트·서버 검사를 고칩니다.
-import { askedExclude, askedKind, excludeMentioned, MAX_TURNS, partyMention, SEAFOOD, wantsAnything } from '../chat.js';
+import { askedExclude, askedKind, excludeMentioned, MAX_TURNS, menuWords, partyMention, SEAFOOD, sharesSingle, wantsAnything } from '../chat.js';
 import type { MenuKnowledge } from '../menuKnowledge.js';
 import type { Persona } from './personas.js';
 import type { SimRecord } from './run.js';
@@ -50,6 +50,11 @@ export function scoreConversation(rec: Omit<SimRecord, 'error' | 'persona'> & { 
     if (saidParty !== null && final.conditions.party !== saidParty) issues.push(`인원 틀림: ${final.conditions.party}명 (손님 말 ${saidParty}명)`);
     else if (saidParty === null && final.conditions.party !== p.party) issues.push(`인원 틀림: ${final.conditions.party}명 (실제 ${p.party}명)`);
     if (final.reply.includes('?')) issues.push('추천하면서 질문으로 끝남');
+    // 1인분 메뉴(면·밥 한 그릇)를 "나눠 먹기"로 소개 (2026-11-03 팀장 지적: 2명에게 1인분 유니짜장을 "둘이 나눠 먹기 좋은")
+    const shared = new Set<string>();
+    for (const pr of final.pickReasons ?? []) { const m = knowledge.byId(pr.id); if (m && sharesSingle(pr.why, [m])) shared.add(m.name); }
+    for (const m of final.picks.map((id) => knowledge.byId(id)).filter((x) => !!x)) if (menuWords(m).some((w) => final.reply.includes(w)) && sharesSingle(final.reply, [m])) shared.add(m.name);
+    for (const name of shared) issues.push(`1인분 메뉴를 나눠 먹기로 소개: ${name}`);
     // PM 결정(2026-11-03): 강제 종료가 아니면 추천 전에 못 드시는 재료와 종류를 확인한다. 손님이 먼저 말했거나 직원이 물었으면 됨
     const userTexts = rec.turns.filter((t) => t.role === 'user').map((t) => t.text);
     const asked = rec.turns.filter((t) => t.role === 'assistant' && t.text !== final.reply && !t.text.includes('(끊김)')).map((t) => t.text);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMention, partyMentioned, recommendLine, systemPrompt, wantsAnything,
+  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMention, partyMentioned, recommendLine, sharesSingle, systemPrompt, wantsAnything,
   type LlmClient,
 } from '../src/chat.js';
 import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
@@ -637,6 +637,49 @@ describe('따뜻하고 함께 고르는 말투 — 서버가 대신 쓰는 문�
     expect(res.reply).toMatch(/고생/);
     expect(res.reply).toContain('모듬 딤섬');
     expect(res.reply.includes('?')).toBe(false);
+  });
+});
+
+describe('1인분 메뉴를 "나눠 먹기"로 소개하지 않기 (2026-11-03 팀장: 2명에게 1인분 유니짜장을 "둘이 나눠 먹기 좋은"이라고 함)', () => {
+  // 테스트 메뉴: 짬뽕은 1인분, 모듬 딤섬은 3인분
+  const recommend = (answer: object, party = 2) => converse(
+    { llm: fakeLlm({ conditions: { party, spicy: 2, kind: '면' }, mood: null, asking: 'other', done: true, ...answer }), knowledge },
+    { turns: [{ role: 'assistant', text: GREETING }, { role: 'user', text: party === 1 ? '혼자요, 매운 거 좋아요' : '둘이요, 매운 거 좋아요' }, { role: 'assistant', text: '못 드시는 재료 있으세요?' }, { role: 'user', text: '없어요' }], conditions: {}, context: {} },
+  );
+
+  it('프롬프트의 why 예시가 1인분 짜장을 "둘이 나눠 먹기 좋은"으로 소개하지 않는다 (모델이 예시를 그대로 따라 함)', () => {
+    const [stable] = systemPrompt(knowledge, {}, 0);
+    expect(stable).not.toContain('둘이 나눠 먹기 좋은 순한 짜장');
+  });
+  it('1인분 메뉴의 why에 "나눠" 표현이 있으면 인원에 맞는 기본 이유로 바꾸고, 여러 인분 메뉴는 그대로 둔다', async () => {
+    const picks = [
+      { id: 'dimsum-1', why: '셋이 나눠 먹기 좋은 딤섬이에요', heard: null },
+      { id: 'noodle-1', why: '둘이 나눠 먹기 좋은 얼큰한 짬뽕이에요', heard: null },
+    ];
+    const two = await recommend({ reply: '골라 봤어요.', picks });
+    expect(two.pickReasons.map((p) => p.why)).toEqual(['셋이 나눠 먹기 좋은 딤섬이에요', '한 분에 하나씩 드시기 좋은 메뉴예요']);
+    for (const why of ['함께 나눠 드시기 좋아요', '둘이 같이 나눠 먹는 짬뽕이에요', 'share하기 좋은 짬뽕']) {
+      const r = await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why, heard: null }] });
+      expect([why, r.pickReasons[0].why]).toEqual([why, '한 분에 하나씩 드시기 좋은 메뉴예요']);
+    }
+    const one = await recommend({ reply: '골라 봤어요.', picks: [picks[1]] }, 1);
+    expect(one.pickReasons[0].why).toBe('말씀하신 조건에 맞는 메뉴예요');
+    const ok = await recommend({ reply: '골라 봤어요.', picks: [{ id: 'noodle-1', why: '얼큰하고 든든한 짬뽕이에요', heard: null }] });
+    expect(ok.pickReasons[0].why).toBe('얼큰하고 든든한 짬뽕이에요');
+  });
+  it('추천 답(reply)에 1인분 메뉴 이름과 "나눠 먹" 표현이 같이 나오면 서버 추천 문장으로 바꾼다, 여러 인분 메뉴면 그대로', async () => {
+    const bad = await recommend({ reply: '한산한 오후에 나눠 먹기 좋은 짬뽕입니다.', picks: [{ id: 'noodle-1', why: '얼큰해요', heard: null }] });
+    expect(bad.reply).not.toMatch(/나눠|나누어/);
+    expect(bad.reply).toContain('짬뽕');
+    const fine = '셋이 나눠 드시기 좋은 모듬 딤섬이에요. 맛있게 드세요!';
+    expect((await recommend({ reply: fine, picks: [{ id: 'dimsum-1', why: '좋아요', heard: null }] })).reply).toBe(fine);
+  });
+  it('sharesSingle: 1인분 메뉴를 나눠 먹기로 말하는지 (채점·서버 검사 공용)', () => {
+    const [noodle, dimsum] = [knowledge.byId('noodle-1')!, knowledge.byId('dimsum-1')!];
+    expect(sharesSingle('둘이 나눠 먹기 좋은 짬뽕이에요', [noodle])).toBe(true);
+    expect(sharesSingle('나눠 먹기 좋은 모듬 딤섬이에요', [dimsum])).toBe(false);
+    expect(sharesSingle('얼큰한 짬뽕이에요', [noodle])).toBe(false);
+    expect(sharesSingle('두 분이 나눠 드시기 좋아요', [noodle])).toBe(true); // why는 이름이 없어도 그 메뉴 이야기
   });
 });
 

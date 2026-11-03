@@ -18,6 +18,7 @@ export const FUZZ_MISTAKES = [
   'ghost-id',        // 없는 메뉴 id를 1순위로
   'missing-exclude', // 손님이 말한 재료를 exclude에서 빠뜨리고 그 재료 메뉴도 고름
   'missing-asking',  // 질문하면서 asking을 빠뜨림
+  'share-single',    // 1인분 메뉴를 "나눠 먹기"로 소개 (why·reply)
 ] as const;
 export type FuzzMistake = (typeof FUZZ_MISTAKES)[number];
 /** 손님 번호마다 실수 종류를 차례로 돌려 고르게 섞는다 */
@@ -65,7 +66,9 @@ function honest(knowledge: MenuKnowledge, userTexts: string[], asked: string[], 
     const sameKind = ok.filter((m) => kind === '상관없음' || m.kind === kind);
     return (sameKind.length ? sameKind : ok).slice(0, 3);
   };
-  return { next, conditions, choose, excluded: excludedSet(exclude), spicy };
+  /** 조건에 맞는 1인분 메뉴 하나 (share-single 실수용) */
+  const single = () => knowledge.menus.find((m) => m.servingPeople <= 1 && fits(m, excludedSet(exclude)));
+  return { next, conditions, choose, single, excluded: excludedSet(exclude), spicy };
 }
 
 /** 일부러 실수하는 가짜 직원 LLM (mistake=null이면 실수 없는 기준 직원). 받은 대화만 보고 답 JSON을 만든다. seed: 메뉴 고르는 순서 */
@@ -91,11 +94,14 @@ export function fuzzLlm(knowledge: MenuKnowledge, mistake: FuzzMistake | null, s
       if (mistake === 'excluded-pick') first(knowledge.menus.find((m) => m.ingredients.some((i) => h.excluded.includes(i))));
       if (mistake === 'spicy-pick') first(knowledge.menus.find((m) => m.spicy > 0));
       if (mistake === 'ghost-id') menus = [{ id: 'ghost-404', name: '없는 메뉴' }, ...menus].slice(0, 3);
+      if (mistake === 'share-single') first(h.choose(h.excluded).find((m) => m.servingPeople <= 1) ?? h.single());
       const name = menus[0]?.name ?? '추천 메뉴';
-      const reply = mistake === 'question-done' ? `${name} 어떠세요?`
+      const reply = mistake === 'share-single' ? `둘이 나눠 먹기 좋은 ${name} 골라 봤어요.`
+        : mistake === 'question-done' ? `${name} 어떠세요?`
         : mistake === 'long-done' ? `말씀 잘 들었습니다. 오늘 같은 날 일행분들과 함께 편안하게 나눠 드시기 정말 좋은 ${name}를 정성껏 골라 봤어요. 천천히 보시고 마음에 드시면 담아 주세요.`
           : `말씀 듣고 ${name} 골라 봤어요.`;
-      return JSON.stringify({ reply, conditions, mood: null, picks: menus.map((m) => ({ id: m.id, why: '말씀하신 조건에 맞아요', heard: null })), done: true, asking: 'other' });
+      const why = mistake === 'share-single' ? '둘이 나눠 먹기 좋은 메뉴예요' : '말씀하신 조건에 맞아요';
+      return JSON.stringify({ reply, conditions, mood: null, picks: menus.map((m) => ({ id: m.id, why, heard: null })), done: true, asking: 'other' });
     },
   };
 }
