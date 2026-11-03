@@ -92,6 +92,21 @@ describe('scoreConversation (자동 채점)', () => {
     const s = scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 1 }] }, knowledge);
     expect(s.issues).toEqual(['1인분 메뉴를 나눠 먹기로 소개: 유니짜장']);
   });
+  it('나눠 먹기 채점은 서버 검사와 따로, 더 넓게: 이름이 없거나 줄여 불러도("짜장"), "같이 드시기"만 있어도 잡는다', () => {
+    const turns = [{ role: 'user' as const, text: '두 명이요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '없어요' }];
+    const issuesOf = (reply: string, why = '순한 짜장이에요') => {
+      const final = staffReply({
+        reply, done: true, picks: ['noodle-2'], pickReasons: [{ id: 'noodle-2', why, heard: null, review: null }],
+        conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' },
+      });
+      return scoreConversation({ ...base, persona: { ...p, exclude: [] }, final, turns, steps: [{ reply: final.reply, asking: null, done: true, ms: 1 }] }, knowledge).issues;
+    };
+    for (const reply of ['둘이 나눠 먹기 좋은 순한 짜장 골라 봤어요.', '두 분이서 함께 드시기 좋게 골라 봤어요.', '같이 드시기 좋은 유니짜장이에요.']) {
+      expect([reply, issuesOf(reply)]).toEqual([reply, ['1인분 메뉴를 나눠 먹기로 소개: 유니짜장']]);
+    }
+    expect(issuesOf('유니짜장 골라 봤어요.', '다 같이 즐기기 좋은 짜장이에요')).toEqual(['1인분 메뉴를 나눠 먹기로 소개: 유니짜장']);
+    expect(issuesOf('안 맵게 유니짜장을 골라 봤어요. 맛있게 드세요!', '한 분에 하나씩 드시기 좋은 메뉴예요')).toEqual([]);
+  });
   it('조건을 지킨 추천이면 문제 없음, 턴 수·평균 응답 시간도 남긴다', () => {
     // 재료를 묻고(ASKED_EXCLUDE) 종류(면)를 안 뒤의 추천 — 새 채점 규칙(재료·종류 확인 없이 추천)에 걸리지 않게
     const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 2, spicy: 0, kind: '면' } });

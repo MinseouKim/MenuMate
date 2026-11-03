@@ -253,8 +253,7 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
     const dropped = proposed.map(pickId).map((id) => knowledge.byId(id)).filter((m): m is KnowledgeMenu => !!m && !pickReasons.some((p) => p.id === m.id));
     const tooLong = [...reply].length > MAX_REPLY_CHARS;
     const picked = pickReasons.map((p) => knowledge.byId(p.id)!);
-    const sharedSingle = sharesSingle(reply, picked.filter((m) => menuWords(m).some((w) => reply.includes(w))));
-    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name)) || mentionsUnpicked(reply, picked, knowledge) || sharedSingle) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name), { spicy: conditions.spicy, mood });
+    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name)) || mentionsUnpicked(reply, picked, knowledge) || replySharesSingle(reply, picked)) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name), { spicy: conditions.spicy, mood });
   } else if (!reply) {
     reply = PARTY_QUESTION;
   }
@@ -385,11 +384,70 @@ function missingBeforeRecommend(turns: readonly ChatTurn[], c: ChatConditions, p
 }
 const DEFAULT_WHY = '말씀하신 조건에 맞는 메뉴예요';
 const EACH_WHY = '한 분에 하나씩 드시기 좋은 메뉴예요';
-/** 나눠 먹기 표현 ("나눠 먹기", "함께 나눠", "share", "둘이 함께 먹기") */
-const SHARE_TALK = /나눠|나누어|셰어|share|(둘|셋|넷|여럿)이서?\s*(함께|같이)\s*(드시|먹)/i;
-/** 1인분 메뉴를 나눠 먹기로 말하는지. menus: 이 말이 가리키는 메뉴(why면 그 메뉴, reply면 이름이 나온 고른 메뉴). 인분은 menus.json의 servingPeople */
+/** 여럿이 먹는다는 말: 둘이·두 분·2인·다 같이·일행분들과 (앞이 낱말 중간이면 아님: "바다 같이"는 "다"가 아님) */
+const GROUP = '(?<![가-힣A-Za-z0-9])(?:둘|셋|넷|여럿|여러\\s*분|[두세네]\\s*분|[2-9]\\s*(?:인|명|분)|다|모두|가족|일행(?:분)?(?:들)?)';
+/**
+ * 나눠 먹기 표현 ("나눠 먹기", "share", "둘이 함께 먹기", "두 분이서 함께 드시기", "다 같이 드시기", "둘이 함께 즐기기", "2인이 같이 먹기").
+ * "함께·같이"는 여럿이라는 말이 앞에 있을 때만 ("짬뽕과 같이 드시기 좋은 군만두"는 곁들임). "한 분에 하나씩"은 해당 없음
+ */
+const SHARE_TALK = new RegExp(`나눠|나누어|셰어|share|${GROUP}(?:이서|이서도|이|께서|서|과|와|이랑|랑|끼리)?\\s*(?:함께|같이)\\s*(?:\\S+\\s+)?(?:드시|드실|드셔|먹|즐기|즐길|즐겨)`, 'i');
+/** 1인분 메뉴를 나눠 먹기로 말하는지. menus: 이 말이 가리키는 메뉴(why면 그 메뉴). 인분은 menus.json의 servingPeople */
 export function sharesSingle(text: string, menus: readonly KnowledgeMenu[]): boolean {
   return SHARE_TALK.test(text) && menus.some((m) => m.servingPeople <= 1);
+}
+const isSingle = (m: KnowledgeMenu) => m.servingPeople <= 1;
+/** 메뉴를 줄여 부르는 말 ("원심 유니짜장"을 "짜장"으로). 메뉴 이름에 들어 있을 때만 그 메뉴를 가리킨다 */
+const DISH_WORDS = ['짜장', '짬뽕', '볶음밥', '덮밥', '잡탕밥', '탕면', '냉면', '스프', '산라탕', '차우면', '탕수육', '딤섬', '만두', '교자', '소룡포', '쇼마이', '완탕', '춘권', '유린기', '깐풍기', '동파육', '누룽지탕', '베이징덕', '양장피', '팔보채', '잡채', '마파두부'];
+/** text에서 고른 메뉴가 나온 자리. 전체 이름·별칭 먼저, 줄인 말("짜장")은 그 자리와 겹치지 않을 때만 ("모듬 딤섬"의 딤섬이 "딤섬 트리오"로 잡히지 않게) */
+function menuSpots(text: string, picked: readonly KnowledgeMenu[]): { m: KnowledgeMenu; at: number }[] {
+  const spots: { m: KnowledgeMenu; at: number; end: number }[] = [];
+  const add = (m: KnowledgeMenu, words: string[], loose: boolean) => {
+    for (const w of words) for (let at = text.indexOf(w); at >= 0; at = text.indexOf(w, at + 1)) {
+      if (loose && spots.some((s) => at < s.end && at + w.length > s.at)) continue;
+      spots.push({ m, at, end: at + w.length });
+    }
+  };
+  for (const m of picked) add(m, menuWords(m), false);
+  for (const m of picked) add(m, DISH_WORDS.filter((w) => m.name.includes(w)), true);
+  return spots.sort((a, b) => a.at - b.at);
+}
+/** 문장 안 마디 경계: 쉼표, "~고 / ~며 / ~면서 / ~지만 / ~는데" 뒤 ("탕수육은 나눠 드시고 | 짬뽕은 한 분에 하나씩 드세요") */
+const CLAUSE_BREAK = /[,，]\s*|(?<=[가-힣](?:고|며|면서|지만|는데))\s+/;
+/**
+ * 추천 답(reply)이 1인분 메뉴를 나눠 먹기로 소개하는지. 고른 메뉴가 모두 1인분이면 나눠 먹기 말만 나와도 위반(메뉴 이름이 없거나 "짜장"처럼 줄여 불러도).
+ * 섞여 있으면 나눠 먹기 말이 붙은 메뉴를 본다: 같은 마디에서 그 말 뒤에 처음 나온 메뉴("나눠 먹기 좋은 탕수육"), 없으면 앞의 메뉴("탕수육은 나눠 드시고"),
+ * 마디에 메뉴가 없으면 같은 문장의 다음 마디, 그다음 앞 마디. 문장에 메뉴가 없으면 나눠 먹을 메뉴도 골랐으니 넘어간다
+ */
+export function replySharesSingle(reply: string, picked: readonly KnowledgeMenu[]): boolean {
+  if (!SHARE_TALK.test(reply) || !picked.length) return false;
+  if (picked.every(isSingle)) return true;
+  for (const sentence of reply.split(/(?<=[.!?。])\s*/)) {
+    const clauses = sentence.split(CLAUSE_BREAK);
+    const spots = clauses.map((c) => menuSpots(c, picked));
+    for (const [i, clause] of clauses.entries()) {
+      const share = SHARE_TALK.exec(clause);
+      if (!share) continue;
+      const here = spots[i]!;
+      const target = here.find((s) => s.at >= share.index) ?? here.at(-1) ?? spots.slice(i + 1).flat()[0] ?? spots.slice(0, i).flat().at(-1);
+      if (target && isSingle(target.m)) return true;
+    }
+  }
+  return false;
+}
+/**
+ * 1인분 메뉴 why의 나눠 먹기 마디만 덜어 낸다 ("둘이 나눠 먹기 좋은 얼큰한 짬뽕이에요" → "얼큰한 짬뽕이에요").
+ * 나눠 먹기 말 뒤에서 처음으로 꾸밈·이음 꼴(~은/는/고)로 끝나는 낱말까지 앞을 모두 덜고, 남은 말이 두 낱말 이상의 "~요" 문장일 때만. 아니면 null
+ */
+function stripShareClause(why: string): string | null {
+  const share = SHARE_TALK.exec(why);
+  if (!share) return why;
+  const words = why.split(/\s+/);
+  let pos = 0;
+  const shareWord = words.findIndex((w) => (pos += w.length + 1) > share.index);
+  const cut = words.findIndex((w, i) => i > shareWord && /[은는고]$|,$/.test(w));
+  if (shareWord < 0 || cut < 0) return null;
+  const rest = words.slice(cut + 1).join(' ');
+  return words.length - cut - 1 >= 2 && /요$/.test(rest) && !SHARE_TALK.test(rest) ? rest : null;
 }
 export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전복', '관자', '굴', '오징어', '조개'];
 
@@ -434,7 +492,7 @@ function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowl
     if (!m || m.soldOut || out.some((o) => o.id === m.id) || m.ingredients.some((i) => excluded.includes(i)) || (excluded.length && unknown) || (c.spicy === 0 && m.spicy > 0)) continue;
     const raw = typeof p === 'object' && p ? (p as { why?: unknown; heard?: unknown }) : {};
     let why = typeof raw.why === 'string' && raw.why.trim() && !raw.why.includes('?') ? raw.why.trim().slice(0, 40) : DEFAULT_WHY;
-    if (sharesSingle(why, [m])) why = c.party > 1 ? EACH_WHY : DEFAULT_WHY; // 1인분 메뉴를 "나눠 먹기"로 소개하지 않음
+    if (sharesSingle(why, [m])) why = stripShareClause(why) ?? (c.party > 1 ? EACH_WHY : DEFAULT_WHY); // 1인분 메뉴를 "나눠 먹기"로 소개하지 않음 (그 마디만 덜고, 남는 게 없으면 기본 이유)
     const heard = typeof raw.heard === 'string' && raw.heard.trim().length <= 20 && squash(said).includes(squash(raw.heard)) && raw.heard.trim() ? raw.heard.trim() : null;
     out.push({ id: m.id, why, heard, review: m.reviewQuote });
     if (out.length === 3) break;
