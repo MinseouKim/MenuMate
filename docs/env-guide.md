@@ -51,6 +51,7 @@
 | `WEATHER_LAT` / `WEATHER_LON` | `37.3943` / `126.9568` | 날씨를 볼 매장 좌표 (우루루 평촌본점 근처) |
 | `CONTEXT_CROWD_WINDOW_MIN` | `15` | 혼잡도: 최근 N분 결제 완료 주문 수 (D93) |
 | `MENU_DATA_DIR` | `../frontend/src/prototype/menu` | 대화가 읽는 우루루 메뉴·리뷰 데이터 폴더 |
+| `CHAT_RECORD_DIR` | (빈 값 = 기록 안 함) | **로컬 시험 전용.** 값이 있으면 `/api/chat` 호출마다 이 폴더(`backend/` 기준)의 `<KST 날짜>.jsonl`에 대화·요청 조건·응답·걸린 시간을 한 줄씩 남긴다(실패는 `error`). 대화 글자만 남고 키·IP·얼굴·나이·날씨는 남지 않는다. **Render에는 넣지 않는다.** 예: `../eval/live/raw` → `npx tsx backend/scripts/live-cases.ts`로 대화 단위 케이스·채점(`eval/live/`), `... live-cases.ts replay [--offline]`로 지금 코드에 다시 넣어 보기 |
 
 Render에서는 `HOST=0.0.0.0`으로 두고 `PORT`는 Render가 넣어 준다 (`render.yaml`).
 

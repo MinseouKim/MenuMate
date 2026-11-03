@@ -97,6 +97,16 @@ describe('scoreConversation (자동 채점)', () => {
     expect(s.issues).toEqual([]);
     expect(s.ok).toBe(true);
   });
+  it('"N명 이상"이라고 말한 손님은 실제 인원이 N 이상이면 손님 역할 오류가 아니다', () => {
+    const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 4, spicy: 0, kind: '면' } });
+    const turns = [{ role: 'user' as const, text: '네 명 이상이에요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '없어요' }];
+    const step = [{ reply: final.reply, asking: null, done: true, ms: 100 }];
+    const ok = scoreConversation({ ...base, persona: { ...p, party: 5, exclude: [] }, final, turns, steps: step }, knowledge);
+    expect(ok.actorIssues).toEqual([]);
+    expect(ok.issues).toEqual([]);
+    const bad = scoreConversation({ ...base, persona: { ...p, party: 3, exclude: [] }, final, turns, steps: step }, knowledge);
+    expect(bad.actorIssues).toEqual(['손님 역할 오류: 인원을 4명 이상으로 말함']);
+  });
   it('손님이 말한 인원과 직원이 적은 인원이 다를 때만 "인원 틀림" (손님 말 기준, 마지막으로 말한 인원)', () => {
     const final = staffReply({ reply: '유니짜장 골라 봤어요.', done: true, picks: ['noodle-2'], conditions: { ...staffReply({}).conditions, party: 1, spicy: 0, kind: '면' } });
     const turns = [{ role: 'user' as const, text: '한 명, 아니 두 명이요' }, ASKED_EXCLUDE, { role: 'user' as const, text: '아 둘이요' }];

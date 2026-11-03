@@ -216,10 +216,19 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   const userTexts = turns.filter((t) => t.role === 'user').map((t) => t.text);
   // 알레르기 안전: LLM이 빠뜨려도 손님이 직접 말한 빼야 할 재료는 서버가 합친다 (LLM 값은 지우지 않음)
   conditions.exclude = [...new Set([...conditions.exclude, ...userTexts.flatMap(excludeFromSpeech)])];
-  const party = userTexts.map(partyMentioned).filter((n): n is number => n !== null).at(-1) ?? null;
+  const mentions = userTexts.map(partyMention);
+  const lastAt = mentions.findLastIndex((m) => m !== null);
+  const party = lastAt >= 0 ? mentions[lastAt]!.n : null;
   if (party !== null) conditions.party = party; // 손님이 말한 인원이 LLM이 적은 값보다 우선 (오프라인 시험: LLM이 틀린 인원을 그대로 내보냄)
   const forced = userTurns >= MAX_TURNS;
   const mood = MOODS.includes(parsed.mood as Mood) ? (parsed.mood as Mood) : null;
+
+  // "네 명 이상이에요"(7명 미만): 인원을 확정하지 않고 정확히 몇 분인지 한 번만 다시 묻는다 (팀장 요청 2026-11-03).
+  // 이번 손님 말이 "N명 이상"이고 앞에서 "이상"이라고 한 적이 없을 때만. 다시 물은 뒤에는 숫자를 말하면 그 숫자, 아니면 N으로 확정
+  const atLeastBefore = mentions.slice(0, lastAt).some((m) => m?.atLeast && m.n < 7);
+  if (!forced && party !== null && lastAt === userTexts.length - 1 && mentions[lastAt]!.atLeast && party < 7 && !atLeastBefore) {
+    return { reply: exactPartyQuestion(party), conditions, mood, picks: [], pickReasons: [], done: false, asking: 'party', heardSummary: summarize(conditions, false), partyAssumed: false, model: llm.model };
+  }
   let reply = typeof parsed.reply === 'string' && parsed.reply.trim() ? parsed.reply.trim().slice(0, 200) : '';
 
   // 추천(done) 전에 꼭 알아야 할 것을 정한 순서(인원 → 매운맛 → 못 드시는 재료 → 종류)로 확인하고, 빠졌으면 그 질문으로 되돌린다. 강제 종료는 예외
@@ -252,6 +261,9 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
 const PARTY_QUESTION = '몇 분이서 드실 건가요?';
+const NUM_KO = ['', '한', '두', '세', '네', '다섯', '여섯'];
+/** "네 분 이상이시군요. 정확히 몇 분이세요?" (숫자는 TTS가 "4분"을 시간으로 읽지 않게 우리말로) */
+const exactPartyQuestion = (n: number) => `${NUM_KO[n] ?? n} 분 이상이시군요. 정확히 몇 분이세요?`;
 const SPICY_QUESTION = '매운 음식도 잘 드시나요?';
 const EXCLUDE_QUESTION = '알레르기나 채식·종교 때문에 못 드시는 재료 있으세요?';
 const KIND_QUESTION = '면, 밥, 딤섬, 요리 중에 어떤 종류가 좋으세요?';
@@ -366,7 +378,7 @@ export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전�
 
 const PARTY_WORDS: [RegExp, number][] = [
   [/혼자|한\s*(명|분|사람)/, 1], [/둘|두\s*(명|분|사람)/, 2], [/셋|세\s*(명|분|사람)/, 3],
-  [/넷|네\s*(명|분|사람)/, 4], [/다섯/, 5], [/여섯/, 6],
+  [/넷|네\s*(명|분|사람)/, 4], [/다섯/, 5], [/여섯/, 6], [/일곱/, 7], [/여덟/, 8],
   // 한자어 수사는 뒤에 '명'이 붙을 때만 ("이 사람"·"이분"은 this, "오 분"은 5분일 수 있음). '일'은 다른 뜻이 많아 "일 명"을 띄어 말할 때만
   [/(?<![가-힣])일\s+명/, 1], [/(?<![가-힣])이\s*명/, 2], [/(?<![가-힣])삼\s*명/, 3], [/(?<![가-힣])오\s*명/, 5],
   [/(?<![가-힣])육\s*명/, 6], [/(?<![가-힣])칠\s*명/, 7], [/(?<![가-힣])팔\s*명/, 8],
@@ -376,13 +388,19 @@ const PARTY_WORDS: [RegExp, number][] = [
 ];
 /** 손님 말에서 인원. 인원 말이 없으면 null ("1인당 만오천원"의 1인은 인원이 아님). 고쳐 말하면("한 명, 아니 두 명") 마지막에 말한 인원 */
 export function partyMentioned(text: string): number | null {
+  return partyMention(text)?.n ?? null;
+}
+/** 인원 말 바로 뒤의 "이상·넘어요·넘게·보다 많아요" ("네 명 이상이에요", "넷 넘게", "네 명이 넘어요") */
+const AT_LEAST = /^\s*(?:명|분|사람)?\s*(?:이|은|는|가)?\s*(?:이상|넘|보다\s*(?:많|더))/;
+/** 손님 말에서 마지막으로 말한 인원과 그게 "N명 이상" 꼴인지. 인원 말이 없으면 null */
+export function partyMention(text: string): { n: number; atLeast: boolean } | null {
   const t = text.replace(/\d*\s*인\s*당|한\s*사람\s*당/g, ' ');
-  const found: { at: number; n: number }[] = [];
-  for (const m of t.matchAll(/(\d+)\s*(명|분|인(?!분)|people\b|persons?\b|ppl\b)/gi)) found.push({ at: m.index, n: Number(m[1]) });
-  for (const [re, n] of PARTY_WORDS) for (const m of t.matchAll(new RegExp(re.source, `${re.flags}g`))) found.push({ at: m.index, n });
+  const found: { at: number; end: number; n: number }[] = [];
+  for (const m of t.matchAll(/(\d+)\s*(명|분|인(?!분)|people\b|persons?\b|ppl\b)/gi)) found.push({ at: m.index, end: m.index + m[0].length, n: Number(m[1]) });
+  for (const [re, n] of PARTY_WORDS) for (const m of t.matchAll(new RegExp(re.source, `${re.flags}g`))) found.push({ at: m.index, end: m.index + m[0].length, n });
   if (!found.length) return null;
   const last = found.reduce((a, b) => (b.at > a.at ? b : a));
-  return Math.min(8, Math.max(1, last.n));
+  return { n: Math.min(8, Math.max(1, last.n)), atLeast: AT_LEAST.test(t.slice(last.end)) };
 }
 
 const pickId = (p: unknown): string => (typeof p === 'string' ? p : typeof p === 'object' && p && typeof (p as { id?: unknown }).id === 'string' ? (p as { id: string }).id : '');

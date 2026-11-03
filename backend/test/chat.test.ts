@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMentioned, recommendLine, systemPrompt, wantsAnything,
+  askedExclude, askedKind, askingOf, converse, describeContext, excludeFromSpeech, excludeMentioned, extractConditions, geminiClient, GREETING, MAX_TURNS, partyMention, partyMentioned, recommendLine, systemPrompt, wantsAnything,
   type LlmClient,
 } from '../src/chat.js';
 import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
@@ -497,6 +497,57 @@ describe('재료 미확인 메뉴 안전 (Claude 시험 손님 117: 채식 손�
     const [unknownLine, checkedLine] = k.lines();
     expect(unknownLine).toContain('재료: 확인 안 됨');
     expect(checkedLine).not.toContain('확인 안 됨');
+  });
+});
+
+describe('"네 명 이상이에요" → 정확한 인원 한 번 다시 묻기 (2026-11-03 팀장 로컬 키오스크 시험)', () => {
+  type Turn = { role: 'user' | 'assistant'; text: string };
+  const talk = (...lines: string[]): Turn[] => [GREETING, ...lines].map((text, i) => ({ role: i % 2 === 0 ? 'assistant' : 'user', text }));
+  const asking = (o: object = {}) => ({ reply: '매운 음식도 잘 드시나요?', conditions: {}, mood: null, picks: [], done: false, asking: 'spicy', ...o });
+  const chat = (turns: Turn[], o: object = {}) => converse({ llm: fakeLlm(asking(o)), knowledge }, { turns, conditions: {}, context: {} });
+
+  it('partyMention: 인원과 "이상·넘어요·넘게·보다 많아요" 여부', () => {
+    const cases: [string, { n: number; atLeast: boolean } | null][] = [
+      ['네 명 이상이에요', { n: 4, atLeast: true }], ['4명 넘어요', { n: 4, atLeast: true }], ['넷 넘게 왔어요', { n: 4, atLeast: true }],
+      ['네 명보다 많아요', { n: 4, atLeast: true }], ['네 명이 넘어요', { n: 4, atLeast: true }], ['다섯 명 이상', { n: 5, atLeast: true }],
+      ['일곱 명 이상이에요', { n: 7, atLeast: true }], ['일곱 명이요', { n: 7, atLeast: false }], ['여덟 명', { n: 8, atLeast: false }],
+      ['다섯 명이요', { n: 5, atLeast: false }], ['네 명 이상, 아니 여섯 명이요', { n: 6, atLeast: false }], ['매운 거요', null],
+    ];
+    for (const [text, want] of cases) expect([text, partyMention(text)]).toEqual([text, want]);
+  });
+
+  it('"N명 이상"(N<7)이면 인원을 확정하지 않고 정확히 몇 분인지 묻는다 (asking=party, 조건 인원은 N으로 두되 요약 칩엔 안 넣음)', async () => {
+    for (const o of [{}, { done: true, picks: [{ id: 'dimsum-1', why: 'x', heard: null }], reply: '모듬 딤섬 골라 봤어요.' }]) {
+      const res = await chat(talk('네 명 이상이에요'), o);
+      expect(res).toMatchObject({ done: false, asking: 'party', picks: [], partyAssumed: false });
+      expect(res.reply).toMatch(/정확히 몇 분/);
+      expect(res.reply.endsWith('?')).toBe(true);
+      expect([...res.reply].length).toBeLessThanOrEqual(60);
+      expect(res.conditions.party).toBe(4);
+      expect(res.heardSummary ?? '').not.toContain('4명');
+    }
+  });
+  it('다시 물은 뒤 손님이 숫자를 말하면 그 숫자로 확정하고 다음 질문으로 넘어간다', async () => {
+    const res = await chat(talk('네 명 이상이에요', '네 분 이상이시군요. 정확히 몇 분이세요?', '여섯 명이요'));
+    expect(res).toMatchObject({ asking: 'spicy', conditions: { party: 6 } });
+    expect(res.heardSummary).toBe('6명');
+  });
+  it('다시 물었는데 또 "이상"이면 더 묻지 않고 그 N으로 확정 (무한 반복 금지)', async () => {
+    const res = await chat(talk('네 명 이상이에요', '네 분 이상이시군요. 정확히 몇 분이세요?', '다섯 명 이상이요'));
+    expect(res).toMatchObject({ asking: 'spicy', conditions: { party: 5 } });
+  });
+  it('다시 물은 뒤 손님이 숫자 없이 다른 말을 해도 다시 묻지 않고 N으로 확정', async () => {
+    const res = await chat(talk('네 명 이상이에요', '네 분 이상이시군요. 정확히 몇 분이세요?', '음 잘 모르겠어요'));
+    expect(res).toMatchObject({ asking: 'spicy', conditions: { party: 4 } });
+  });
+  it('7명 이상("일곱 명 이상이에요", 프론트 7명 이상 버튼)은 바로 7로 확정', async () => {
+    const res = await chat(talk('일곱 명 이상이에요'));
+    expect(res).toMatchObject({ asking: 'spicy', conditions: { party: 7 } });
+    expect(res.heardSummary).toBe('7명');
+  });
+  it(`${MAX_TURNS}번째 강제 추천이면 다시 묻지 않고 N으로 추천`, async () => {
+    const res = await chat(talk('음', '?', '음', '?', '음', '?', '음', '?', '음', '?', '네 명 이상이에요'), { done: true, picks: [{ id: 'dimsum-1', why: 'x', heard: null }], reply: '모듬 딤섬 골라 봤어요.' });
+    expect(res).toMatchObject({ done: true, conditions: { party: 4 } });
   });
 });
 

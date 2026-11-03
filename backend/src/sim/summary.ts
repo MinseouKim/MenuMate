@@ -7,7 +7,8 @@ import { scoreConversation, type Score } from './score.js';
 /** 직원 쪽이 누구였나: Gemini(실제 서비스와 같은 LLM), 오프라인 fuzz(일부러 실수하는 가짜 LLM, 서버 검사 시험), Claude(팀원이 직접 연기) */
 export type SimMode = 'gemini' | 'offline-fuzz' | 'claude';
 export const SIM_MODES: readonly SimMode[] = ['gemini', 'offline-fuzz', 'claude'];
-export interface SimRow { persona: Persona; score: Score; mode?: SimMode; fuzz?: string }
+/** 요약은 손님 배경만 본다 (실사용 케이스는 '실사용') */
+export interface SimRow { persona: Pick<Persona, 'background'>; score: Score; mode?: SimMode; fuzz?: string }
 const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
 const rate = (part: number, all: number) => (all ? round(part / all) : 0);
 

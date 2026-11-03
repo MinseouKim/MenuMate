@@ -42,6 +42,8 @@ export interface Config {
   crowdWindowMin: number;
   /** 대화·추천이 읽는 우루루 메뉴 데이터 폴더 (menus.json, review/menu_reviews.json) */
   menuDataDir: string;
+  /** 실사용 대화를 기록할 폴더 (CHAT_RECORD_DIR). null이면 기록 안 함(기본). Render에는 넣지 않는다 */
+  chatRecordDir: string | null;
 }
 
 function num(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
@@ -105,5 +107,6 @@ export function loadConfig(env: NodeJS.ProcessEnv, baseDir: string): Config {
     weatherLon: num(env, 'WEATHER_LON', 126.9568),
     crowdWindowMin: int(env, 'CONTEXT_CROWD_WINDOW_MIN', 15),
     menuDataDir: dir('MENU_DATA_DIR', '../frontend/src/prototype/menu'),
+    chatRecordDir: env.CHAT_RECORD_DIR?.trim() ? path.resolve(baseDir, env.CHAT_RECORD_DIR.trim()) : null,
   };
 }
