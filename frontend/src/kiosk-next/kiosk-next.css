@@ -401,12 +401,13 @@ body { display: grid; place-items: center; }
 .kx-rec-b .kx-staff { align-items: center; }
 .kx-rec-b .kx-staff h1 { font-size: calc(var(--f) * 56); line-height: 1.2; }
 .kx-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 20); }
-.kx-card { min-height: calc(var(--u) * 240); padding: calc(var(--u) * 16); border: calc(var(--u) * 3) solid var(--line); border-radius: var(--r-card); background: var(--paper); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 6); transition: transform 120ms; }
-.kx-card strong { font-family: var(--font-display); font-weight: 400; font-size: calc(var(--f) * 84); line-height: 1; color: var(--lacquer); }
-.kx-card span { font-size: calc(var(--f) * 30); font-weight: 800; }
-.kx-card:active:not(:disabled) { transform: scale(.97); background: var(--red); border-color: var(--red); color: var(--paper); box-shadow: 0 0 0 calc(var(--u) * 6) var(--gold); }
-.kx-card:active:not(:disabled) strong { color: var(--paper); }
-.kx-card:disabled { opacity: .5; }
+/* 안 2 선택 카드는 .kx-cards 안에서만 (메뉴판 .kx-card의 가격·사진에 번지지 않게) */
+.kx-cards .kx-card { min-height: calc(var(--u) * 240); padding: calc(var(--u) * 16); border: calc(var(--u) * 3) solid var(--line); border-radius: var(--r-card); background: var(--paper); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 6); transition: transform 120ms; }
+.kx-cards .kx-card strong { font-family: var(--font-display); font-weight: 400; font-size: calc(var(--f) * 84); line-height: 1; color: var(--lacquer); }
+.kx-cards .kx-card span { font-size: calc(var(--f) * 30); font-weight: 800; }
+.kx-cards .kx-card:active:not(:disabled) { transform: scale(.97); background: var(--red); border-color: var(--red); color: var(--paper); box-shadow: 0 0 0 calc(var(--u) * 6) var(--gold); }
+.kx-cards .kx-card:active:not(:disabled) strong { color: var(--paper); }
+.kx-cards .kx-card:disabled { opacity: .5; }
 .kx-photo-card-b.kx-first { border-color: var(--red); border-width: calc(var(--u) * 3); box-shadow: 0 0 0 calc(var(--u) * 6) var(--gold); }
 .kx-rec-b .kx-photo-card { grid-template-columns: calc(var(--u) * 300) minmax(0, 1fr); }
 .kx-rec-b .kx-photo-card h2 { font-size: calc(var(--f) * 40); }
