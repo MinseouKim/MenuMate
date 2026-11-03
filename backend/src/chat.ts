@@ -115,24 +115,28 @@ export function describeContext(ctx: ChatRequest['context']): string {
 /** [고정 지시문(규칙·메뉴 목록), 이번 요청의 상황]. 고정 부분에 상황·턴 수를 넣으면 프롬프트 캐시가 매번 깨진다. */
 export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context'], userTurns: number): [string, string] {
   const stable = [
-    '당신은 중식당 "우루루 평촌본점"의 밝고 친절한 홀 직원입니다. 손님이 메뉴 80개 중에서 고르기 쉽도록 짧게 대화하며 조건을 파악합니다.',
+    '당신은 중식당 "우루루 평촌본점"의 다정하고 센스 있는 홀 직원입니다. 손님과 함께 메뉴 80개 중에서 고르는 짧은 대화를 하며, 손님 말에 공감하고 반응해 마음이 따뜻해지도록 이끌어 갑니다.',
     '',
     '말투 규칙:',
     '- 존댓말, 한 번에 문장 1~2개, 질문은 한 번에 하나만(물음표는 답변 끝에 한 번만). 글자 수 60자 이내.',
     '- asking에는 reply 끝의 질문이 묻는 것을 넣습니다: party(인원), spicy(매운맛), kind(면·밥·딤섬 같은 종류), exclude(못 드시는·빼야 할 재료), other(그 밖, 예/아니요로 답할 질문). 손님 화면에 이 값에 맞는 답 버튼이 뜨므로 reply 질문과 꼭 일치해야 합니다. done=true면 other.',
     '- 첫 인사("우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?")는 화면이 이미 했습니다. 다시 인사하지 말고, 날씨·시간 이야기로 대화를 시작하지 않습니다. 맨 끝의 "지금 상황"은 추천 이유에만 씁니다.',
     '- 인원은 손님이 직접 말해야 압니다. 손님이 인원을 말하지 않았으면 "혼자 오셨군요"처럼 짐작하지 말고 인원 하나만 짧게 묻습니다(done=false). 인원을 알고 손님이 "아무거나", "추천해 줘"라고 하면 종류는 묻지 않습니다(못 드시는 재료를 아직 안 물었으면 그것만 묻고 추천).',
+    '- 자리 안내·서비스·할인처럼 가게가 정하지 않은 약속은 하지 않습니다. done=true일 때 reply에는 picks에 넣은 메뉴 이름만 말합니다.',
     '- 아래 메뉴 목록에 없는 음식·가격·재료는 절대 말하지 않습니다. 알레르기 안전은 보장하지 않으며 재료가 걱정되면 "직원에게 확인해 주세요"라고 안내합니다.',
-    '- 손님이 한 번에 여러 조건을 말하면 들은 것을 짧게 되짚고(예: "두 분, 안 맵게요.") 남은 것만 묻습니다. 매번 같은 말투로 묻지 말고 손님 말에 짧게 맞장구칩니다.',
+    '- reply의 첫머리는 손님이 방금 한 말의 내용을 받은 짧은 반응·공감입니다. 예: "두 분이 오셨군요, 반가워요!", 손님이 피곤하다면 "오늘 고생 많으셨어요. 속 편한 걸로 골라 볼게요", 생일·기념일이면 "생일 축하드려요!". 그다음에 질문 하나를 합니다(60자 안에서).',
+    '- 함께 고르는 느낌을 줍니다(예: "같이 골라 볼까요", "제가 딱 맞는 걸 찾아 드릴게요"). 과장·아부·반말은 하지 않고, 같은 표현(반가워요, 좋아요 등)을 대화에서 되풀이하지 않습니다.',
+    '- mood를 읽었으면 그에 맞는 따뜻한 한마디를 먼저 합니다: tired면 위로, celebrate면 축하, quick이면 "빨리 나오는 걸로 볼게요"처럼.',
+    '- 손님이 한 번에 여러 조건을 말하면 들은 것을 짧게 되짚고(예: "두 분이 안 맵게요, 좋아요.") 남은 것만 묻습니다.',
     '- 손님이 말을 끊으면 직원 말 뒤에 "(끊김)"이 붙습니다. 그 질문은 손님이 다 못 들었을 수 있으니 손님 말을 먼저 따릅니다.',
     '- 손님 말에서 기분을 추정해 mood에 넣습니다: tired(지침·힘듦·위로가 필요), celebrate(기념·모임·기분 좋음), quick(바쁨·빨리), neutral(그 외). 모르면 null.',
     '',
     '조건 파악 순서(손님이 이미 말한 것은 건너뛰고, 한 번에 여러 개 말하면 모두 반영): 인원 → 매운맛 → 못 드시는 재료 → 종류(면/밥/딤섬/요리 등). 예산은 손님이 먼저 말할 때만 반영합니다.',
-    `- 못 드시는 재료: 추천 전에 "${EXCLUDE_QUESTION}"처럼 한 번 묻습니다(asking=exclude). 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
+    `- 못 드시는 재료: 추천 전에 "알레르기나 채식으로 못 드시는 재료 있으세요?"처럼 한 번 묻습니다(asking=exclude). 반응 한마디와 합쳐 60자를 넘지 않게 짧게 묻습니다. 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
     `- done=true 조건: 인원을 알고, 매운맛을 물었거나 손님이 말했고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
     '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. 손님이 빼야 할 재료를 말했으면 재료가 "확인 안 됨"인 메뉴도 고르지 않습니다. 손님이 예산을 말하지 않았으면 3개를 비슷한 가격으로만 고르지 말고 저렴한 메뉴를 하나 이상 섞습니다(예산을 말했으면 1인 예산 안에서). done=false면 picks는 빈 배열.',
     '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "둘이 나눠 먹기 좋은 순한 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
-    '- done=true일 때 reply는 고른 메뉴를 소개하는 평서문으로 끝냅니다. 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
+    '- done=true일 때 reply는 손님이 한 말을 짚어 고른 메뉴를 소개하고 따뜻하게 마무리하는 평서문입니다(예: "안 맵고 든든한 유니짜장으로 골라 봤어요. 맛있게 드세요!"). 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
     '- conditions는 지금까지 파악한 전체 값입니다. 모르는 값: spicy=null, kind="상관없음", texture="상관없음", budget=null, totalBudget=null, exclude=[]. party는 손님이 말한 인원(모르면 1).',
     '- spicy 값: 못 먹음·안 맵게=0, 조금·약간=1, 좋아함·매운 거=2, 아주 매운 거=3, "상관없어요"=null(물어본 것으로 치고 다시 묻지 않음).',
     `- kind는 다음 중 하나 또는 "상관없음": ${knowledge.kinds.join(', ')}. "따뜻한 국물", "나눠 먹을 요리"처럼 종류가 아닌 요구는 kind를 억지로 정하지 말고 "상관없음"으로 두되 picks를 고를 때 반영합니다.`,
@@ -247,12 +251,14 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
   if (done) {
     const dropped = proposed.map(pickId).map((id) => knowledge.byId(id)).filter((m): m is KnowledgeMenu => !!m && !pickReasons.some((p) => p.id === m.id));
     const tooLong = [...reply].length > MAX_REPLY_CHARS;
-    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name))) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name));
+    const picked = pickReasons.map((p) => knowledge.byId(p.id)!);
+    if (!reply || tooLong || reply.includes('?') || dropped.some((m) => reply.includes(m.name)) || mentionsUnpicked(reply, picked, knowledge)) reply = recommendLine(pickReasons.map((p) => knowledge.byId(p.id)!.name), { spicy: conditions.spicy, mood });
   } else if (!reply) {
     reply = PARTY_QUESTION;
   }
   // LLM이 asking을 빠뜨리거나 모르는 값을 주면 reply의 마지막 물음으로 추정 (화면 답 버튼이 맞게 뜨도록)
   const asking = done ? null : ASKINGS.includes(parsed.asking as Asking) ? (parsed.asking as Asking) : askingOf(reply);
+  if (!done && [...reply].length > MAX_REPLY_CHARS) reply = shortenQuestion(reply, asking);
   return {
     reply, conditions, mood, picks: pickReasons.map((p) => p.id), pickReasons, done, asking,
     heardSummary: summarize(conditions, party !== null || partyAssumed), partyAssumed, model: llm.model,
@@ -260,13 +266,15 @@ export async function converse(deps: ChatDeps, req: ChatRequest): Promise<ChatRe
 }
 
 export const GREETING = '우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?';
-const PARTY_QUESTION = '몇 분이서 드실 건가요?';
+// 서버가 대신 쓰는 질문 (2026-11-03 팀장: 친근하고 상호적으로, 마음이 따뜻해지게). 짧은 반응 한마디 뒤에 묻는다.
+// askingOf·askedSpicy·askedExclude·askedKind와 시뮬레이션 채점이 이 문장의 낱말(몇 분·매운·재료·종류)로 판단하므로 낱말은 지킨다 (chat.test.ts)
+const PARTY_QUESTION = '제가 딱 맞는 걸 찾아 드릴게요. 몇 분이서 오셨어요?';
 const NUM_KO = ['', '한', '두', '세', '네', '다섯', '여섯'];
-/** "네 분 이상이시군요. 정확히 몇 분이세요?" (숫자는 TTS가 "4분"을 시간으로 읽지 않게 우리말로) */
-const exactPartyQuestion = (n: number) => `${NUM_KO[n] ?? n} 분 이상이시군요. 정확히 몇 분이세요?`;
-const SPICY_QUESTION = '매운 음식도 잘 드시나요?';
-const EXCLUDE_QUESTION = '알레르기나 채식·종교 때문에 못 드시는 재료 있으세요?';
-const KIND_QUESTION = '면, 밥, 딤섬, 요리 중에 어떤 종류가 좋으세요?';
+/** "네 분 이상이시군요, 반가워요! 정확히 몇 분이세요?" (숫자는 TTS가 "4분"을 시간으로 읽지 않게 우리말로) */
+const exactPartyQuestion = (n: number) => `${NUM_KO[n] ?? n} 분 이상이시군요, 반가워요! 정확히 몇 분이세요?`;
+const SPICY_QUESTION = '좋아요, 같이 골라 볼게요. 매운 음식은 괜찮으세요?';
+const EXCLUDE_QUESTION = '알레르기나 채식·종교 때문에 못 드시는 재료가 있으면 편하게 말씀해 주실래요?';
+const KIND_QUESTION = '맛있는 거 같이 찾아봐요. 면, 밥, 딤섬, 요리 중 어떤 종류가 좋으세요?';
 const QUESTION = { party: PARTY_QUESTION, spicy: SPICY_QUESTION, exclude: EXCLUDE_QUESTION, kind: KIND_QUESTION } as const;
 /** 직원 말 한 번의 글자 수 한도 (TTS로 읽기 좋게, 시뮬레이션 채점 기준과 같음) */
 const MAX_REPLY_CHARS = 60;
@@ -425,14 +433,43 @@ function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowl
 }
 
 const hasBatchim = (word: string) => { const code = word.charCodeAt(word.length - 1) - 0xac00; return code >= 0 && code < 11172 && code % 28 !== 0; };
-const PLAIN_RECOMMEND = '말씀하신 조건으로 골라 봤어요. 화면에서 확인해 주세요.';
-/** 추천할 때 직원이 하는 한 문장. 60자를 넘으면 앞 1~2개 이름 + "등"으로 줄인다 */
-export function recommendLine(names: string[]): string {
-  for (let n = names.length; n >= 1; n--) {
-    const more = n < names.length;
-    const head = names.slice(0, n).join(', ') + (more ? ' 등' : '');
-    const line = `말씀 듣고 ${head}${hasBatchim(more ? '등' : names[n - 1]) ? '을' : '를'} 골라 봤어요. 화면에서 확인해 주세요.`;
-    if ([...line].length <= MAX_REPLY_CHARS) return line;
+/** 메뉴를 부르는 말: 전체 이름, 별칭, 3글자 이상인 마지막 낱말("소고기 우육탕면"의 우육탕면) */
+const menuWords = (m: KnowledgeMenu) => [m.name, ...m.aliases, ...[m.name.split(/\s+/).at(-1) ?? ''].filter((w) => [...w].length >= 3 && w !== m.name)];
+/** 추천 답이 고르지 않은 메뉴를 이름으로 말하는지 (고른 메뉴와 겹치는 낱말은 제외). 실측: 게살스프를 고르고 "우육탕면으로 골라 봤어요" */
+function mentionsUnpicked(reply: string, picked: readonly KnowledgeMenu[], knowledge: MenuKnowledge): boolean {
+  const pickedWords = picked.flatMap(menuWords);
+  return knowledge.menus.some((m) => !picked.includes(m) && menuWords(m).some((w) => reply.includes(w) && !pickedWords.some((p) => p.includes(w))));
+}
+
+/**
+ * 60자를 넘는 질문 답: 앞쪽 반응 문장부터 덜어 내고 마지막 질문은 남긴다 (반응 + 긴 질문이 붙어 80자가 된 적이 있음, 2026-11-03 실측).
+ * 질문 한 문장만으로도 넘으면 같은 걸 묻는 서버 질문으로 바꾼다
+ */
+function shortenQuestion(reply: string, asking: Asking | null): string {
+  const sentences = reply.match(/[^.!?。]+[.!?。]?/g)?.map((x) => x.trim()).filter(Boolean) ?? [reply];
+  while (sentences.length > 1 && [...sentences.join(' ')].length > MAX_REPLY_CHARS) sentences.shift();
+  const out = sentences.join(' ');
+  if ([...out].length <= MAX_REPLY_CHARS) return out;
+  return asking && asking !== 'other' ? QUESTION[asking] : out;
+}
+
+const PLAIN_RECOMMEND = '말씀하신 대로 골라 봤어요. 화면에서 천천히 보세요.';
+const MOOD_LEAD: Partial<Record<Mood, string>> = { tired: '오늘 고생 많으셨어요. ', celebrate: '축하드려요! ' };
+/**
+ * 추천할 때 직원이 하는 말. 손님 기분(지침·축하)과 "안 맵게"를 짚고 "맛있게 드세요!"로 따뜻하게 마무리한다.
+ * 60자를 넘으면 앞 1~2개 이름 + "등"으로 줄이고, 그래도 길면 기분 한마디를 뺀다
+ */
+export function recommendLine(names: string[], opts: { spicy?: number | null; mood?: Mood | null } = {}): string {
+  const moodLead = (opts.mood && MOOD_LEAD[opts.mood]) || '';
+  const spicyLead = opts.spicy === 0 ? '안 맵게 ' : '';
+  for (const lead of moodLead ? [moodLead, ''] : ['']) {
+    const start = lead + (spicyLead || (lead ? '' : '말씀 듣고 '));
+    for (let n = names.length; n >= 1; n--) {
+      const more = n < names.length;
+      const head = names.slice(0, n).join(', ') + (more ? ' 등' : '');
+      const line = `${start}${head}${hasBatchim(more ? '등' : names[n - 1]) ? '을' : '를'} 골라 봤어요. 맛있게 드세요!`;
+      if ([...line].length <= MAX_REPLY_CHARS) return line;
+    }
   }
   return PLAIN_RECOMMEND;
 }

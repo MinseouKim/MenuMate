@@ -551,6 +551,95 @@ describe('"네 명 이상이에요" → 정확한 인원 한 번 다시 묻기 (
   });
 });
 
+describe('따뜻하고 함께 고르는 말투 — 서버가 대신 쓰는 문장 (2026-11-03 팀장: 친근하고 상호적으로, 마음이 따뜻해지게)', () => {
+  type Turn = { role: 'user' | 'assistant'; text: string };
+  const talk = (...lines: string[]): Turn[] => [GREETING, ...lines].map((text, i) => ({ role: i % 2 === 0 ? 'assistant' : 'user', text }));
+  const done = (o: object = {}) => ({ reply: '골랐어요?', conditions: { party: 2 }, mood: null, picks: [{ id: 'dimsum-1', why: '순해요', heard: null }], done: true, asking: 'other', ...o });
+  const chat = (turns: Turn[], o: object = {}) => converse({ llm: fakeLlm(done(o)), knowledge }, { turns, conditions: {}, context: {} });
+  /** 서버가 되돌릴 때 쓰는 질문을 실제 대화에서 꺼낸다 */
+  const questions = async () => ({
+    party: (await chat(talk('아무거나 추천해 주세요'))).reply,
+    exact: (await chat(talk('네 명 이상이에요'), { done: false, asking: 'spicy', reply: '매운 건요?', picks: [] })).reply,
+    spicy: (await chat(talk('둘이요'))).reply,
+    exclude: (await chat(talk('둘이요', '매운 음식은 괜찮으세요?', '네'))).reply,
+    kind: (await chat(talk('둘이요', '매운 음식은 괜찮으세요?', '네', '못 드시는 재료 있으세요?', '없어요'))).reply,
+  });
+
+  it('서버 질문은 짧은 반응·공감 한마디 뒤에 묻는다 (기계적인 "~ 있으세요?" 한 줄이 아님), 재료 질문은 편하게 말해도 된다는 느낌', async () => {
+    const q = await questions();
+    for (const key of ['party', 'exact', 'spicy', 'kind'] as const) expect([key, q[key]]).toEqual([key, expect.stringMatching(/^[^?]+[.!]\s\S[^?]*\?$/)]);
+    expect(q.exclude).toContain('편하게');
+  });
+  it('서버 질문은 길이·물음표 규칙을 지키고, 숫자는 우리말(TTS), asking 추정(askingOf)과 질문 판단(asked*)이 그대로 맞는다', async () => {
+    const q = await questions();
+    for (const [key, text] of Object.entries(q)) {
+      expect([key, [...text].length <= 60, text.split('?').length - 1, /\d/.test(text)]).toEqual([key, true, 1, false]);
+    }
+    expect([askingOf(q.party), askingOf(q.exact), askingOf(q.spicy), askingOf(q.exclude), askingOf(q.kind)]).toEqual(['party', 'party', 'spicy', 'exclude', 'kind']);
+    expect([askedExclude(q.exclude), askedKind(q.kind)]).toEqual([true, true]);
+    // 다른 질문으로 잘못 읽히지 않게
+    expect([askedExclude(q.spicy), askedExclude(q.kind), askedKind(q.spicy), askedKind(q.exclude), /매운|맵/.test(q.exclude), /매운|맵/.test(q.kind)]).toEqual([false, false, false, false, false, false]);
+  });
+  it('서버 질문을 한 번 했으면 다음 턴에 같은 질문을 되풀이하지 않는다 (새 문장도 "물었다"로 인식)', async () => {
+    const q = await questions();
+    const res = await chat(talk('둘이요', q.spicy, '네', q.exclude, '없어요', q.kind, '국물 있는 거요'));
+    expect(res.done).toBe(true);
+  });
+
+  it('질문 답이 60자를 넘으면 앞쪽 반응 문장을 덜어 60자 안으로 줄이고 질문은 남긴다 (반응 한마디가 붙으면서 길어질 수 있음; 실측 Gemini 답은 59자까지 나옴)', async () => {
+    const long = '생일 축하드려요! 조금 매운 건 괜찮으시군요! 알레르기나 채식·종교 때문에 못 드시는 재료가 있으면 편하게 말씀해 주실래요?';
+    const res = await chat(talk('넷이요', '매운 음식은 괜찮으세요?', '조금 매운 건 괜찮아요'), { done: false, asking: 'exclude', reply: long, picks: [] });
+    expect([...res.reply].length).toBeLessThanOrEqual(60);
+    // 필요한 만큼만 덜어 낸다 (가까운 반응 한마디는 남김)
+    expect(res.reply).toBe('조금 매운 건 괜찮으시군요! 알레르기나 채식·종교 때문에 못 드시는 재료가 있으면 편하게 말씀해 주실래요?');
+    expect(res.asking).toBe('exclude');
+  });
+  it('질문 한 문장만으로도 60자를 넘으면 같은 걸 묻는 서버 질문으로 바꾼다, 60자 이내 답은 그대로', async () => {
+    const huge = `${'정말 '.repeat(20)}매운 음식은 괜찮으세요?`;
+    const res = await chat(talk('둘이요'), { done: false, asking: 'spicy', reply: huge, picks: [] });
+    expect([...res.reply].length).toBeLessThanOrEqual(60);
+    expect(res.reply).toMatch(/매운/);
+    const ok = '두 분이 오셨군요, 반가워요! 매운 음식은 괜찮으세요?';
+    expect((await chat(talk('둘이요'), { done: false, asking: 'spicy', reply: ok, picks: [] })).reply).toBe(ok);
+  });
+  it('추천 답이 picks에 없는 메뉴 이름을 말하면 서버 추천 문장으로 바꾼다 (실제 Gemini: 게살스프·유니짜장을 고르고 "우육탕면으로 골라 봤어요")', async () => {
+    const k = fromData([
+      { id: 'noodle-7', name: '소고기 우육탕면', price: 13000, category: 'noodle', kind: '면', spicy: 1, servingPeople: 1, quantityUnit: '1그릇', ingredients: ['소고기'], texture: [] },
+      { id: 'soup-3', name: '옥수수 게살스프', price: 9000, category: 'soup', kind: '스프/탕', spicy: 0, servingPeople: 1, quantityUnit: '1그릇', ingredients: ['게'], texture: [] },
+      { id: 'noodle-1', name: '원심 유니짜장', aliases: ['유니짜장'], price: 8000, category: 'noodle', kind: '면', spicy: 0, servingPeople: 1, quantityUnit: '1그릇', ingredients: ['돼지고기'], texture: [] },
+    ]);
+    const run = (reply: string) => converse(
+      { llm: fakeLlm({ reply, conditions: { party: 1, spicy: 0, kind: '스프/탕' }, mood: 'tired', picks: [{ id: 'soup-3', why: 'a', heard: null }, { id: 'noodle-1', why: 'b', heard: null }], done: true, asking: 'other' }), knowledge: k },
+      { turns: talk('혼자요, 안 맵게요. 따뜻한 국물이요', '못 드시는 재료 있으세요?', '없어요'), conditions: {}, context: {} },
+    ).then((r) => r.reply);
+    const replaced = await run('따뜻한 국물을 찾으시는군요, 몸을 녹여줄 부드러운 우육탕면으로 골라 봤어요. 맛있게 드세요!');
+    expect(replaced).not.toContain('우육탕면');
+    expect(replaced).toContain('옥수수 게살스프');
+    // 고른 메뉴는 이름 일부(게살스프)·별칭(유니짜장)으로 말해도 그대로 둔다
+    const kept = '따뜻한 게살스프랑 순한 유니짜장으로 골라 봤어요. 맛있게 드세요!';
+    expect(await run(kept)).toBe(kept);
+  });
+  it('recommendLine: 손님 말(안 맵게)과 기분(지침·축하)을 짚어 따뜻하게 마무리, 60자 이내 평서문', () => {
+    const plain = recommendLine(['짬뽕', '모듬 딤섬']);
+    expect(plain).toMatch(/맛있게 드세요!$/);
+    expect(recommendLine(['유니짜장'], { spicy: 0 })).toContain('안 맵게');
+    expect(recommendLine(['유니짜장'], { mood: 'tired' })).toMatch(/고생/);
+    expect(recommendLine(['유니짜장'], { mood: 'celebrate' })).toMatch(/축하/);
+    const longNames = ['참깨소스로 맛을 낸 유자향 토마토 샐러드', '바삭하게 튀긴 고추 유린기 반마리', '어향동고새우와 바오번 세트'];
+    for (const opts of [{}, { spicy: 0 }, { mood: 'tired' as const }, { mood: 'celebrate' as const, spicy: 0 }]) {
+      const line = recommendLine(longNames, opts);
+      expect([[...line].length <= 60, line.includes('?')]).toEqual([true, false]);
+    }
+  });
+  it('추천 답을 서버가 바꿀 때(질문으로 끝남) 손님이 말한 안 맵게·기분을 반영한다', async () => {
+    const res = await chat(talk('둘이요, 오늘 너무 피곤해요. 안 맵게 아무거나요', '못 드시는 재료 있으세요?', '없어요'), { mood: 'tired', conditions: { party: 2, spicy: 0 } });
+    expect(res.done).toBe(true);
+    expect(res.reply).toMatch(/고생/);
+    expect(res.reply).toContain('모듬 딤섬');
+    expect(res.reply.includes('?')).toBe(false);
+  });
+});
+
 describe('추천 답 길이 60자 이내 (시뮬레이션에서 추천 답이 60자를 넘음)', () => {
   const long = fromData([
     { id: 'a', name: '참깨소스로 맛을 낸 유자향 토마토 샐러드', price: 9000, category: 'salad', kind: '냉채/샐러드', spicy: 0, servingPeople: 2, quantityUnit: '1접시', ingredients: [], texture: [] },
@@ -589,7 +678,8 @@ describe('추천 답 길이 60자 이내 (시뮬레이션에서 추천 답이 60
       expect(line).toContain(names[0]);
     }
     expect(recommendLine(names)).toContain('등');
-    expect(recommendLine(['짬뽕', '모듬 딤섬'])).toBe('말씀 듣고 짬뽕, 모듬 딤섬을 골라 봤어요. 화면에서 확인해 주세요.');
+    // 따뜻한 마무리로 바뀜 (2026-11-03 팀장 요청). 조사(을/를)는 마지막 이름에 맞춘다
+    expect(recommendLine(['짬뽕', '모듬 딤섬'])).toContain('짬뽕, 모듬 딤섬을 골라 봤어요');
     expect([...recommendLine(['가'.repeat(80)])].length).toBeLessThanOrEqual(60);
   });
 
