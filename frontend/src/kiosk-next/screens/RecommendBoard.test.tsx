@@ -5,10 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 
-const voice = vi.hoisted(() => ({ speaking: '', listeners: new Set<() => void>(), stopSpeaking: vi.fn() }));
+const voice = vi.hoisted(() => ({ speaking: '', listeners: new Set<() => void>(), stopSpeaking: vi.fn(), spoken: [] as string[] }));
 const staffSays = (text: string) => { voice.speaking = text; voice.listeners.forEach(f => f()); };
 vi.mock('../speech', () => ({
-  speak: async () => {},
+  speak: async (text: string) => { voice.spoken.push(text); },
   speakingText: () => voice.speaking,
   stopSpeaking: () => { voice.stopSpeaking(); if (voice.speaking) staffSays(''); },
   onSilence: () => () => {},
@@ -46,7 +46,7 @@ const BLANK = { party: 1, spicy: null, kind: '상관없음', texture: '상관없
 const reply = (r: Partial<ChatReply>): ChatReply => ({ reply: '네!', conditions: BLANK, mood: null, picks: [], done: false, asking: null, ...r });
 
 /** 서버(/api/chat)만 가짜로. 손님이 보낸 문장을 기록하고, 추천은 정해 둔 세 가지를 돌려줍니다. */
-function fakeServer(replies: (ChatReply | Promise<ChatReply>)[]) {
+function fakeServer(replies: (ChatReply | Promise<ChatReply>)[], results: Recommendation[] = RESULTS) {
   const sent: string[] = [];
   const recommender: Recommender = {
     ...defaultRecommender,
@@ -56,16 +56,17 @@ function fakeServer(replies: (ChatReply | Promise<ChatReply>)[]) {
       if (last?.role === 'user') sent.push(last.text);
       return (await replies.shift()) ?? null;
     },
-    recommend: () => RESULTS,
+    recommend: () => results,
   };
   return { recommender, sent };
 }
 
-async function startChat(recommender: Recommender, opts: { large?: boolean; advanceTimers?: (ms: number) => void } = {}) {
+async function startChat(recommender: Recommender, opts: { large?: boolean; voice?: boolean; advanceTimers?: (ms: number) => void } = {}) {
   const user = userEvent.setup(opts.advanceTimers ? { advanceTimers: opts.advanceTimers } : {});
   const view = render(<KioskNext catalog={catalog} recommender={recommender} />);
   if (opts.large) await user.click(screen.getByRole('button', { name: '글자 크게' }));
   await user.click(screen.getByRole('button', { name: /말로 추천 받아 주문/ }));
+  if (opts.voice) await user.click(screen.getByRole('button', { name: /음성 안내/ }));
   await user.click(screen.getByRole('button', { name: '말로 추천받기 시작' }));
   return { user, rerender: (el: ReactElement = <KioskNext catalog={catalog} recommender={recommender} />) => view.rerender(el) };
 }
@@ -77,7 +78,7 @@ beforeAll(() => {
   HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
 });
 beforeEach(() => {
-  voice.speaking = ''; voice.listeners.clear(); voice.stopSpeaking.mockClear();
+  voice.speaking = ''; voice.listeners.clear(); voice.stopSpeaking.mockClear(); voice.spoken = [];
   Object.assign(mic, { listening: true, heard: '', error: '', notice: '', off: false });
   mic.stop.mockClear(); mic.resume.mockClear();
 });
@@ -205,5 +206,29 @@ describe('주문 확인 보드 · 추천 결과', () => {
     expect(screen.queryByRole('button', { name: '해물짬뽕 2개 담기' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '다른 추천 보기' }));
     expect(screen.getByRole('button', { name: '해물짬뽕 2개 담기' })).toBeInTheDocument();
+  });
+
+  // 2026-11-03 백엔드 안전 규칙: 빼는 재료가 있으면 재료가 확인 안 된 메뉴는 추천하지 않음 → 채식·알레르기 손님은 추천이 빌 수 있음
+  it('빼는 재료를 말했는데 추천이 없으면, 재료 확인 중이라 안내하고 직원 호출·조건 고치기·메뉴판을 보인다 (음성 안내도 같은 뜻)', async () => {
+    const vegan = reply({ reply: '골라 볼게요.', conditions: { ...BLANK, party: 2, exclude: ['고기', '해산물'] }, done: true, heardSummary: '2명 · 고기·해산물 빼고' });
+    const { user } = await startChat(fakeServer([vegan], []).recommender, { voice: true });
+    await user.click(screen.getByRole('button', { name: '두 명이에요' }));
+    expect(await screen.findByText('재료를 확인 중인 메뉴가 많아 바로 추천하기 어려워요. 직원에게 물어봐 주세요.')).toBeInTheDocument();
+    expect(screen.queryByText(/현재 조건에 맞는 조합이 없어요/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '조건 고치기' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '메뉴판에서 고르기' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '더 이야기하기' })).not.toBeInTheDocument();
+    expect(voice.spoken.at(-1)).toContain('재료를 확인 중인 메뉴가 많아 바로 추천하기 어려워요');
+    await user.click(screen.getByRole('button', { name: '직원에게 물어보기' }));
+    expect(screen.getByRole('dialog')).toHaveTextContent('도움이 필요하세요?');
+    expect(within(screen.getByRole('dialog')).getByRole('button', { name: '직원 호출하기' })).toBeInTheDocument();
+  });
+
+  it('빼는 재료 없이 추천이 없으면 예전처럼 조건을 고치라고만 안내한다', async () => {
+    const { user } = await startChat(fakeServer([{ ...DONE, conditions: { ...BLANK, party: 2 } }], []).recommender, { voice: true });
+    await user.click(screen.getByRole('button', { name: '두 명이에요' }));
+    expect(await screen.findByText('현재 조건에 맞는 조합이 없어요. 조건을 수정해 주세요.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '직원에게 물어보기' })).not.toBeInTheDocument();
+    expect(voice.spoken.at(-1)).toBe('조건에 맞는 메뉴가 없어요. 조건을 바꿔 주세요.');
   });
 });

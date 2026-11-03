@@ -7,7 +7,7 @@ import { explain } from '../../prototype/parse';
 import { EXCLUDE_OPTIONS, EXCLUDE_WORDS, KIND_OPTIONS, KIND_WORDS } from '../../prototype/recommendation';
 import { askingOf, recommendLayout, type Asking } from '../layout';
 import type { ChatState } from '../session';
-import { lastAssistant, type Kiosk } from '../useKiosk';
+import { lastAssistant, NEEDS_STAFF_CHECK, needsStaffCheck, type Kiosk } from '../useKiosk';
 import { useSpeechInput } from '../useSpeechInput';
 import { onSpeakingChange, speakingText, stopSpeaking } from '../speech';
 import { Photo } from '../ui/Photo';
@@ -631,7 +631,9 @@ function ResultsBoard({ kiosk }: { kiosk: Kiosk }) {
   const { state, act } = kiosk;
   const { results, conditions: c, chat } = state;
   const [more, setMore] = useState(false);
-  const canTalk = !chat.failed && chat.turns.length > 0;
+  // 빼는 재료가 있어 추천이 비면 직원 확인으로 안내합니다. 이때는 "더 이야기하기" 대신 조건 고치기.
+  const staffCheck = needsStaffCheck(state);
+  const canTalk = !chat.failed && chat.turns.length > 0 && !staffCheck;
   const [first, ...rest] = results;
   const showRest = rest.length > 0 && (!state.prefs.large || more);
   const review = first ? first.talk?.review ?? (kiosk.catalog.reviews(first.main.id)?.reviews[0]?.summary ?? null) : null;
@@ -639,7 +641,7 @@ function ResultsBoard({ kiosk }: { kiosk: Kiosk }) {
     <div className="kx-page kx-board kx-board-result">
       <div className="kx-board-top">
         <span className="kx-board-store">{STORE}</span>
-        <h1 className="kx-board-title">들은 대로 골랐어요</h1>
+        <h1 className="kx-board-title">{staffCheck ? '직원 확인이 필요해요' : '들은 대로 골랐어요'}</h1>
       </div>
       <div className="kx-board-chips" role="group" aria-label="들은 조건 (누르면 고치기)">
         {heardChips(c, chat).map((t, i) => <button key={`${i}-${t}`} type="button" className="kx-chip" onClick={() => act.go('review')}>{t}</button>)}
@@ -658,6 +660,11 @@ function ResultsBoard({ kiosk }: { kiosk: Kiosk }) {
             <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={() => act.takeResult(first)}>이걸로 담기</button>
           </div>
         </article>
+      ) : staffCheck ? (
+        <section className="kx-board-staffcheck" aria-label="직원 확인 안내">
+          <p>{NEEDS_STAFF_CHECK}</p>
+          <button type="button" className="kx-btn kx-btn-primary kx-pick1-take" onClick={() => act.open({ kind: 'help' })}>직원에게 물어보기</button>
+        </section>
       ) : EMPTY}
       {showRest && (
         <ul className="kx-pick-rest" aria-label="다른 추천">

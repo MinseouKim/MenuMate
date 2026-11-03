@@ -50,12 +50,19 @@ function narration(s: SessionState, catalog: Catalog, total: number): string {
     review: `${s.conditions.party}명으로 이해했어요. 맞으면 추천해 주세요 버튼을 눌러 주세요.`,
     results: s.results.length
       ? `추천 메뉴 ${s.results.length}가지예요. ${s.results.map((r, i) => `${i + 1}번, ${r.lines.map(l => `${nameOf(l.id)} ${l.quantity}개`).join(', ')}, ${money(r.total)}.`).join(' ')}`
-      : '조건에 맞는 메뉴가 없어요. 조건을 바꿔 주세요.',
+      : needsStaffCheck(s) ? `${NEEDS_STAFF_CHECK} 직원에게 물어보기 버튼을 누르면 직원을 불러요.` : '조건에 맞는 메뉴가 없어요. 조건을 바꿔 주세요.',
     payment: `결제 금액은 ${money(total)}이에요. 결제 방법을 선택해 주세요.`,
     done: s.order ? `주문이 완료되었어요. 주문 번호 ${Number(s.order.number)}번이에요.` : '주문이 완료되었어요.',
   };
   return by[s.screen];
 }
+
+/**
+ * 빼는 재료를 말했는데 추천이 하나도 없을 때. 재료 목록이 확인 안 된 메뉴는 알레르기·채식 안전 때문에 추천하지 않으므로
+ * (백엔드와 recommendation.ts unknown() 같은 규칙, 2026-11-03) 조건을 고치라고 하기보다 직원에게 묻게 합니다.
+ */
+export const NEEDS_STAFF_CHECK = '재료를 확인 중인 메뉴가 많아 바로 추천하기 어려워요. 직원에게 물어봐 주세요.';
+export const needsStaffCheck = (s: Pick<SessionState, 'results' | 'conditions'>) => s.results.length === 0 && s.conditions.exclude.length > 0;
 
 /** 대화 중 직원 AI의 마지막 말. 대화가 실패했거나 아직 없으면 null */
 export function lastAssistant(s: SessionState): string | null {
