@@ -5,7 +5,8 @@ import { CameraIcon } from '../ui/art';
 
 // 시작 화면을 채우는 사진 다섯 장. 네이버 플레이스에서 받은 고해상도(가로 1400) 중 가로로 긴 사진만 골라 요리 → 딤섬 → 면 순으로 둡니다.
 // 세로로 긴 사진(동파육·우육탕면 등)은 위아래가 많이 잘려 시작 화면에는 쓰지 않습니다. 출처: menu/PHOTO_SOURCES.md
-const COVER_PHOTOS = ['duck-fish-1', 'seafood-1', 'dimsum-7', 'chicken-4', 'noodle-4'];
+// 첫 장은 베이징덕 대신 고추 유린기(2026-11-03 팀장 요청). 세로 사진이라 기준점(menuImages.ts)으로 음식이 보이게 자릅니다.
+const COVER_PHOTOS = ['chicken-1', 'seafood-1', 'dimsum-7', 'chicken-4', 'noodle-4'];
 const SLIDE_MS = 6000;
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
