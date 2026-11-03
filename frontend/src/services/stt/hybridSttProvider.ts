@@ -47,7 +47,7 @@ export class HybridSttProvider implements SttProvider {
     if (s.local) { void loadWhisper().catch(() => undefined); return; }
 
     this.web.start({
-      onInterim: t => { if (!s.local) cb.onInterim?.(t); },
+      onInterim: (t, final) => { if (!s.local) cb.onInterim?.(t, final); },
       onResult: t => { if (!s.local) { clearTimeout(s.watchdog); cb.onResult(t); } },
       onError: (message, code) => {
         if (s.local) return;

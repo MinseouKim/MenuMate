@@ -17,6 +17,21 @@ export function endpointDelay(text: string, large = false): number {
 
 const norm = (s: string) => s.replace(/[\s.,!?…~'"“”‘’·]/g, '');
 
+/** 말을 맺은 끝말 (인식기가 확정했을 때만 씀): "~요", "~다", "~까", "~죠", 인원 답 "~명" */
+const COMPLETE = /(요|다|까|죠|명|분)$/;
+/** 확정(final)된 말이 이만큼 짧으면("셋", "네", "혼자") 끝말과 관계없이 완결 답으로 봅니다 */
+const SHORT_ANSWER = 4;
+/**
+ * 인식기가 들은 말을 모두 확정(final)했을 때 몇 ms 뒤 넘길지 (2026-11-03 팀장: "말이 끝나면 바로").
+ * 말을 맺은 꼴이나 짧은 답이면 0.25초(큰 글씨 +0.2초), 이어질 꼴이거나 맺지 않은 긴 말이면 예전 끝말 대기(endpointDelay).
+ */
+export function finalDelay(text: string, large = false): number {
+  const t = text.trim().replace(/[.!?…~,\s]+$/, '');
+  if (!t || CONTINUING.test(t)) return endpointDelay(t, large);
+  if (COMPLETE.test(t) || norm(t).length <= SHORT_ANSWER) return 250 + (large ? 200 : 0);
+  return endpointDelay(t, large);
+}
+
 /**
  * 직원 음성이 나오는 동안 들린 말이 그 음성 자체(스피커 → 마이크)인지.
  * 지금 읽는 문장에 없는 글자가 2자(긴 말은 5분의 1)를 넘으면 손님 말로 봅니다. 브라우저가 메아리를 조금 잘못 알아들어도 견딥니다.

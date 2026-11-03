@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dropPrefix, endpointDelay, isEcho, stripEcho } from './listening';
+import { dropPrefix, endpointDelay, finalDelay, isEcho, stripEcho } from './listening';
 
 describe('endpointDelay (말끝 감지)', () => {
   it('"~요/주세요"로 끝나면 0.7초, "그리고/음"처럼 이어 갈 말이면 1.4초, 그 밖은 1초 (인식 지연 감안)', () => {
@@ -46,5 +46,21 @@ describe('dropPrefix (메아리 스냅샷 뒤만 남기기)', () => {
   it('스냅샷으로 시작하지 않거나 스냅샷이 없으면 그대로 둔다', () => {
     expect(dropPrefix('셋이요', '몇 분이 셨어요')).toBe('셋이요');
     expect(dropPrefix('두 명이에요', '')).toBe('두 명이에요');
+  });
+});
+
+describe('finalDelay (인식기가 문장을 확정했을 때 바로 넘기기, 2026-11-03 팀장 요청)', () => {
+  it('말을 맺은 꼴(…요/…다/…까/…죠)이나 짧은 완결 답(숫자 인원·네)이면 0.25초', () => {
+    for (const t of ['두 명이에요', '혼자 왔어요', '괜찮습니다', '이거 맵나요', '맛있겠죠', '셋', '네', '두 명']) expect(finalDelay(t)).toBe(250);
+  });
+  it('큰 글씨 모드(고령 손님)는 0.2초 더', () => {
+    expect(finalDelay('두 명이에요', true)).toBe(450);
+  });
+  it('이어질 꼴("그리고/랑/하고/근데/음/어")이거나 길게 끝나지 않은 말이면 예전처럼 끝말 대기', () => {
+    expect(finalDelay('짬뽕 하나랑')).toBe(endpointDelay('짬뽕 하나랑'));
+    expect(finalDelay('음')).toBe(endpointDelay('음'));
+    expect(finalDelay('두 명인데 근데')).toBe(endpointDelay('두 명인데 근데'));
+    expect(finalDelay('매운 거 잘 못 먹는 아이도 같이')).toBe(endpointDelay('매운 거 잘 못 먹는 아이도 같이'));
+    expect(finalDelay('짬뽕 하나랑', true)).toBe(endpointDelay('짬뽕 하나랑', true));
   });
 });

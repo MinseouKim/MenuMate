@@ -137,6 +137,55 @@ describe('useSpeechInput 핸즈프리 (2026-11-03 설계 4-1)', () => {
     expect(stt.calls.start).toBe(2);
   });
 
+  // ── 2026-11-03 팀장 요청: 말이 끝나면 바로 인식해서 자연스럽게 ──
+  it('인식기가 문장을 확정(final)했고 말을 맺은 꼴이면 0.25초 만에 넘기고 끝낸다 (끝 결과를 기다리지 않음)', async () => {
+    const stt = fakeStt();
+    const { hook, onResult } = await listen({ handsFree: true, provider: stt.provider });
+    act(() => stt.say().onInterim!('두 명이에요', true));
+    act(() => { vi.advanceTimersByTime(249); });
+    expect(onResult).not.toHaveBeenCalled();
+    act(() => { vi.advanceTimersByTime(1); });
+    expect(onResult).toHaveBeenCalledWith('두 명이에요');
+    expect(stt.calls.stop).toBe(1);
+    expect(hook.result.current.heard).toBe(''); // 자막은 비워 손님 말풍선(대화 기록)으로 넘어가게
+  });
+
+  it('바로 넘긴 뒤 늦게 온 끝 결과는 두 번 넘기지 않고, 그 사이 덧붙은 말만 이어서 넘긴다', async () => {
+    const stt = fakeStt();
+    const { onResult } = await listen({ handsFree: true, provider: stt.provider });
+    act(() => stt.say().onInterim!('두 명이에요', true));
+    act(() => { vi.advanceTimersByTime(250); });
+    act(() => stt.say().onResult('두 명이에요 아이 하나'));
+    expect(onResult.mock.calls).toEqual([['두 명이에요'], ['아이 하나']]);
+    const again = fakeStt();
+    const second = await listen({ handsFree: true, provider: again.provider });
+    act(() => again.say().onInterim!('셋이요', true));
+    act(() => { vi.advanceTimersByTime(250); });
+    act(() => again.say().onResult('셋이요'));
+    expect(second.onResult.mock.calls).toEqual([['셋이요']]);
+  });
+
+  it('final이어도 이어질 꼴("…랑")이면 예전처럼 길게 기다린다', async () => {
+    const stt = fakeStt();
+    const { onResult } = await listen({ handsFree: true, provider: stt.provider });
+    act(() => stt.say().onInterim!('짬뽕 하나랑', true));
+    act(() => { vi.advanceTimersByTime(1399); });
+    expect(stt.calls.stop).toBe(0);
+    expect(onResult).not.toHaveBeenCalled();
+    act(() => { vi.advanceTimersByTime(1); });
+    expect(stt.calls.stop).toBe(1);
+  });
+
+  it('직원이 말하는 중 끼어들기로 확정되기 전에는 final이어도 넘기지 않는다 (메아리·기침 회귀 방지)', async () => {
+    const stt = fakeStt();
+    speech.speaking = '몇 분이서 오셨어요?';
+    const { onResult } = await listen({ handsFree: true, provider: stt.provider });
+    act(() => stt.say().onInterim!('흐음 켁', true));
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(onResult).not.toHaveBeenCalled();
+    expect(stt.calls.stop).toBe(0);
+  });
+
   it('마이크 끄기: 듣기를 멈추고 저절로 다시 듣지 않으며, 켜면 다시 듣는다', async () => {
     const stt = fakeStt();
     const { hook } = await listen({ handsFree: true, provider: stt.provider });

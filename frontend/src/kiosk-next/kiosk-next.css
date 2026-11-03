@@ -501,6 +501,22 @@ button.kx-tile { cursor: pointer; }
 .kx-board-reply { min-height: calc(var(--u) * 144); padding: calc(var(--u) * 12); border: calc(var(--u) * 4) solid var(--lacquer); border-radius: calc(var(--u) * 28); background: var(--paper); color: var(--lacquer); font-size: calc(var(--f) * 34); font-weight: 700; line-height: 1.25; word-break: keep-all; transition: transform 120ms; }
 .kx-board-reply:active { transform: scale(.97); background: var(--red); border-color: var(--red); color: var(--paper); }
 
+/* "직접 말할게요": 답 버튼 줄 아래 전폭 버튼(높이 112). 누르면 같은 자리에 큰 "듣고 있어요" 판과 실시간 자막 */
+.kx-board-speak { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 16); min-height: calc(var(--u) * 112); padding: calc(var(--u) * 12) calc(var(--u) * 24); border: calc(var(--u) * 4) dashed var(--lacquer); border-radius: calc(var(--u) * 28); background: var(--tint); color: var(--lacquer); font-size: calc(var(--f) * 38); font-weight: 800; }
+.kx-board-speak svg, .kx-board-direct-icon svg { width: calc(var(--u) * 48); height: calc(var(--u) * 48); flex: none; }
+.kx-board-speak:active { transform: scale(.98); background: var(--lacquer); color: var(--ivory); }
+.kx-board-direct { display: flex; flex-direction: column; gap: calc(var(--u) * 16); }
+.kx-board-direct-panel { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 16); min-height: calc(var(--u) * 260); padding: calc(var(--u) * 32); border-radius: calc(var(--u) * 32); background: var(--lacquer); color: var(--ivory); box-shadow: 0 0 0 calc(var(--u) * 6) var(--gold); text-align: center; }
+.kx-board-direct-icon { color: var(--gold); }
+.kx-board-direct-icon svg { width: calc(var(--u) * 64); height: calc(var(--u) * 64); animation: kx-blink 1.6s ease-in-out infinite; }
+.kx-board-direct-panel strong { font-size: calc(var(--f) * 48); font-weight: 900; line-height: 1.3; }
+.kx-board-direct-panel q { font-size: calc(var(--f) * 44); font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.kx-board-direct-panel q.is-interim::after { content: '…”'; }
+.kx-board-direct-cancel { align-self: center; min-height: calc(var(--u) * 88); padding: 0 calc(var(--u) * 36); border: calc(var(--u) * 3) solid var(--lacquer); border-radius: 999px; background: var(--paper); color: var(--lacquer); font-size: calc(var(--f) * 32); font-weight: 700; }
+.kx.contrast .kx-board-speak { background: #fff; border-color: #000; color: #000; }
+.kx.contrast .kx-board-direct-panel { background: #000; color: #fff; box-shadow: 0 0 0 calc(var(--u) * 6) #fff; }
+.kx.contrast .kx-board-direct-icon { color: #fff; }
+
 /* 아래 글자 링크(누르는 높이는 72) */
 .kx-board-links { display: flex; justify-content: space-between; gap: calc(var(--u) * 20); }
 .kx-board-links button { min-height: calc(var(--u) * 72); padding: 0 calc(var(--u) * 8); border: 0; background: none; color: var(--red); font-size: calc(var(--f) * 32); font-weight: 700; text-decoration: underline; text-underline-offset: calc(var(--u) * 6); }

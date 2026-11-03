@@ -42,7 +42,7 @@ export class WebSpeechSttProvider implements SttProvider {
         if (r.isFinal) finals += r[0]?.transcript ?? "";
         else interim += r[0]?.transcript ?? "";
       }
-      callbacks.onInterim?.(`${finals}${interim}`.trim());
+      callbacks.onInterim?.(`${finals}${interim}`.trim(), interim.trim() === "" && finals.trim() !== "");
     };
     recognition.onerror = (event) => {
       // 사용자가 끝내기 전에 잠깐 조용했던 것은 오류가 아닙니다(끝날 때 들은 내용이 없으면 안내).

@@ -6,7 +6,7 @@ import { microphoneGranted, requestMicrophone } from '../prototype/media';
 import { usage } from '../prototype/usage';
 import { HybridSttProvider } from '../services/stt/hybridSttProvider';
 import type { SttCallbacks } from '../services/stt/types';
-import { dropPrefix, endpointDelay, isEcho, stripEcho } from './listening';
+import { dropPrefix, endpointDelay, finalDelay, isEcho, stripEcho } from './listening';
 import { onSilence, speakingText, stopSpeaking } from './speech';
 
 /** 끝내기를 잊어도 계속 듣지 않도록 이 시간이 지나면 스스로 끝냅니다. 핸즈프리는 손님이 말을 시작한 뒤 8초. */
@@ -49,6 +49,8 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
   const staffHeard = useRef(false);
   /** 손님이 말을 시작했는지(메아리 아닌 중간 결과). 8초 제한을 이때부터 잽니다 */
   const spoke = useRef(false);
+  /** 이번 듣기에서 이미 넘긴 손님 말. 인식기가 확정한 말은 끝 결과를 기다리지 않고 바로 넘기므로, 늦게 온 끝 결과에서 이만큼을 뺍니다 */
+  const delivered = useRef('');
   const endpoint = useRef<ReturnType<typeof setTimeout>>(undefined);
   const restart = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [listening, setListening] = useState(false);
@@ -102,8 +104,16 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
     stt.stop();
   }
 
-  /** 들은 말에서 손님 말만: 메아리 스냅샷 뒤를 잘라 내고, 원래 직원 문장 조각을 한 번 더 덜어 냅니다 */
-  const customerPart = (text: string) => stripEcho(dropPrefix(text, echoSnap.current), echoOf.current);
+  /** 들은 말에서 손님 말만: 메아리 스냅샷 뒤를 잘라 내고, 원래 직원 문장 조각을 한 번 더 덜어 냅니다. 이미 넘긴 말도 뺍니다 */
+  const customerPart = (text: string) => dropPrefix(stripEcho(dropPrefix(text, echoSnap.current), echoOf.current), delivered.current);
+
+  /** 손님 말을 넘깁니다. 자막은 비워 화면이 바로 손님 말풍선(대화 기록)을 보이게 합니다 */
+  function deliver(said: string) {
+    delivered.current = [delivered.current, said].filter(Boolean).join(' ');
+    usage.count('voiceOk');
+    setHeard('');
+    resultRef.current(said);
+  }
 
   /** 손님이 말을 시작했으면 그때부터 8초 */
   function startedSpeaking(token: number) {
@@ -117,7 +127,7 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
    * 핸즈프리 중간 결과. 직원이 말하는 중이면 메아리는 스냅샷으로 기억하고 무시하며,
    * 메아리가 아닌 말이 연달아 들려야 끼어들기로 보고 직원 말을 멈춥니다. 그 밖에는 자막을 보이고 말끝 타이머를 다시 잽니다.
    */
-  function heardSoFar(text: string, token: number) {
+  function heardSoFar(text: string, token: number, final = false) {
     const spoken = speakingText();
     if (spoken) {
       staffHeard.current = true;
@@ -134,7 +144,14 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
     if (said) startedSpeaking(token);
     setHeard(said);
     clearTimeout(endpoint.current);
-    endpoint.current = setTimeout(() => { if (current(token)) finish(); }, endpointDelay(said || text, optsRef.current.large));
+    const large = optsRef.current.large;
+    // 인식기가 확정했고 말을 맺은 꼴이면 0.25초 만에 그 말을 바로 넘기고 끝냅니다(끝 결과를 기다리지 않음). 그 밖에는 예전처럼 끝말 대기 뒤 끝냅니다.
+    const quick = final && !!said && finalDelay(said, large) < endpointDelay(said, large);
+    endpoint.current = setTimeout(() => {
+      if (!current(token)) return;
+      if (quick) deliver(said);
+      finish();
+    }, quick ? finalDelay(said, large) : endpointDelay(said || text, large));
   }
 
   async function start() {
@@ -157,7 +174,7 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
     busy.current = true;
     const token = ++epoch.current;
     setError(''); setNotice(''); setHeard(''); setListening(true);
-    echoSnap.current = ''; echoOf.current = ''; streak.current = 0; bargedIn.current = false; staffHeard.current = false; spoke.current = false;
+    echoSnap.current = ''; echoOf.current = ''; streak.current = 0; bargedIn.current = false; staffHeard.current = false; spoke.current = false; delivered.current = '';
     usage.count('voiceTries');
     clearTimeout(limit.current);
     // 핸즈프리는 조용히 기다리는 시간을 빼고, 손님이 말을 시작한 뒤부터 8초를 잽니다(startedSpeaking). 그 전에는 안전장치로 20초.
@@ -165,11 +182,14 @@ export function useSpeechInput(onResult: (text: string) => void, opts: SpeechInp
     const end = () => { clearTimeout(limit.current); clearTimeout(endpoint.current); setNotice(''); setListening(false); busy.current = false; };
     try {
       stt.start({
-        onInterim: text => { if (!current(token)) return; if (handsFree) heardSoFar(text, token); else setHeard(text); },
+        onInterim: (text, final) => { if (!current(token)) return; if (handsFree) heardSoFar(text, token, final); else setHeard(text); },
         onResult: text => {
           if (!current(token)) return;
-          const said = handsFree ? customerPart(text) : text;
-          if (said.trim()) { usage.count('voiceOk'); resultRef.current(said); }
+          if (!handsFree) { if (text.trim()) { usage.count('voiceOk'); resultRef.current(text); } return; }
+          const said = customerPart(text);
+          // 바로 넘긴 말이 있는데 끝 결과가 그 말로 시작하지 않으면(인식기가 고쳐 들음) 두 번 넘기지 않습니다
+          if (delivered.current && said === stripEcho(dropPrefix(text, echoSnap.current), echoOf.current).trim()) return;
+          if (said.trim()) deliver(said);
         },
         onError: (message, code) => {
           if (!current(token)) return;

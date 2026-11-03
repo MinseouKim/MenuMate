@@ -22,10 +22,12 @@ const mic = vi.hoisted(() => ({
   listening: true, heard: '', error: '', notice: '', off: false,
   start: vi.fn(), stop: vi.fn(), resume: vi.fn(), toggle: vi.fn(), finish: vi.fn(),
 }));
-vi.mock('../useSpeechInput', () => ({ useSpeechInput: () => ({ ...mic }) }));
+const useSpeechInputMock = vi.hoisted(() => vi.fn((_onResult: (text: string) => void, _opts?: unknown) => ({ ...mic })));
+vi.mock('../useSpeechInput', () => ({ useSpeechInput: useSpeechInputMock }));
 vi.mock('../layout', async importOriginal => ({ ...(await importOriginal<typeof import('../layout')>()), recommendLayout: 'board' }));
 
 import KioskNext from '../KioskNext';
+import { answerChoices } from './Recommend';
 import { createCatalog } from '../catalog';
 import { defaultRecommender, type Recommender } from '../recommender';
 import type { ChatReply, Menu, Recommendation } from '../types';
@@ -80,7 +82,7 @@ beforeAll(() => {
 beforeEach(() => {
   voice.speaking = ''; voice.listeners.clear(); voice.stopSpeaking.mockClear(); voice.spoken = []; voice.chime.mockClear();
   Object.assign(mic, { listening: true, heard: '', error: '', notice: '', off: false });
-  mic.stop.mockClear(); mic.resume.mockClear();
+  mic.stop.mockClear(); mic.resume.mockClear(); mic.start.mockClear();
 });
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
@@ -153,6 +155,84 @@ describe('주문 확인 보드 · 대화 화면', () => {
     rerender();
     await user.click(screen.getByRole('button', { name: '마이크 켜기' }));
     expect(mic.resume).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── 2026-11-03 오후 팀장 요청 ──
+describe('정확한 인원 다시 묻기 ("네 명 이상" 뒤)', () => {
+  it('인원을 묻는데 직전 손님 말에 "이상/넘어요/넘게"가 있으면 네·다섯·여섯·일곱 명 이상 버튼(안2 카드는 4/5/6/7+)', () => {
+    const exact = ['네 명이에요', '다섯 명이에요', '여섯 명이에요', '일곱 명 이상이에요'];
+    expect(answerChoices('party', '네 명 이상이에요').replies).toEqual(exact);
+    expect(answerChoices('party', '열 명 넘게 왔어요').replies).toEqual(exact);
+    expect(answerChoices('party', '다섯 명 넘어요').cards.map(c => c.big)).toEqual(['4', '5', '6', '7+']);
+    expect(answerChoices('party', '다섯 명 넘어요').cards.map(c => c.say)).toEqual(exact);
+    expect(answerChoices('party', '두 명이에요').replies).toEqual(['혼자 왔어요', '두 명이에요', '세 명이에요', '네 명 이상이에요']);
+    expect(answerChoices('party', null).replies[0]).toBe('혼자 왔어요');
+    expect(answerChoices('spicy', '네 명 이상이에요').replies[0]).toBe('매운 건 못 먹어요');
+  });
+
+  it('보드: "네 명 이상이에요" 뒤 다시 인원을 물으면 정확한 인원 버튼을 보이고, 인원 칸은 확정(✓) 대신 지금 묻는 중', async () => {
+    const { recommender, sent } = fakeServer([reply({ reply: '정확히 몇 분이세요?', conditions: { ...BLANK, party: 4 }, asking: 'party' })]);
+    const { user } = await startChat(recommender);
+    await user.click(screen.getByRole('button', { name: '네 명 이상이에요' }));
+    const five = await screen.findByRole('button', { name: '다섯 명이에요' });
+    for (const t of ['네 명이에요', '여섯 명이에요', '일곱 명 이상이에요']) expect(screen.getByRole('button', { name: t })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '혼자 왔어요' })).not.toBeInTheDocument();
+    expect(row('인원')).toHaveClass('is-asking');
+    expect(row('인원')).toHaveTextContent('지금 묻는 중…');
+    expect(within(row('인원')).queryByLabelText('확인됨')).not.toBeInTheDocument();
+    await user.click(five);
+    expect(sent).toEqual(['네 명 이상이에요', '다섯 명이에요']);
+  });
+});
+
+describe('직접 말할게요 (버튼 답이 안 맞을 때 자기 말로)', () => {
+  it('누르면 읽던 직원 말을 멈추고, 꺼진 마이크를 켜고, 크게 "듣고 있어요" 안내와 실시간 자막을 보인다', async () => {
+    mic.off = true; mic.listening = false;
+    const { user, rerender } = await startChat(fakeServer([]).recommender);
+    act(() => staffSays('몇 분이서 오셨어요?'));
+    await user.click(screen.getByRole('button', { name: '직접 말할게요' }));
+    expect(voice.stopSpeaking).toHaveBeenCalled();
+    expect(mic.resume).toHaveBeenCalledTimes(1);
+    const panel = screen.getByRole('status', { name: '직접 말하기' });
+    expect(panel).toHaveTextContent('듣고 있어요. 편하게 말씀해 주세요');
+    expect(screen.queryByRole('button', { name: '직접 말할게요' })).not.toBeInTheDocument();
+    Object.assign(mic, { off: false, listening: true, heard: '짜장 두 개' });
+    rerender();
+    expect(within(screen.getByRole('status', { name: '직접 말하기' })).getByText('짜장 두 개')).toBeInTheDocument();
+  });
+
+  it('마이크가 켜져 있는데 듣고 있지 않으면 듣기를 시작한다', async () => {
+    mic.listening = false;
+    const { user } = await startChat(fakeServer([]).recommender);
+    mic.start.mockClear();
+    await user.click(screen.getByRole('button', { name: '직접 말할게요' }));
+    expect(mic.start).toHaveBeenCalled();
+    expect(mic.resume).not.toHaveBeenCalled();
+  });
+
+  it('8초 동안 말이 없으면 원래 화면(답 버튼)으로 돌아간다', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { user } = await startChat(fakeServer([]).recommender, { advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole('button', { name: '직접 말할게요' }));
+    act(() => { vi.advanceTimersByTime(7900); });
+    expect(screen.getByRole('status', { name: '직접 말하기' })).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(200); });
+    expect(screen.queryByRole('status', { name: '직접 말하기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '직접 말할게요' })).toBeInTheDocument();
+  });
+
+  it('손님 말이 넘어가면(대화에 손님 말이 더해지면) 안내를 닫고 그 말을 손님 말풍선으로 보인다', async () => {
+    const { user } = await startChat(fakeServer([new Promise<ChatReply>(() => {})]).recommender);
+    await user.click(screen.getByRole('button', { name: '직접 말할게요' }));
+    await user.click(screen.getByRole('button', { name: '버튼으로 답할게요' }));
+    expect(screen.queryByRole('status', { name: '직접 말하기' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '직접 말할게요' }));
+    // 핸즈프리가 손님 말을 넘기는 것을 흉내 냅니다: useSpeechInput 에 넘긴 onResult(= act.submit)를 직접 부름
+    const submit = vi.mocked(useSpeechInputMock).mock.calls.at(-1)![0];
+    act(() => submit('짜장 두 개요'));
+    expect(screen.queryByRole('status', { name: '직접 말하기' })).not.toBeInTheDocument();
+    expect(screen.getByText('짜장 두 개요', { selector: '.kx-board-me q' })).toBeInTheDocument();
   });
 });
 
