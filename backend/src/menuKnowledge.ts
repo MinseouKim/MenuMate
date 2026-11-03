@@ -19,6 +19,8 @@ export interface KnowledgeMenu {
   keywords: string[];
   aliases: string[];
   soldOut?: boolean;
+  /** 재료 목록을 사람이 확인했는지. 목록이 비어 있고 이 값이 없으면 '들어간 게 없음'이 아니라 '아직 확인 안 됨' (menus.json) */
+  ingredientsChecked?: boolean;
   /** 리뷰에서 뽑은 키워드 (menu_reviews.json) */
   reviewKeywords: string[];
   /** 리뷰 한 줄 (요약 우선) */
@@ -87,6 +89,7 @@ export function fromData(raw: RawMenu[], reviews: Map<string, RawReviews['menus'
             `${m.servingPeople}인분(${m.quantityUnit})`,
           ];
           if (m.ingredients.length) parts.push(`재료: ${m.ingredients.join(',')}`);
+          else if (!m.ingredientsChecked) parts.push('재료: 확인 안 됨');
           if (m.texture.length) parts.push(`식감: ${m.texture.join(',')}`);
           if (m.badge) parts.push(m.badge);
           if (m.reviewKeywords.length) parts.push(`리뷰: ${m.reviewKeywords.join(',')}`);

@@ -123,17 +123,19 @@ export function systemPrompt(knowledge: MenuKnowledge, ctx: ChatRequest['context
     '- 첫 인사("우루루 평촌본점에 어서 오세요! 몇 분이서 오셨어요?")는 화면이 이미 했습니다. 다시 인사하지 말고, 날씨·시간 이야기로 대화를 시작하지 않습니다. 맨 끝의 "지금 상황"은 추천 이유에만 씁니다.',
     '- 인원은 손님이 직접 말해야 압니다. 손님이 인원을 말하지 않았으면 "혼자 오셨군요"처럼 짐작하지 말고 인원 하나만 짧게 묻습니다(done=false). 인원을 알고 손님이 "아무거나", "추천해 줘"라고 하면 종류는 묻지 않습니다(못 드시는 재료를 아직 안 물었으면 그것만 묻고 추천).',
     '- 아래 메뉴 목록에 없는 음식·가격·재료는 절대 말하지 않습니다. 알레르기 안전은 보장하지 않으며 재료가 걱정되면 "직원에게 확인해 주세요"라고 안내합니다.',
+    '- 손님이 한 번에 여러 조건을 말하면 들은 것을 짧게 되짚고(예: "두 분, 안 맵게요.") 남은 것만 묻습니다. 매번 같은 말투로 묻지 말고 손님 말에 짧게 맞장구칩니다.',
     '- 손님이 말을 끊으면 직원 말 뒤에 "(끊김)"이 붙습니다. 그 질문은 손님이 다 못 들었을 수 있으니 손님 말을 먼저 따릅니다.',
     '- 손님 말에서 기분을 추정해 mood에 넣습니다: tired(지침·힘듦·위로가 필요), celebrate(기념·모임·기분 좋음), quick(바쁨·빨리), neutral(그 외). 모르면 null.',
     '',
     '조건 파악 순서(손님이 이미 말한 것은 건너뛰고, 한 번에 여러 개 말하면 모두 반영): 인원 → 매운맛 → 못 드시는 재료 → 종류(면/밥/딤섬/요리 등). 예산은 손님이 먼저 말할 때만 반영합니다.',
     `- 못 드시는 재료: 추천 전에 "${EXCLUDE_QUESTION}"처럼 한 번 묻습니다(asking=exclude). 손님이 이미 재료를 말했거나, 이미 물어서 손님이 답했으면("없어요" 포함) 다시 묻지 않습니다.`,
     `- done=true 조건: 인원을 알고, 매운맛을 물었거나 손님이 말했고, 못 드시는 재료를 물었거나 손님이 말했고, 종류를 알거나 손님이 "아무거나", "추천해 줘"라고 했을 때만 done=true. 종류를 모르면 추천하지 말고 종류를 묻습니다. 손님 발화가 ${MAX_TURNS}번째이면 무조건 done=true.`,
-    '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. done=false면 picks는 빈 배열.',
+    '- done=true일 때 picks에 메뉴 1~3개를 추천 순서대로 넣습니다(목록의 id만). 손님이 대화에서 한 말에 가장 맞는 것을 1순위로 고르고, 상황·리뷰 키워드는 그다음 근거입니다. 빼 달라는 재료나 매운 메뉴(안 맵게를 원할 때)는 고르지 않습니다. 손님이 빼야 할 재료를 말했으면 재료가 "확인 안 됨"인 메뉴도 고르지 않습니다. 손님이 예산을 말하지 않았으면 3개를 비슷한 가격으로만 고르지 말고 저렴한 메뉴를 하나 이상 섞습니다(예산을 말했으면 1인 예산 안에서). done=false면 picks는 빈 배열.',
     '- picks의 각 항목: id, why(이 메뉴를 고른 이유 한 문장, 40자 이내, 물음표 없음, 예: "둘이 나눠 먹기 좋은 순한 짜장이에요"), heard(그 이유가 된 손님 말을 대화에서 그대로 옮긴 20자 이내 구절, 예: "둘이서 안 맵게". 손님이 그런 말을 안 했으면 null).',
     '- done=true일 때 reply는 고른 메뉴를 소개하는 평서문으로 끝냅니다. 질문으로 끝내지 않습니다(화면이 바로 추천 결과로 넘어가 손님이 답할 수 없음).',
-    '- conditions는 지금까지 파악한 전체 값입니다. 모르는 값: spicy=null, kind="상관없음", texture="상관없음", budget=null, totalBudget=null, exclude=[]. party는 손님이 말한 인원(모르면 1). spicy는 0(안 매움)~3(아주 매움).',
-    `- kind는 다음 중 하나 또는 "상관없음": ${knowledge.kinds.join(', ')}.`,
+    '- conditions는 지금까지 파악한 전체 값입니다. 모르는 값: spicy=null, kind="상관없음", texture="상관없음", budget=null, totalBudget=null, exclude=[]. party는 손님이 말한 인원(모르면 1).',
+    '- spicy 값: 못 먹음·안 맵게=0, 조금·약간=1, 좋아함·매운 거=2, 아주 매운 거=3, "상관없어요"=null(물어본 것으로 치고 다시 묻지 않음).',
+    `- kind는 다음 중 하나 또는 "상관없음": ${knowledge.kinds.join(', ')}. "따뜻한 국물", "나눠 먹을 요리"처럼 종류가 아닌 요구는 kind를 억지로 정하지 말고 "상관없음"으로 두되 picks를 고를 때 반영합니다.`,
     '',
     '메뉴 목록 (id | 이름 | 종류 | 가격 | 맵기 | 인분 | 재료 | 식감 | 표시 | 리뷰 키워드):',
     ...knowledge.lines(),
@@ -365,13 +367,19 @@ export const SEAFOOD = ['해산물', '새우', '생선', '게', '해삼', '전�
 const PARTY_WORDS: [RegExp, number][] = [
   [/혼자|한\s*(명|분|사람)/, 1], [/둘|두\s*(명|분|사람)/, 2], [/셋|세\s*(명|분|사람)/, 3],
   [/넷|네\s*(명|분|사람)/, 4], [/다섯/, 5], [/여섯/, 6],
+  // 한자어 수사는 뒤에 '명'이 붙을 때만 ("이 사람"·"이분"은 this, "오 분"은 5분일 수 있음). '일'은 다른 뜻이 많아 "일 명"을 띄어 말할 때만
+  [/(?<![가-힣])일\s+명/, 1], [/(?<![가-힣])이\s*명/, 2], [/(?<![가-힣])삼\s*명/, 3], [/(?<![가-힣])오\s*명/, 5],
+  [/(?<![가-힣])육\s*명/, 6], [/(?<![가-힣])칠\s*명/, 7], [/(?<![가-힣])팔\s*명/, 8],
+  // 영어 (관광객). one은 "this one"과 겹쳐 person/people이 붙을 때만
+  [/\bjust\s+me\b|\bonly\s+me\b|\bby\s+myself\b|\balone\b|\bone\s+(person|people)\b/i, 1],
+  [/\btwo\b/i, 2], [/\bthree\b/i, 3], [/\bfour\b/i, 4], [/\bfive\b/i, 5], [/\bsix\b/i, 6], [/\bseven\b/i, 7], [/\beight\b/i, 8],
 ];
 /** 손님 말에서 인원. 인원 말이 없으면 null ("1인당 만오천원"의 1인은 인원이 아님). 고쳐 말하면("한 명, 아니 두 명") 마지막에 말한 인원 */
 export function partyMentioned(text: string): number | null {
   const t = text.replace(/\d*\s*인\s*당|한\s*사람\s*당/g, ' ');
   const found: { at: number; n: number }[] = [];
-  for (const m of t.matchAll(/(\d+)\s*(명|분|인)(?!분)/g)) found.push({ at: m.index, n: Number(m[1]) });
-  for (const [re, n] of PARTY_WORDS) for (const m of t.matchAll(new RegExp(re.source, 'g'))) found.push({ at: m.index, n });
+  for (const m of t.matchAll(/(\d+)\s*(명|분|인(?!분)|people\b|persons?\b|ppl\b)/gi)) found.push({ at: m.index, n: Number(m[1]) });
+  for (const [re, n] of PARTY_WORDS) for (const m of t.matchAll(new RegExp(re.source, `${re.flags}g`))) found.push({ at: m.index, n });
   if (!found.length) return null;
   const last = found.reduce((a, b) => (b.at > a.at ? b : a));
   return Math.min(8, Math.max(1, last.n));
@@ -380,14 +388,15 @@ export function partyMentioned(text: string): number | null {
 const pickId = (p: unknown): string => (typeof p === 'string' ? p : typeof p === 'object' && p && typeof (p as { id?: unknown }).id === 'string' ? (p as { id: string }).id : '');
 const squash = (s: string) => s.replace(/\s+/g, '');
 
-/** 판매 중이고 조건(빼는 재료, 안 맵게)을 지키는 메뉴만, 손님 말 인용(heard)은 실제로 한 말일 때만 */
+/** 판매 중이고 조건(빼는 재료, 안 맵게)을 지키는 메뉴만. 빼는 재료가 있으면 재료가 확인 안 된 메뉴(빈 목록, 확인 표시 없음)도 뺀다 (프론트 recommendation.ts unknown()과 같음), 손님 말 인용(heard)은 실제로 한 말일 때만 */
 function checkPicks(proposed: unknown[], c: ChatConditions, knowledge: MenuKnowledge, said: string): PickReason[] {
   const excluded = c.exclude.flatMap((x) => (x === '해산물' ? SEAFOOD : [x]));
   if (excluded.some((x) => SEAFOOD.includes(x))) excluded.push('해산물'); // '해물'로만 적힌 메뉴도 함께 뺀다
   const out: PickReason[] = [];
   for (const p of proposed) {
     const m = knowledge.byId(pickId(p));
-    if (!m || m.soldOut || out.some((o) => o.id === m.id) || m.ingredients.some((i) => excluded.includes(i)) || (c.spicy === 0 && m.spicy > 0)) continue;
+    const unknown = m && m.ingredients.length === 0 && !m.ingredientsChecked;
+    if (!m || m.soldOut || out.some((o) => o.id === m.id) || m.ingredients.some((i) => excluded.includes(i)) || (excluded.length && unknown) || (c.spicy === 0 && m.spicy > 0)) continue;
     const raw = typeof p === 'object' && p ? (p as { why?: unknown; heard?: unknown }) : {};
     const why = typeof raw.why === 'string' && raw.why.trim() && !raw.why.includes('?') ? raw.why.trim().slice(0, 40) : DEFAULT_WHY;
     const heard = typeof raw.heard === 'string' && raw.heard.trim().length <= 20 && squash(said).includes(squash(raw.heard)) && raw.heard.trim() ? raw.heard.trim() : null;

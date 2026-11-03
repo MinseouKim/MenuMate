@@ -56,7 +56,8 @@ function honest(knowledge: MenuKnowledge, userTexts: string[], asked: string[], 
   const kindKnown = kind !== '상관없음' || userTexts.some(wantsAnything) || asked.some(askedKind);
   const next: keyof typeof QUESTIONS | null = party === null ? 'party' : !spicyKnown ? 'spicy' : !excludeKnown ? 'exclude' : !kindKnown ? 'kind' : null;
   const conditions = { party: party ?? 1, spicy, kind, texture: '상관없음', exclude, budget: null, totalBudget: null };
-  const fits = (m: KnowledgeMenu, ex: string[]) => !m.soldOut && !m.ingredients.some((i) => ex.includes(i)) && !(spicy === 0 && m.spicy > 0);
+  // 빼는 재료가 있으면 재료가 확인 안 된 메뉴도 고르지 않음 (서버 checkPicks와 같은 규칙)
+  const fits = (m: KnowledgeMenu, ex: string[]) => !m.soldOut && !m.ingredients.some((i) => ex.includes(i)) && !(ex.length && m.ingredients.length === 0 && !m.ingredientsChecked) && !(spicy === 0 && m.spicy > 0);
   const choose = (ex: string[]) => {
     // 손님마다 다른 메뉴가 나오게 메뉴 순서를 seed만큼 돌린다 (늘 앞쪽의 순한 메뉴만 고르면 매운맛 구멍이 안 보임)
     const k = knowledge.menus.length ? seed % knowledge.menus.length : 0;

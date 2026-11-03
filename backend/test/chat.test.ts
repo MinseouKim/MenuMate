@@ -8,7 +8,8 @@ import { fromData, loadMenuKnowledge } from '../src/menuKnowledge.js';
 const knowledge = fromData(
   [
     { id: 'noodle-1', name: '짬뽕', price: 11000, category: 'noodle', kind: '면', spicy: 2, servingPeople: 1, quantityUnit: '1그릇', ingredients: ['해산물', '돼지고기'], texture: [], keywords: ['짬뽕'] },
-    { id: 'dimsum-1', name: '모듬 딤섬', price: 19500, category: 'dimsum', kind: '딤섬', spicy: 0, servingPeople: 3, quantityUnit: '8개입', ingredients: [], texture: [], badge: '대표' },
+    // 재료 확인됨(빼야 할 재료 없음). 확인 안 된 빈 재료 목록이면 빼는 재료가 있을 때 추천에서 빠진다 (아래 '재료 미확인 메뉴' 테스트)
+    { id: 'dimsum-1', name: '모듬 딤섬', price: 19500, category: 'dimsum', kind: '딤섬', spicy: 0, servingPeople: 3, quantityUnit: '8개입', ingredients: [], ingredientsChecked: true, texture: [], badge: '대표' },
     { id: 'soup-1', name: '산라탕', price: 15000, category: 'soup', kind: '스프/탕', spicy: 1, servingPeople: 2, quantityUnit: '1그릇', ingredients: ['계란', '두부'], texture: [], soldOut: true },
   ],
   new Map([['dimsum-1', { id: 'dimsum-1', keywords: ['부드러움', '육즙', '최고·강추'], reviews: [{ quote: '소룡포 육즙이 가득해요', summary: '육즙 가득' }] }]]),
@@ -472,6 +473,33 @@ describe('오프라인 서버 검사 시험에서 나온 구멍 3가지 (2026-11
   });
 });
 
+describe('재료 미확인 메뉴 안전 (Claude 시험 손님 117: 채식 손님에게 재료 목록이 빈 메뉴가 추천됨)', () => {
+  const k = fromData([
+    { id: 'unknown-1', name: '소룡포', price: 9000, category: 'dimsum', kind: '딤섬', spicy: 0, servingPeople: 1, quantityUnit: '4개', ingredients: [], texture: [] },
+    { id: 'checked-1', name: '야채 교자', price: 8000, category: 'dimsum', kind: '딤섬', spicy: 0, servingPeople: 1, quantityUnit: '6개', ingredients: [], ingredientsChecked: true, texture: [] },
+    { id: 'known-1', name: '새우 하가우', price: 9000, category: 'dimsum', kind: '딤섬', spicy: 0, servingPeople: 1, quantityUnit: '4개', ingredients: ['새우'], texture: [] },
+  ]);
+  const picks = ['unknown-1', 'checked-1', 'known-1'].map((id) => ({ id, why: '좋아요', heard: null }));
+  const run = (userText: string, exclude: string[]) => converse(
+    { llm: fakeLlm({ reply: '골라 봤어요.', conditions: { party: 1, spicy: 0, kind: '딤섬', exclude }, mood: null, picks, done: true, asking: 'other' }), knowledge: k },
+    { turns: [{ role: 'assistant', text: GREETING }, { role: 'user', text: userText }], conditions: {}, context: {} },
+  );
+
+  it('빼야 할 재료가 있으면 재료 목록이 비어 있고 확인 표시가 없는 메뉴는 뺀다 (프론트 recommendation.ts unknown()과 같은 규칙)', async () => {
+    const res = await run('혼자요, 안 맵게 딤섬으로, 새우는 빼 주세요', ['새우']);
+    expect(res.picks).toEqual(['checked-1']);
+  });
+  it('빼야 할 재료가 없으면 재료 미확인 메뉴도 추천할 수 있다', async () => {
+    const res = await run('혼자요, 안 맵게 딤섬으로, 못 먹는 거 없어요', []);
+    expect(res.picks).toEqual(['unknown-1', 'checked-1', 'known-1']);
+  });
+  it('메뉴 목록 한 줄에 재료가 확인 안 된 메뉴는 그렇다고 적는다 (LLM이 재료 없음으로 오해하지 않게)', () => {
+    const [unknownLine, checkedLine] = k.lines();
+    expect(unknownLine).toContain('재료: 확인 안 됨');
+    expect(checkedLine).not.toContain('확인 안 됨');
+  });
+});
+
 describe('추천 답 길이 60자 이내 (시뮬레이션에서 추천 답이 60자를 넘음)', () => {
   const long = fromData([
     { id: 'a', name: '참깨소스로 맛을 낸 유자향 토마토 샐러드', price: 9000, category: 'salad', kind: '냉채/샐러드', spicy: 0, servingPeople: 2, quantityUnit: '1접시', ingredients: [], texture: [] },
@@ -540,6 +568,22 @@ describe('partyMentioned', () => {
       ['혼자 왔어요', 1], ['저 혼자요', 1], ['두 명이에요', 2], ['둘이요', 2], ['둘이서 왔어요', 2], ['세 명이에요', 3], ['셋이요, 애기 하나 있어요', 3],
       ['넷이서 왔고 아이가 있어요', 4], ['네 명 이상이에요', 4], ['4명이요', 4], ['다섯 명', 5],
       ['매운 거 좋아요', null], ['네, 좋아요', null], ['아무거나 추천해 주세요', null], ['1인당 만오천원이요', null],
+    ];
+    for (const [text, want] of cases) expect([text, partyMentioned(text)]).toEqual([text, want]);
+  });
+  it('영어로 말한 인원 (Claude 시험 손님 116 "Five people... 오 명?"을 못 읽어 인원 질문으로 되돌아감)', () => {
+    const cases: [string, number | null][] = [
+      ['Five people', 5], ['five', 5], ['5 people', 5], ['Just me', 1], ['just me, thanks', 1], ['two of us', 2], ['One person', 1], ['Three persons', 3],
+      ['eight', 8], ['Two people, two명이에요', 2], ['We are four', 4],
+      ['this one please', null], ['someone recommend', null], ['anyone? 추천해 주세요', null], ['Not really... A little bit spicy is okay.', null],
+    ];
+    for (const [text, want] of cases) expect([text, partyMentioned(text)]).toEqual([text, want]);
+  });
+  it('한자어 수사 인원 "이 명·삼 명·오 명·육 명·칠 명·팔 명", "일 명"은 정확히일 때만. 뒤에 명이 없으면 인원이 아님', () => {
+    const cases: [string, number | null][] = [
+      ['Five people... 오 명?', 5], ['이 명이요', 2], ['삼 명', 3], ['오명이에요', 5], ['육 명', 6], ['칠 명이요', 7], ['팔 명', 8], ['일 명이요', 1],
+      ['이 사람이 매운 거 못 먹어요', null], ['오 분만 기다려 주세요', null], ['이거 주세요', null], ['일이 많아서 빨리요', null], ['오징어 빼 주세요', null],
+      ['삼선짬뽕 주세요', null], ['이분이 계산해요', null], ['칠리새우요', null],
     ];
     for (const [text, want] of cases) expect([text, partyMentioned(text)]).toEqual([text, want]);
   });
